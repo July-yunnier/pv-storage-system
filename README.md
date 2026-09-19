@@ -32,6 +32,28 @@
 
 首版聚焦单站点、峰谷分时电价、15 分钟粒度、规则式调度、基础曲线看板和可复现的示例数据。现货电价、机器学习预测、线性规划、多站点和生产级权限体系作为后续扩展。
 
+## 当前开发状态
+
+第一轮后端闭环已完成：
+
+- FastAPI 服务骨架和健康检查
+- SQLite 站点、价目和测量数据存储
+- 站点创建、查询、修改
+- 光伏/负荷/SOC/电网测量数据上传
+- TOU 电价 Provider
+- 规则式日调度和 SOC 计算
+- 2 个单元/API 流程测试
+
+本地运行：
+
+```powershell
+Set-Location backend
+python -m unittest discover -s tests -p "test_*.py" -v
+python run.py
+```
+
+启动后访问 <http://127.0.0.1:8000/docs> 查看 OpenAPI 文档。
+
 ## 重要原则
 
 1. 规划和运行共享统一的价格、SOC、功率和收益口径。
