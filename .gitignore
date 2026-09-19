@@ -1,0 +1,47 @@
+# ---- 数据与模型：体积大，不进仓库 ----
+data/
+models/
+*.hdf5
+*.npy
+*.pt
+*.pth
+*.pkl
+*.joblib
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# ---- Jupyter ----
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ---- 日志与临时文件 ----
+*.log
+tmp/
+.cache/
+
+# ---- 系统 ----
+.DS_Store
+Thumbs.db
+
+# ---- 敏感信息（绝不入库）----
+.env
+.env.*
+*.key
+secrets.yaml
+credentials.json
+
+# ---- 本地站点配置 ----
+# config/site.yaml 由 site.example.yaml 复制而来，含实际项目参数。
+# 接真实项目后请保持忽略，避免客户信息进入版本历史。
+config/site.yaml

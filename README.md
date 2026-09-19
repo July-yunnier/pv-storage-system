@@ -1,0 +1,155 @@
+# 光储协同优化系统
+
+面向**工商业用户**的光伏 + 储能协同优化系统：融合光伏功率预测与电价预测，
+输出储能容量配置方案与日充放电调度策略。
+
+---
+
+## 仓库定位
+
+| 项目 | 说明 |
+|---|---|
+| **服务对象** | 工商业用户（有本地负荷、有需量电费） |
+| **核心能力** | ①储能容量规划（配多大、几年回本）　②日调度策略（今天怎么充放） |
+| **电价机制** | 峰谷分时为主，现货市场可切换/叠加（Provider 可插拔） |
+| **部署形态** | Web 看板 + REST API + 方案报告导出 |
+
+设计文档见 [`docs/系统设计.md`](docs/系统设计.md)。
+
+---
+
+## 目录结构
+
+```
+光储系统/
+├── config/                     配置文件（换地点只改这里）
+│   ├── site.example.yaml       示例站点：江苏某产业园，1MWp 光伏
+│   └── tariff/                 省级电价模板
+│       └── jiangsu.yaml
+├── src/
+│   ├── models/                 数据模型（Site / PricePoint / Forecast / Schedule）
+│   ├── tariff/                 电价 Provider（tou / spot / tou_plus_spot）
+│   ├── forecast/               预测引擎（光伏 / 负荷 / 电价）
+│   ├── optimizer/              优化内核
+│   │   ├── core.py             目标函数 + 约束（规划与调度共用）
+│   │   ├── dispatch.py         日调度
+│   │   └── sizing.py           容量规划
+│   └── api/                    FastAPI 接口层
+├── scripts/                    数据处理与批处理脚本
+├── tests/
+├── data/                       运行时数据（gitignore）
+├── models/                     模型权重（gitignore）
+└── docs/                       设计文档
+```
+
+---
+
+## 快速开始
+
+```bash
+# 1. 建环境（复用已有的 skippd 环境即可）
+conda activate skippd
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
+
+# 2. 复制配置模板
+cp config/site.example.yaml config/site.yaml
+
+# 3. 启动 API
+uvicorn src.api.main:app --reload --port 8000
+# 接口文档自动生成： http://localhost:8000/docs
+
+# 4. 跑一次端到端 demo
+python scripts/demo.py
+```
+
+---
+
+## 核心设计约定
+
+### 1. 统一时间序列格式
+
+```json
+{
+  "points": [
+    {"ts": "2026-09-19T08:00:00+08:00", "value": 623.4}
+  ]
+}
+```
+
+- 时间戳一律 **ISO 8601 带时区**
+- **单位写进字段名**（`capacity_kwp` / `power_kw` / `price_yuan_per_kwh`）
+- 缺失值用 `null`，**绝不用 0**——夜间功率 0 是有效值
+
+### 2. 精度必须带口径
+
+任何预测结果都要随附口径，没有口径的精度数字等于没有信息：
+
+```json
+{
+  "accuracy": {
+    "metric": "1 - RMSE/Cap",
+    "value": 0.9251,
+    "caliber": {
+      "normalization": "rated_capacity",
+      "cap_kw": 1000,
+      "includes_nighttime": false,
+      "spatial_scale": "single_site",
+      "baseline": "persistence"
+    }
+  }
+}
+```
+
+### 3. 电价 Provider 可插拔
+
+三种模式对下游完全透明：
+
+| 模式 | 电能量价格来源 | 是否需要电价预测 |
+|---|---|---|
+| `tou` | 省级目录电价表 | ❌ 不需要 |
+| `spot` | 市场出清价 | ✅ 需要（含 p10/p90） |
+| `tou_plus_spot` | 现货价替代电能量部分 | ✅ 需要 |
+
+> ⚠️ 中国的"叠加"**不是价格相加**。到户电价 = 电能量价格 + 输配电价 + 政府性基金，
+> 参与现货后**只有电能量部分被替代**，其余照旧。这个差异在 Provider 内部消化。
+
+### 4. 优化：先调度后规划
+
+```
+optimizer/core.py      目标函数 + 约束（共用）
+optimizer/dispatch.py  容量固定，决策每时段功率
+optimizer/sizing.py    决策变量含容量
+```
+
+顺序不能反：**调度跑通了，规划的收益模型才有可信的验证基础。**
+
+---
+
+## ⚠️ 提交纪律
+
+- **匿名要求**：仓库内**不得出现学校名称、指导教师姓名、班级信息**
+- 提交材料里的作者信息统一用抽取码
+- 第三方代码（官方 SKIPP'D 仓库等）要注明来源与许可
+- 大数据与模型权重**不上传 git**，走网盘
+
+---
+
+## 依赖说明
+
+- Python 3.11（建议复用 `skippd` 环境）
+- 优化：`PuLP` 或 `scipy.optimize.linprog`
+- 接口：`FastAPI` + `uvicorn`
+- 前端图表：**ECharts**（原生支持阶梯图 `step`、时段色块 `markArea`）
+
+---
+
+## 相关资产位置
+
+本仓库只放**产品代码**。以下为参考资产，不并入仓库：
+
+| 资产 | 位置 | 说明 |
+|---|---|---|
+| 老师的原始方案 | `~/Documents/揭榜/方案三/` | `fusion_model.py`，参考用 |
+| 全天空图像复现 | `~/全天空图像方案/` | SKIPP'D SUNSET，含 10 折模型 |
+| 竞赛方案分析 | `../超短期方案/` `../国网方案/` `../gefcom方案/` | 三个数据集的评估流程 |
+| 论文翻译 | `../翻译文献/` | 6 篇中文全文翻译 |

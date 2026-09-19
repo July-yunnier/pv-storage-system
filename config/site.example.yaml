@@ -1,0 +1,106 @@
+# ============================================================
+#  站点配置模板
+#
+#  用法： cp config/site.example.yaml config/site.yaml
+#        然后按实际项目修改
+#
+#  ⚠️ 本文件中的数值（电价、负荷、容量）均为【示例占位】，
+#     上线前必须替换为项目实测值与当地最新目录电价。
+# ============================================================
+
+site:
+  id: S001
+  name: 示例产业园 1 号厂房
+  location:
+    lat: 32.205
+    lon: 118.717
+    province: 江苏省
+    timezone: Asia/Shanghai
+    # 地点决定三件事：光伏资源 / 电价政策 / 气候特征
+
+  pv:
+    capacity_kwp: 1000
+    tilt_deg: 22.5
+    azimuth_deg: 180          # 180 = 正南
+    module_type: mono-si
+    temp_coeff: -0.0035       # 功率温度系数 /℃
+    system_loss: 0.14         # 系统综合损失（线损+积灰+失配+逆变器）
+    commission_date: "2024-06-01"
+
+  load:
+    annual_kwh: 3200000
+    peak_kw: 1800
+    profile_type: two-shift   # single-shift | two-shift | three-shift | continuous
+
+  storage:
+    # 运行（dispatch）模式下为实际参数；规划（sizing）模式下为候选方案的上限
+    existing: false
+    pcs_kw: 500
+    capacity_kwh: 1000
+    chemistry: LFP
+    round_trip_eff: 0.88
+    depth_of_discharge: 0.90
+    soc_min: 0.10
+    soc_max: 0.95
+    cycles_per_day_max: 2
+
+# ------------------------------------------------------------
+tariff:
+  # 电价模式： tou | spot | tou_plus_spot
+  #   tou            峰谷分时，读目录电价表，无需预测
+  #   spot           电力现货，需价格预测（含 p10/p90）
+  #   tou_plus_spot  现货价替代「电能量价格」部分，时段标签保留
+  mode: tou
+  voltage_level: 1-10kV
+  template: tariff/jiangsu.yaml
+  # 注：输配电价 + 政府性基金在省级模板里按电压等级定义，
+  #     不在此处重复配置（避免两处不一致）
+
+  demand_charge:
+    enabled: true
+    price_per_kw_month: 38
+    billing_basis: max_monthly_demand   # max_monthly_demand | transformer_capacity
+
+# ------------------------------------------------------------
+forecast:
+  pv:
+    method: hybrid            # physical | statistical | hybrid
+    horizon_hours: 72
+    resolution_minutes: 15
+    model_path: models/sunset_nowcast.pt   # 有则用深度学习，无则回退统计法
+  load:
+    method: profile_based     # profile_based | ml
+  price:
+    # mode=tou 时此项被忽略（电价由政策给定）
+    method: quantile_regression
+    quantiles: [0.1, 0.5, 0.9]
+
+weather:
+  provider: open-meteo        # open-meteo | qweather | cma
+  api_key: ""                 # open-meteo 无需 key
+  variables:
+    - shortwave_radiation
+    - direct_normal_irradiance
+    - temperature_2m
+    - cloud_cover
+    - relative_humidity
+    - wind_speed_10m
+
+# ------------------------------------------------------------
+optimizer:
+  objective: minimize_cost    # minimize_cost | maximize_npv
+  horizon_hours: 24
+  resolution_minutes: 15
+  allow_grid_export: false    # 是否允许余电上网
+  allow_grid_charge: true     # 是否允许谷电充电（套利前提）
+  solver: pulp_cbc            # pulp_cbc | scipy_linprog
+
+economics:
+  discount_rate: 0.08
+  project_years: 10
+  battery_price_yuan_per_kwh: 1100
+  battery_life_years: 10
+  battery_cycle_life: 6000
+  opex_ratio: 0.02            # 年运维占投资比例
+  include_replacement: true
+  residual_value_ratio: 0.05
