@@ -1,6 +1,8 @@
 # ---- 数据与模型：体积大，不进仓库 ----
-data/
-models/
+# ⚠️ 只匹配【根目录】下的 data/ 与 models/，必须带前导斜杠。
+#    写 "models/" 会连 src/models/（代码包）一起忽略掉。
+/data/
+/models/
 *.hdf5
 *.npy
 *.pt
@@ -27,7 +29,7 @@ htmlcov/
 
 # ---- 日志与临时文件 ----
 *.log
-tmp/
+/tmp/
 .cache/
 
 # ---- 系统 ----
@@ -45,3 +47,4 @@ credentials.json
 # config/site.yaml 由 site.example.yaml 复制而来，含实际项目参数。
 # 接真实项目后请保持忽略，避免客户信息进入版本历史。
 config/site.yaml
+
