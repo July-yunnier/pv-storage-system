@@ -22,6 +22,10 @@
     # 完整复现
     python 05_train_sunset.py --task nowcast --data_dir ./data_expanded --folds 10 --epochs 200
     python 05_train_sunset.py --task forecast --data_dir ./data_expanded --folds 10 --epochs 200
+
+    # 已有权重、不想重训：直接加载 fold_*.pt 推理并集成（约 15 秒）
+    python 05_train_sunset.py --task nowcast --hdf5 /path/to/xxx.hdf5 \
+        --out_dir ./model_output --folds 10 --resume_dir ./model_output/SUNSET_nowcast
 """
 
 import argparse
@@ -282,6 +286,9 @@ def main():
                          "用途：10 折 x 200 轮耗时长，macOS 内存压力可能中途发 SIGKILL，"
                          "分批跑并让每折结果立即落盘，被杀也不白跑；"
                          "下次接着跑剩下的折，最后自动合并所有已完成的折")
+    ap.add_argument("--resume_dir", default="",
+                    help="含 fold_*.pt 的目录。指定后跳过训练，直接加载已有权重"
+                         "推理并参与集成（用于「权重已在本机、不重训」的场景）")
     ap.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda", "mps"])
     ap.add_argument("--max_samples", type=int, default=0,
                     help="只用开发集前 N 个样本（调试用，0=全量）")
@@ -417,9 +424,32 @@ def main():
         fold_list = list(range(args.folds))
 
     print(f"\n本次要跑的折: {[f + 1 for f in fold_list]}   （总折数 {args.folds}）")
+    if args.resume_dir:
+        print(f"[模式] 加载已有权重，跳过训练。权重目录：{args.resume_dir}")
 
     for f in fold_list:
         print(f"\n{'─'*78}\n第 {f+1}/{args.folds} 折")
+
+        # ---- 模式 A：加载已有权重，只推理 ----
+        if args.resume_dir:
+            wpath = os.path.join(args.resume_dir, f"fold_{f+1}.pt")
+            if not os.path.exists(wpath):
+                print(f"  跳过：权重不存在 {wpath}")
+                continue
+            ch = img_tr.shape[-1]
+            lt = log_tr.shape[1] if log_tr is not None else 0
+            model = SUNSET(args.task, img_channels=ch, log_terms=lt).to(device)
+            model.load_state_dict(torch.load(wpath, map_location=device,
+                                             weights_only=True))
+            model.eval()
+            p = predict(args.task, model, img_te, log_te,
+                        np.arange(len(y_te)), device)
+            np.save(os.path.join(out_dir, f"fold_{f+1}_pred.npy"), p)
+            vr = float(np.sqrt(np.mean((p - y_te) ** 2)))
+            print(f"  [加载权重] 折 {f+1} 测试 RMSE = {vr:.4f}")
+            continue
+
+        # ---- 模式 B：正常训练 ----
         tr_idx, va_idx = cv_split(order, f, args.folds)
 
         model = run_fold(args.task, img_tr, target_tr, log_tr,
