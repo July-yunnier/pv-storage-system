@@ -20,8 +20,23 @@
 
 实现顺序建议
 ------------
-1. 先做 **规则式 dispatch**：谷时充、峰时放，按 SOC 上下限截断。
+1. ✅ **规则式 dispatch**（已完成，见 dispatch.py）：谷时充、峰时放，按 SOC 上下限截断，
+   并带**需量感知约束**（充电不得推高并网峰值）。
    峰谷时段已知，规则式天然接近最优，几十行就能出可用调度表。
-2. 再升级为 **LP dispatch**：目标 = 电费最小化，约束 = SOC / 功率 / 循环次数。
-3. 最后做 **sizing**：复用 core 的约束，把容量变成决策变量。
+2. ⏳ 升级为 **LP dispatch**：目标 = 电费最小化，约束 = SOC / 功率 / 循环次数 / 需量。
+3. ⏳ **sizing**：复用 core 的约束，把容量变成决策变量。
+
+⚠️ 规则式已经暴露出一个真实缺陷（值得写进报告）：
+   不加需量约束时，谷时满功率充电会把并网峰值推到比不配储能更高
+   （示例站点实测 542 → 706 kW），省下的电度电费从基本电费里加倍还回去。
+   这是 LP 版本要解决的第一个问题。
 """
+from __future__ import annotations
+
+from .dispatch import make_day_arrays, rule_based_dispatch, synthetic_day
+
+__all__ = [
+    "rule_based_dispatch",
+    "synthetic_day",
+    "make_day_arrays",
+]

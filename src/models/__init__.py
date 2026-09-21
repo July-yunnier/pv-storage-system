@@ -6,14 +6,42 @@
 2. **单位写进字段名**：capacity_kwp / power_kw / price_yuan_per_kwh
    —— kW / kWp / kWh 混淆是能源行业最常见的错误来源
 3. **缺失值用 None，绝不用 0 代替**
-   —— 夜间功率 0 是有效观测值，用 0 填充缺失会把「未观测」当成「确认为零」
+   —— 夜间功率 0 是有效观测值，用 0 填缺失会把「未观测」当成「确认为零」
 
-计划包含
---------
-Site            站点档案（位置 / 光伏 / 负荷 / 储能参数）
-Measurement     实测数据点（光伏功率 / 负荷 / SOC / 并网点功率）
-ForecastResult  预测结果（含 accuracy 口径与分位数区间）
-ScheduleEntry   调度动作（充电 / 放电 / 待机 + 目标 SOC）
-
-实现建议：用 pydantic BaseModel，接口层可直接复用为请求/响应体。
+模块
+----
+site      站点档案（Location / PVConfig / LoadConfig / StorageConfig / Site）
+forecast  预测结果与精度口径（ForecastResult / AccuracyCaliber）
+schedule  调度结果（ScheduleEntry / DispatchResult）
 """
+from __future__ import annotations
+
+from .forecast import AccuracyCaliber, ForecastResult, ForecastTarget, make_accuracy
+from .schedule import Action, DispatchResult, ScheduleEntry
+from .site import (
+    LoadConfig,
+    Location,
+    PVConfig,
+    Site,
+    StorageConfig,
+    site_from_config,
+)
+
+__all__ = [
+    # site
+    "Location",
+    "PVConfig",
+    "LoadConfig",
+    "StorageConfig",
+    "Site",
+    "site_from_config",
+    # forecast
+    "ForecastTarget",
+    "AccuracyCaliber",
+    "ForecastResult",
+    "make_accuracy",
+    # schedule
+    "Action",
+    "ScheduleEntry",
+    "DispatchResult",
+]

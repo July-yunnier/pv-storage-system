@@ -18,6 +18,28 @@
 
 ---
 
+## 实现进度
+
+| 模块 | 内容 | 状态 |
+|---|---|---|
+| `src/tariff/` | 电价 Provider（tou 已实现，spot / tou_plus_spot 预留接口） | ✅ 完成 |
+| `src/models/` | 站点档案、预测结果、调度结果 | ✅ 完成 |
+| `src/optimizer/dispatch.py` | 规则式日调度（**含需量感知约束**） | ✅ 完成 |
+| `src/optimizer/sizing.py` | 容量规划（决策变量含容量） | ⏳ 待做 |
+| `src/forecast/` | 预测引擎（光伏 / 负荷 / 电价） | ⏳ 待做 |
+| `src/api/` | FastAPI 接口层 | ⏳ 待做 |
+
+**现在就能跑**：
+
+```bash
+python scripts/check_config.py     # 配置自检（电价时段空档检测）
+python scripts/demo_dispatch.py    # 端到端调度演示（合成数据，无需外部数据源）
+```
+
+> `demo_dispatch.py` 会同时输出「有/无 需量感知」两版结果做对比：
+> 忽略需量约束时，谷时满功率充电会把并网峰值从 542 kW 推到 **706 kW**，
+> 省下的电度电费会从基本电费里加倍还回去（月增 6,235 元）。
+
 ## 目录结构
 
 ```
@@ -27,15 +49,15 @@
 │   └── tariff/                 省级电价模板
 │       └── jiangsu.yaml
 ├── src/
-│   ├── models/                 数据模型（Site / PricePoint / Forecast / Schedule）
+│   ├── models/                 数据模型（Site / ForecastResult / DispatchResult）
 │   ├── tariff/                 电价 Provider（tou / spot / tou_plus_spot）
 │   ├── forecast/               预测引擎（光伏 / 负荷 / 电价）
 │   ├── optimizer/              优化内核
-│   │   ├── core.py             目标函数 + 约束（规划与调度共用）
-│   │   ├── dispatch.py         日调度
-│   │   └── sizing.py           容量规划
+│   │   ├── core.py             目标函数 + 约束（规划与调度共用）  ⏳
+│   │   ├── dispatch.py         日调度  ✅
+│   │   └── sizing.py           容量规划  ⏳
 │   └── api/                    FastAPI 接口层
-├── scripts/                    数据处理与批处理脚本
+├── scripts/                    配置自检 + 端到端演示
 ├── tests/
 ├── data/                       运行时数据（gitignore）
 ├── models/                     模型权重（gitignore）
