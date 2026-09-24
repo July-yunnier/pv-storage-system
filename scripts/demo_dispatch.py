@@ -89,6 +89,15 @@ def main() -> int:
     res = rule_based_dispatch(load, pv, prices, site.storage,
                               demand_aware=True, **common)
 
+    # 主动削峰：以「基线峰值的 80%」为目标
+    # 削峰目标本身是 sizing（规划）的决策变量，这里固定 80% 只为演示效果
+    net = load - pv
+    base_peak = float(np.max(np.clip(net, 0.0, None)))
+    shave_target = base_peak * 0.8
+    res_shave = rule_based_dispatch(load, pv, prices, site.storage,
+                                    demand_aware=True,
+                                    peak_target_kw=shave_target, **common)
+
     dc = cfg["tariff"].get("demand_charge", {})
     dc_price = dc.get("price_per_kw_month", 0) if dc.get("enabled") else 0
 
@@ -96,42 +105,51 @@ def main() -> int:
     print("调度结果")
     print("=" * 74)
     print(res.summary())
+    print(f"主动削峰  目标 {shave_target:,.1f} kW（基线峰值的 80%）"
+          f" → 实际峰值 {res_shave.peak_grid_kw:,.1f} kW")
     print()
 
     # ---- 需量感知的价值（这组对比最能说明问题）----
     if dc_price > 0:
         print("=" * 74)
-        print("需量感知的价值")
+        print("三种策略的对比")
         print("=" * 74)
-        print(f"{'方案':<22}{'并网峰值':>11}{'基本电费/月':>14}{'电度电费/日':>14}")
+        print(f"{'方案':<24}{'并网峰值':>11}{'基本电费/月':>14}{'电度电费/日':>14}")
         print("-" * 74)
 
         rows = [
             ("① 不配储能（基线）", res.baseline_peak_grid_kw, res.baseline_cost_yuan),
             ("② 储能·忽略需量", res_naive.peak_grid_kw, res_naive.optimized_cost_yuan),
-            ("③ 储能·需量感知", res.peak_grid_kw, res.optimized_cost_yuan),
+            ("③ 储能·仅需量感知", res.peak_grid_kw, res.optimized_cost_yuan),
+            ("④ 储能·主动削峰 80%", res_shave.peak_grid_kw, res_shave.optimized_cost_yuan),
         ]
         for name, peak, cost in rows:
-            print(f"{name:<22}{peak:>9.1f}kW{peak * dc_price:>12,.0f} 元"
+            print(f"{name:<24}{peak:>9.1f}kW{peak * dc_price:>12,.0f} 元"
                   f"{cost:>12,.1f} 元")
 
         print("-" * 74)
-        delta_peak = res_naive.peak_grid_kw - res.peak_grid_kw
-        delta_demand = delta_peak * dc_price
-
-        if delta_peak > 0:
-            print(f"③ 相比 ② ：并网峰值降 {delta_peak:.1f} kW")
-            print()
-            print("⚠️ 需量电费按【当月最大需量】计费，**不是按天累加**：")
-            print(f"   若该峰值即为当月最大值 → 当月基本电费少缴 {delta_demand:,.0f} 元")
-            print(f"   全年 12 个月合计约 {delta_demand * 12:,.0f} 元")
-        else:
-            print("③ 与 ② 峰值相同：需量感知只起到『不让情况恶化』的作用，")
-            print("   未能进一步削峰——因为日间放电在 18:00 前已把电量放空。")
-            print("   这说明容量/功率配置偏小，属于 sizing（规划）环节要解决的问题。")
+        print("说明：")
+        print("  ② 未加约束，谷时满功率充电把峰值推到比不配储能还高 —— 反面教材")
+        print("  ③ 加了『充电不超过基线峰值』的约束，只是『不让情况恶化』：")
+        print(f"     充电功率被顶到 {res.peak_grid_kw:,.1f} kW，与基线峰值相同，")
+        print("     所以削峰量为 0，需量电费一分钱没省。")
+        print("  ④ 设定削峰目标后，充电不超过目标、放电优先削峰并预留电量，")
+        print(f"     峰值被真正压到 {res_shave.peak_grid_kw:,.1f} kW。")
         print()
-        print("注：② 正是『只盯电价、不管需量』的典型错误——谷时满功率充电把")
-        print("    并网峰值推到比不配储能还高，省下的电度电费从基本电费里加倍还回去。")
+
+        print("⚠️ 需量电费按【当月最大需量】计费，**不是按天累加**：")
+        d_peak = res.baseline_peak_grid_kw - res_shave.peak_grid_kw
+        if d_peak > 0:
+            print(f"   ④ 相比基线削峰 {d_peak:,.1f} kW → "
+                  f"当月基本电费少缴 {d_peak * dc_price:,.0f} 元")
+            print(f"   全年 12 个月合计约 {d_peak * dc_price * 12:,.0f} 元")
+        else:
+            print("   ④ 未能削峰：储能容量/功率不足以覆盖峰值时段，")
+            print("      属于 sizing（规划）环节要解决的问题。")
+        print()
+        print("注：④ 的削峰目标取多少，是要靠 sizing 算出来的（存在权衡：")
+        print("    目标越低，需量省得越多，但谷时充电余量越小、套利收益下降）。")
+        print("    本 demo 固定 80% 只为演示，最优值见 demo_sizing.py。")
         print()
 
     # ---- 逐时段明细（按小时汇总，便于阅读）----

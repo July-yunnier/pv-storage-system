@@ -46,6 +46,7 @@ def rule_based_dispatch(
     allow_grid_charge: bool = True,
     allow_grid_export: bool = False,
     demand_aware: bool = True,
+    peak_target_kw: float | None = None,
     initial_soc: float | None = None,
 ) -> DispatchResult:
     """按电价时段执行「谷充峰放」的规则式调度。
@@ -73,6 +74,29 @@ def rule_based_dispatch(
         启用后，充电功率被约束在「不把并网功率推高到基线峰值之上」。
         实测影响：某示例站点满功率充电时峰值从 542 kW 升到 706 kW
         （+164 kW，按月 38 元/kW 计，一个月倒亏 6,232 元基本电费）。
+    peak_target_kw
+        **削峰目标（kW）**。这是 sizing 的核心决策变量之一。
+
+        None（默认）→ 退化为「不恶化」模式：充电不超过基线峰值，
+        但放电仍只按电价时段执行。
+
+        给定值 → 启用「削峰优先」模式，两条规则同时生效：
+
+        ① 充电功率不超过该目标（而不是基线峰值），这样谷时充电
+           不会把并网功率顶到与基线峰值相同的高度。
+
+        ② 放电分两种情形处理，且**为后续削峰预留电量**：
+
+           - 净负荷已超过目标 → 必须放电削峰（不看电价时段）。
+             因为需量电费按峰值计费，削下来就是钱。
+           - 净负荷未超目标，但处于高峰/尖峰时段 → 套利放电，
+             但需扣除「后续时段削峰所需电量」，避免中午净负荷还很低时
+             就把电放空，等傍晚真正的高峰来了反而没电可用。
+
+        ⚠️ 实测过的失败案例：不加 ②，某站点的储能在 13:00-16:00
+        （光伏还在发电、净负荷只有 50~380 kW）就把 SOC 从 95% 放到 17%，
+        导致 18:00-19:00 净负荷 650~684 kW 的真实峰值无电可放，
+        削峰量为 0、需量电费一分钱没省。
     initial_soc
         初始 SOC，默认取 soc_min。
 
@@ -96,12 +120,30 @@ def rule_based_dispatch(
     soc_min, soc_max = storage.soc_min, storage.soc_max
     pcs = storage.pcs_kw
 
-    # 需量约束上限：基线（无储能）情形下的并网峰值。
-    # 充电不得把瞬时并网功率推到这个值以上。
-    if demand_aware:
-        demand_cap = float(np.max(np.maximum(0.0, load - pv)))
+    # 基线（无储能）情形下的并网峰值
+    base_peak = float(np.max(np.maximum(0.0, load - pv)))
+
+    # 充电功率上限：削峰目标（若给定）否则基线峰值
+    if not demand_aware:
+        charge_cap = float("inf")
+        target: float | None = None
+    elif peak_target_kw is None:
+        charge_cap = base_peak
+        target = None
     else:
-        demand_cap = float("inf")
+        target = float(min(peak_target_kw, base_peak))
+        charge_cap = target
+
+    # ---- 削峰预留：每个时段「之后」还需要多少交流电量用于削峰 ----
+    # 从后往前累计，供「套利放电」判断本时段能不能动用储能电量。
+    reserve_ac = np.zeros(n)
+    if target is not None:
+        net_all = load - pv
+        need_ac = np.clip(net_all - target, 0.0, pcs) * dt_h      # AC kWh
+        acc = 0.0
+        for i in range(n - 1, -1, -1):
+            reserve_ac[i] = acc
+            acc += need_ac[i]
 
     soc = soc_min if initial_soc is None else float(initial_soc)
 
@@ -135,18 +177,30 @@ def rule_based_dispatch(
             # 谷时从电网充电
             room_kwh = (soc_max - soc) * cap
             max_charge_kw = room_kwh / (eta * dt_h) if dt_h > 0 else 0.0
-            # ⚠️ 需量约束：充电功率不能把瞬时并网功率推高到基线峰值之上。
+            # ⚠️ 需量约束：充电功率不能把瞬时并网功率推高到上限之上。
             #    少了这一条，谷时满功率充电会反而抬高最大需量，
             #    省下的电度电费从基本电费里加倍还回去。
-            headroom_kw = max(0.0, demand_cap - net)
+            headroom_kw = max(0.0, charge_cap - net)
             power = min(pcs, max_charge_kw, headroom_kw)
 
-        elif tier in DISCHARGE_TIERS and soc > soc_min + 1e-9:
-            # 峰时放电供负荷
-            avail_kwh = (soc - soc_min) * cap
-            max_discharge_kw = avail_kwh * eta / dt_h if dt_h > 0 else 0.0
-            limit = pcs if allow_grid_export else min(pcs, max(0.0, net))
-            power = -min(limit, max_discharge_kw)
+        elif soc > soc_min + 1e-9:
+            # 可放电量（折算到交流侧）
+            avail_ac_kwh = (soc - soc_min) * cap * eta
+            # 放电功率上限：不允许倒送时受净负荷约束
+            limit_kw = pcs if allow_grid_export else min(pcs, max(0.0, net))
+
+            must_shave = max(0.0, net - target) if target is not None else 0.0
+
+            if must_shave > 1e-9:
+                # ① 削峰优先：净负荷已超目标 → 必须放电，不看电价时段。
+                #    当前峰值是确定的，未来是估计值，所以允许动用全部电量。
+                kwh = min(must_shave * dt_h, avail_ac_kwh, pcs * dt_h)
+                power = -kwh / dt_h
+            elif tier in DISCHARGE_TIERS:
+                # ② 套利放电：必须为后续的削峰需求留住电量
+                usable_ac_kwh = max(0.0, avail_ac_kwh - reserve_ac[i])
+                kwh = min(limit_kw * dt_h, usable_ac_kwh)
+                power = -kwh / dt_h
 
         # ---- 更新 SOC ----
         if power > 0:

@@ -24,21 +24,35 @@
 |---|---|---|
 | `src/tariff/` | 电价 Provider（tou 已实现，spot / tou_plus_spot 预留接口） | ✅ 完成 |
 | `src/models/` | 站点档案、预测结果、调度结果 | ✅ 完成 |
-| `src/optimizer/dispatch.py` | 规则式日调度（**含需量感知约束**） | ✅ 完成 |
-| `src/optimizer/sizing.py` | 容量规划（决策变量含容量） | ⏳ 待做 |
+| `src/optimizer/dispatch.py` | 规则式日调度（需量感知 + **削峰优先**） | ✅ 完成 |
+| `src/optimizer/sizing.py` | 容量规划（扫描「容量 × 削峰目标」，按 NPV 选优） | ✅ 完成 |
 | `src/forecast/` | 预测引擎（光伏 / 负荷 / 电价） | ⏳ 待做 |
 | `src/api/` | FastAPI 接口层 | ⏳ 待做 |
 
-**现在就能跑**：
+**现在就能跑**（三个脚本都不需要外部数据源）：
 
 ```bash
 python scripts/check_config.py     # 配置自检（电价时段空档检测）
-python scripts/demo_dispatch.py    # 端到端调度演示（合成数据，无需外部数据源）
+python scripts/demo_dispatch.py    # 日调度演示：三种策略对比
+python scripts/demo_sizing.py      # 容量规划演示：该配多大、几年回本
 ```
 
-> `demo_dispatch.py` 会同时输出「有/无 需量感知」两版结果做对比：
-> 忽略需量约束时，谷时满功率充电会把并网峰值从 542 kW 推到 **706 kW**，
-> 省下的电度电费会从基本电费里加倍还回去（月增 6,235 元）。
+**`demo_dispatch.py` 的三种策略对比**（同一站点、同一天）：
+
+| 方案 | 并网峰值 | 基本电费/月 | 电度电费/日 |
+|---|---|---|---|
+| ① 不配储能（基线） | 542.1 kW | 20,601 元 | 4,661.8 元 |
+| ② 储能·忽略需量 | **706.2 kW** | **26,836 元** | 4,464.8 元 |
+| ③ 储能·仅需量感知 | 542.1 kW | 20,601 元 | 4,376.7 元 |
+| ④ 储能·主动削峰 80% | **433.7 kW** | **16,481 元** | **4,332.6 元** |
+
+- **② 是反面教材**：谷时满功率充电把峰值推到比不配储能还高，省下的电度电费从基本电费里加倍还回去。
+- **③ 只是「不让情况恶化」**：充电被顶到基线峰值，削峰量为 0，需量电费一分没省。
+- **④ 才是真正把储能的双重价值（套利 + 需量）都拿到**。
+
+> `demo_sizing.py` 输出示例站点（江苏，1 MWp 光伏 + 1800 kW 负荷峰值）的推荐配置：
+> **550 kW / 1100 kWh（2 小时）**，投资 121 万，年收益 30.9 万（套利 19.97 万 + 需量 10.89 万），
+> **回收期 4.25 年，IRR 19.8%**。（合成数据 + 行业参考单价，仅验证链路）
 
 ## 目录结构
 
@@ -53,11 +67,15 @@ python scripts/demo_dispatch.py    # 端到端调度演示（合成数据，无�
 │   ├── tariff/                 电价 Provider（tou / spot / tou_plus_spot）
 │   ├── forecast/               预测引擎（光伏 / 负荷 / 电价）
 │   ├── optimizer/              优化内核
-│   │   ├── core.py             目标函数 + 约束（规划与调度共用）  ⏳
-│   │   ├── dispatch.py         日调度  ✅
-│   │   └── sizing.py           容量规划  ⏳
+│   │   ├── dispatch.py         日调度（含削峰优先）  ✅
+│   │   └── sizing.py           容量规划  ✅
 │   └── api/                    FastAPI 接口层
 ├── scripts/                    配置自检 + 端到端演示
+│   ├── check_config.py         配置自检
+│   ├── demo_dispatch.py        日调度演示
+│   ├── demo_sizing.py          容量规划演示
+│   ├── _synth.py               季节典型日场景（演示用合成数据）
+│   └── reference/              竞赛算法参考实现（SUNSET / 超短期统计法）
 ├── tests/
 ├── data/                       运行时数据（gitignore）
 ├── models/                     模型权重（gitignore）
@@ -138,12 +156,13 @@ python scripts/demo.py
 ### 4. 优化：先调度后规划
 
 ```
-optimizer/core.py      目标函数 + 约束（共用）
 optimizer/dispatch.py  容量固定，决策每时段功率
-optimizer/sizing.py    决策变量含容量
+optimizer/sizing.py    决策变量含容量 + 削峰目标
 ```
 
 顺序不能反：**调度跑通了，规划的收益模型才有可信的验证基础。**
+反过来说，规划也验证了调度——若两者对同一容量算出的收益不一致，
+说明有一方的收益口径写错了。
 
 ---
 
@@ -159,7 +178,9 @@ optimizer/sizing.py    决策变量含容量
 ## 依赖说明
 
 - Python 3.11（建议复用 `skippd` 环境）
-- 优化：`PuLP` 或 `scipy.optimize.linprog`
+- 优化：**当前零依赖** —— 规则式调度 + 离散扫描，只用 `numpy`。
+  克隆下来直接能跑，不需要装求解器。升级到 LP 版本时才需要
+  `PuLP` 或 `scipy.optimize.linprog`。
 - 接口：`FastAPI` + `uvicorn`
 - 前端图表：**ECharts**（原生支持阶梯图 `step`、时段色块 `markArea`）
 
