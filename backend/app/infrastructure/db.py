@@ -9,8 +9,12 @@ from typing import Iterator
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from app.domain.models import (
+    DispatchRunDetail,
+    DispatchRunSummary,
     MeasurementRead,
     MeasurementUpload,
+    ReportJob,
+    ScheduleResponse,
     SiteCreate,
     SitePatch,
     SiteRead,
@@ -19,6 +23,7 @@ from app.domain.models import (
     generate_site_id,
     generate_tariff_id,
 )
+from app.domain.sizing.result import SizingResponse, SizingRunDetail, SizingRunSummary
 
 
 def _now() -> datetime:
@@ -27,6 +32,10 @@ def _now() -> datetime:
 
 def _parse_dt(value: str) -> datetime:
     return datetime.fromisoformat(value)
+
+
+def _to_utc(value: datetime) -> datetime:
+    return value.astimezone(timezone.utc)
 
 
 def _zone(name: str):
@@ -54,7 +63,11 @@ def default_tariff() -> TariffCreate:
 class Database:
     def __init__(self, path: str = "data/storage.db") -> None:
         self.path = path
-        if path != ":memory:":
+        self._memory_conn: sqlite3.Connection | None = None
+        if path == ":memory:":
+            self._memory_conn = sqlite3.connect(":memory:", check_same_thread=False)
+            self._memory_conn.row_factory = sqlite3.Row
+        else:
             Path(path).parent.mkdir(parents=True, exist_ok=True)
         self.init_schema()
         if self.get_tariff("T-DEFAULT") is None:
@@ -62,6 +75,10 @@ class Database:
 
     @contextmanager
     def connection(self) -> Iterator[sqlite3.Connection]:
+        if self._memory_conn is not None:
+            yield self._memory_conn
+            self._memory_conn.commit()
+            return
         connection = sqlite3.connect(self.path)
         connection.row_factory = sqlite3.Row
         try:
@@ -76,45 +93,120 @@ class Database:
                 """
                 CREATE TABLE IF NOT EXISTS sites (
                     site_id TEXT PRIMARY KEY,
-                    payload TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    timezone TEXT NOT NULL,
+                    lat REAL NOT NULL,
+                    lon REAL NOT NULL,
+                    tariff_id TEXT,
+                    config_json TEXT NOT NULL,
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 );
                 CREATE TABLE IF NOT EXISTS tariffs (
                     tariff_id TEXT PRIMARY KEY,
-                    payload TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    mode TEXT NOT NULL,
+                    transmission_and_fund REAL NOT NULL,
+                    tiers_json TEXT NOT NULL,
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 );
                 CREATE TABLE IF NOT EXISTS measurements (
                     site_id TEXT NOT NULL,
                     data_type TEXT NOT NULL,
-                    ts TEXT NOT NULL,
+                    ts_utc TEXT NOT NULL,
                     value REAL,
                     unit TEXT NOT NULL,
                     resolution_minutes INTEGER NOT NULL,
                     quality TEXT NOT NULL,
                     source TEXT NOT NULL,
-                    PRIMARY KEY (site_id, data_type, ts),
+                    PRIMARY KEY (site_id, data_type, ts_utc),
+                    FOREIGN KEY (site_id) REFERENCES sites(site_id)
+                );
+                CREATE TABLE IF NOT EXISTS dispatch_runs (
+                    run_id TEXT PRIMARY KEY,
+                    site_id TEXT NOT NULL,
+                    date TEXT NOT NULL,
+                    strategy TEXT NOT NULL,
+                    initial_soc REAL NOT NULL,
+                    input_digest TEXT NOT NULL,
+                    result_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY (site_id) REFERENCES sites(site_id)
+                );
+                CREATE TABLE IF NOT EXISTS sizing_runs (
+                    run_id TEXT PRIMARY KEY,
+                    site_id TEXT NOT NULL,
+                    input_digest TEXT NOT NULL,
+                    result_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY (site_id) REFERENCES sites(site_id)
+                );
+                CREATE TABLE IF NOT EXISTS report_jobs (
+                    report_id TEXT PRIMARY KEY,
+                    site_id TEXT NOT NULL,
+                    report_type TEXT NOT NULL,
+                    sizing_run_id TEXT,
+                    status TEXT NOT NULL,
+                    error TEXT,
+                    file_path TEXT,
+                    created_at TEXT NOT NULL,
+                    finished_at TEXT,
                     FOREIGN KEY (site_id) REFERENCES sites(site_id)
                 );
                 """
             )
+        self._migrate_dispatch_runs()
+
+    def _migrate_dispatch_runs(self) -> None:
+        """I5 起 dispatch_runs 增加 data_source 列；存量库原地补列。"""
+        with self.connection() as conn:
+            columns = {
+                row["name"] for row in conn.execute("PRAGMA table_info(dispatch_runs)").fetchall()
+            }
+            if "data_source" not in columns:
+                conn.execute(
+                    "ALTER TABLE dispatch_runs "
+                    "ADD COLUMN data_source TEXT NOT NULL DEFAULT 'measurements'"
+                )
 
     def create_site(self, payload: SiteCreate) -> SiteRead:
         site_id = payload.site_id or generate_site_id()
         now = _now()
-        data = payload.model_dump(mode="json")
-        data["site_id"] = site_id
+        config = {
+            "location": {
+                "province": payload.location.province,
+                "city": payload.location.city,
+            },
+            "pv": payload.pv.model_dump(mode="json"),
+            "load": payload.load.model_dump(mode="json"),
+            "storage": payload.storage.model_dump(mode="json"),
+            "demand_limit_kw": payload.demand_limit_kw,
+        }
         with self.connection() as conn:
             try:
                 conn.execute(
-                    "INSERT INTO sites(site_id, payload, created_at, updated_at) VALUES (?, ?, ?, ?)",
-                    (site_id, json.dumps(data, ensure_ascii=False), now.isoformat(), now.isoformat()),
+                    """
+                    INSERT INTO sites(site_id, name, timezone, lat, lon, tariff_id, config_json, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        site_id,
+                        payload.name,
+                        payload.location.timezone,
+                        payload.location.lat,
+                        payload.location.lon,
+                        payload.tariff_id,
+                        json.dumps(config, ensure_ascii=False),
+                        now.isoformat(),
+                        now.isoformat(),
+                    ),
                 )
             except sqlite3.IntegrityError as exc:
                 raise ValueError(f"site already exists: {site_id}") from exc
-        return SiteRead.model_validate({**data, "created_at": now, "updated_at": now})
+        site = self.get_site(site_id)
+        assert site is not None
+        return site
 
     def list_sites(self) -> list[SiteRead]:
         with self.connection() as conn:
@@ -130,31 +222,45 @@ class Database:
         existing = self.get_site(site_id)
         if existing is None:
             return None
-        data = existing.model_dump(mode="json")
         updates = patch.model_dump(exclude_unset=True)
-        data.update(updates)
+        if not updates:
+            return existing
+        name = updates.get("name", existing.name)
+        tariff_id = updates.get("tariff_id", existing.tariff_id)
         updated_at = _now()
         with self.connection() as conn:
             conn.execute(
-                "UPDATE sites SET payload = ?, updated_at = ? WHERE site_id = ?",
-                (json.dumps(data, ensure_ascii=False), updated_at.isoformat(), site_id),
+                "UPDATE sites SET name = ?, tariff_id = ?, updated_at = ? WHERE site_id = ?",
+                (name, tariff_id, updated_at.isoformat(), site_id),
             )
-        return SiteRead.model_validate({**data, "updated_at": updated_at})
+        return self.get_site(site_id)
 
     def create_tariff(self, payload: TariffCreate) -> TariffRead:
         tariff_id = payload.tariff_id or generate_tariff_id()
         now = _now()
-        data = payload.model_dump(mode="json")
-        data["tariff_id"] = tariff_id
+        tiers = [tier.model_dump(mode="json") for tier in payload.tiers]
         with self.connection() as conn:
             try:
                 conn.execute(
-                    "INSERT INTO tariffs(tariff_id, payload, created_at, updated_at) VALUES (?, ?, ?, ?)",
-                    (tariff_id, json.dumps(data, ensure_ascii=False), now.isoformat(), now.isoformat()),
+                    """
+                    INSERT INTO tariffs(tariff_id, name, mode, transmission_and_fund, tiers_json, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        tariff_id,
+                        payload.name,
+                        payload.mode,
+                        payload.transmission_and_fund,
+                        json.dumps(tiers, ensure_ascii=False),
+                        now.isoformat(),
+                        now.isoformat(),
+                    ),
                 )
             except sqlite3.IntegrityError as exc:
                 raise ValueError(f"tariff already exists: {tariff_id}") from exc
-        return TariffRead.model_validate({**data, "created_at": now, "updated_at": now})
+        tariff = self.get_tariff(tariff_id)
+        assert tariff is not None
+        return tariff
 
     def list_tariffs(self) -> list[TariffRead]:
         with self.connection() as conn:
@@ -163,7 +269,9 @@ class Database:
 
     def get_tariff(self, tariff_id: str) -> TariffRead | None:
         with self.connection() as conn:
-            row = conn.execute("SELECT * FROM tariffs WHERE tariff_id = ?", (tariff_id,)).fetchone()
+            row = conn.execute(
+                "SELECT * FROM tariffs WHERE tariff_id = ?", (tariff_id,)
+            ).fetchone()
         return self._tariff_from_row(row) if row else None
 
     def insert_measurements(self, site_id: str, upload: MeasurementUpload) -> int:
@@ -179,9 +287,9 @@ class Database:
                 conn.execute(
                     """
                     INSERT INTO measurements(
-                        site_id, data_type, ts, value, unit, resolution_minutes, quality, source
+                        site_id, data_type, ts_utc, value, unit, resolution_minutes, quality, source
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(site_id, data_type, ts) DO UPDATE SET
+                    ON CONFLICT(site_id, data_type, ts_utc) DO UPDATE SET
                         value = excluded.value,
                         unit = excluded.unit,
                         resolution_minutes = excluded.resolution_minutes,
@@ -191,7 +299,7 @@ class Database:
                     (
                         site_id,
                         upload.data_type,
-                        point.ts.isoformat(),
+                        _to_utc(point.ts).isoformat(),
                         value,
                         upload.unit,
                         upload.resolution_minutes,
@@ -205,22 +313,22 @@ class Database:
         self, site_id: str, data_type: str, target_date: date, timezone_name: str
     ) -> list[MeasurementRead]:
         tz = _zone(timezone_name)
-        start = datetime.combine(target_date, time.min, tzinfo=tz)
+        start = _to_utc(datetime.combine(target_date, time.min, tzinfo=tz))
         end = start + timedelta(days=1)
         with self.connection() as conn:
             rows = conn.execute(
                 """
-                SELECT data_type, ts, value, unit, quality, source
+                SELECT data_type, ts_utc, value, unit, quality, source
                 FROM measurements
-                WHERE site_id = ? AND data_type = ? AND ts >= ? AND ts < ?
-                ORDER BY ts
+                WHERE site_id = ? AND data_type = ? AND ts_utc >= ? AND ts_utc < ?
+                ORDER BY ts_utc
                 """,
                 (site_id, data_type, start.isoformat(), end.isoformat()),
             ).fetchall()
         return [
             MeasurementRead(
                 data_type=row["data_type"],
-                ts=_parse_dt(row["ts"]),
+                ts=_parse_dt(row["ts_utc"]).astimezone(tz),
                 value=row["value"],
                 unit=row["unit"],
                 quality=row["quality"],
@@ -229,12 +337,307 @@ class Database:
             for row in rows
         ]
 
+    def get_measurement_rows_for_date(
+        self, site_id: str, data_type: str, target_date: date, timezone_name: str
+    ) -> list[dict]:
+        """与 get_measurements_for_date 同时区口径，但额外返回 resolution_minutes。"""
+        tz = _zone(timezone_name)
+        start = _to_utc(datetime.combine(target_date, time.min, tzinfo=tz))
+        end = start + timedelta(days=1)
+        with self.connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT ts_utc, value, quality, resolution_minutes
+                FROM measurements
+                WHERE site_id = ? AND data_type = ? AND ts_utc >= ? AND ts_utc < ?
+                ORDER BY ts_utc
+                """,
+                (site_id, data_type, start.isoformat(), end.isoformat()),
+            ).fetchall()
+        return [
+            {
+                "ts": _parse_dt(row["ts_utc"]).astimezone(tz),
+                "value": row["value"],
+                "quality": row["quality"],
+                "resolution_minutes": row["resolution_minutes"],
+            }
+            for row in rows
+        ]
+
+    def get_latest_measurement_point(
+        self, site_id: str, data_type: str, timezone_name: str
+    ) -> tuple[datetime, float] | None:
+        """该类型最新的一个非 None 点（ts 转站点时区）。"""
+        with self.connection() as conn:
+            row = conn.execute(
+                """
+                SELECT ts_utc, value FROM measurements
+                WHERE site_id = ? AND data_type = ? AND value IS NOT NULL
+                ORDER BY ts_utc DESC LIMIT 1
+                """,
+                (site_id, data_type),
+            ).fetchone()
+        if row is None:
+            return None
+        return _parse_dt(row["ts_utc"]).astimezone(_zone(timezone_name)), row["value"]
+
+    def get_latest_measurement_ts(
+        self, site_id: str, data_types: list[str], timezone_name: str
+    ) -> datetime | None:
+        """若干类型中最新的非 None 点时间戳（ts 转站点时区）。"""
+        placeholders = ", ".join("?" for _ in data_types)
+        with self.connection() as conn:
+            row = conn.execute(
+                f"""
+                SELECT MAX(ts_utc) AS latest FROM measurements
+                WHERE site_id = ? AND data_type IN ({placeholders}) AND value IS NOT NULL
+                """,
+                (site_id, *data_types),
+            ).fetchone()
+        if row is None or row["latest"] is None:
+            return None
+        return _parse_dt(row["latest"]).astimezone(_zone(timezone_name))
+
+    def insert_dispatch_run(
+        self,
+        *,
+        run_id: str,
+        site_id: str,
+        date: date,
+        strategy: str,
+        initial_soc: float,
+        input_digest: str,
+        result: ScheduleResponse,
+        data_source: str = "measurements",
+    ) -> None:
+        now = _now()
+        with self.connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO dispatch_runs(
+                    run_id, site_id, date, strategy, initial_soc, input_digest, result_json,
+                    data_source, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    run_id,
+                    site_id,
+                    date.isoformat(),
+                    strategy,
+                    initial_soc,
+                    input_digest,
+                    json.dumps(result.model_dump(mode="json"), ensure_ascii=False),
+                    data_source,
+                    now.isoformat(),
+                ),
+            )
+
+    def list_dispatch_runs(self, site_id: str) -> list[DispatchRunSummary]:
+        with self.connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT run_id, site_id, date, strategy, initial_soc, result_json, data_source, created_at
+                FROM dispatch_runs
+                WHERE site_id = ?
+                ORDER BY created_at DESC
+                """,
+                (site_id,),
+            ).fetchall()
+        summaries: list[DispatchRunSummary] = []
+        for row in rows:
+            result = json.loads(row["result_json"])
+            summaries.append(
+                DispatchRunSummary(
+                    run_id=row["run_id"],
+                    site_id=row["site_id"],
+                    date=row["date"],
+                    strategy=row["strategy"],
+                    initial_soc=row["initial_soc"],
+                    expected_benefit_yuan=result["expected_benefit_yuan"],
+                    baseline_cost_yuan=result["baseline_cost_yuan"],
+                    optimized_cost_yuan=result["optimized_cost_yuan"],
+                    equivalent_full_cycles=result["equivalent_full_cycles"],
+                    data_source=row["data_source"],
+                    created_at=_parse_dt(row["created_at"]),
+                )
+            )
+        return summaries
+
+    def get_dispatch_run(self, run_id: str) -> DispatchRunDetail | None:
+        with self.connection() as conn:
+            row = conn.execute(
+                """
+                SELECT run_id, site_id, input_digest, result_json, created_at
+                FROM dispatch_runs
+                WHERE run_id = ?
+                """,
+                (run_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        result = json.loads(row["result_json"])
+        return DispatchRunDetail.model_validate(
+            {
+                **result,
+                "run_id": row["run_id"],
+                "input_digest": row["input_digest"],
+                "created_at": _parse_dt(row["created_at"]),
+            }
+        )
+
+    def insert_sizing_run(
+        self, *, run_id: str, site_id: str, input_digest: str, result: SizingResponse
+    ) -> datetime:
+        now = _now()
+        with self.connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO sizing_runs(run_id, site_id, input_digest, result_json, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    run_id,
+                    site_id,
+                    input_digest,
+                    json.dumps(result.model_dump(mode="json"), ensure_ascii=False),
+                    now.isoformat(),
+                ),
+            )
+        return now
+
+    def list_sizing_runs(self, site_id: str) -> list[SizingRunSummary]:
+        with self.connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT run_id, site_id, result_json, created_at
+                FROM sizing_runs
+                WHERE site_id = ?
+                ORDER BY created_at DESC
+                """,
+                (site_id,),
+            ).fetchall()
+        summaries: list[SizingRunSummary] = []
+        for row in rows:
+            result = json.loads(row["result_json"])
+            recommended = result.get("recommended")
+            summaries.append(
+                SizingRunSummary(
+                    run_id=row["run_id"],
+                    site_id=row["site_id"],
+                    created_at=_parse_dt(row["created_at"]),
+                    recommended_pcs_kw=recommended["pcs_kw"] if recommended else None,
+                    recommended_capacity_kwh=recommended["capacity_kwh"] if recommended else None,
+                    npv_yuan=recommended["npv_yuan"] if recommended else None,
+                    payback_years=recommended["payback_years"] if recommended else None,
+                )
+            )
+        return summaries
+
+    def get_sizing_run(self, run_id: str) -> SizingRunDetail | None:
+        with self.connection() as conn:
+            row = conn.execute(
+                """
+                SELECT run_id, site_id, input_digest, result_json, created_at
+                FROM sizing_runs
+                WHERE run_id = ?
+                """,
+                (run_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        result = json.loads(row["result_json"])
+        return SizingRunDetail.model_validate(
+            {
+                **result,
+                "run_id": row["run_id"],
+                "input_digest": row["input_digest"],
+                "created_at": _parse_dt(row["created_at"]),
+            }
+        )
+
+    def insert_report_job(
+        self,
+        *,
+        report_id: str,
+        site_id: str,
+        report_type: str,
+        sizing_run_id: str | None,
+    ) -> ReportJob:
+        now = _now()
+        with self.connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO report_jobs(
+                    report_id, site_id, report_type, sizing_run_id, status,
+                    error, file_path, created_at, finished_at
+                ) VALUES (?, ?, ?, ?, 'pending', NULL, NULL, ?, NULL)
+                """,
+                (report_id, site_id, report_type, sizing_run_id, now.isoformat()),
+            )
+        job = self.get_report_job(report_id)
+        assert job is not None
+        return job
+
+    def update_report_job(
+        self,
+        report_id: str,
+        *,
+        status: str,
+        error: str | None = None,
+        file_path: str | None = None,
+        finished: bool = False,
+    ) -> None:
+        with self.connection() as conn:
+            conn.execute(
+                """
+                UPDATE report_jobs
+                SET status = ?, error = ?, file_path = ?,
+                    finished_at = CASE WHEN ? THEN ? ELSE finished_at END
+                WHERE report_id = ?
+                """,
+                (status, error, file_path, finished, _now().isoformat(), report_id),
+            )
+
+    def get_report_job(self, report_id: str) -> ReportJob | None:
+        with self.connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM report_jobs WHERE report_id = ?", (report_id,)
+            ).fetchone()
+        if row is None:
+            return None
+        return ReportJob(
+            report_id=row["report_id"],
+            site_id=row["site_id"],
+            report_type=row["report_type"],
+            sizing_run_id=row["sizing_run_id"],
+            status=row["status"],
+            error=row["error"],
+            file_path=row["file_path"],
+            created_at=_parse_dt(row["created_at"]),
+            finished_at=_parse_dt(row["finished_at"]) if row["finished_at"] else None,
+        )
+
     @staticmethod
     def _site_from_row(row: sqlite3.Row) -> SiteRead:
-        data = json.loads(row["payload"])
+        config = json.loads(row["config_json"])
+        location_extra = config.get("location", {})
         return SiteRead.model_validate(
             {
-                **data,
+                "site_id": row["site_id"],
+                "name": row["name"],
+                "location": {
+                    "lat": row["lat"],
+                    "lon": row["lon"],
+                    "timezone": row["timezone"],
+                    "province": location_extra.get("province"),
+                    "city": location_extra.get("city"),
+                },
+                "pv": config["pv"],
+                "load": config["load"],
+                "storage": config["storage"],
+                "tariff_id": row["tariff_id"],
+                # 存量 config_json 可能没有 demand_limit_kw，缺省为 None
+                "demand_limit_kw": config.get("demand_limit_kw"),
                 "created_at": _parse_dt(row["created_at"]),
                 "updated_at": _parse_dt(row["updated_at"]),
             }
@@ -242,10 +645,13 @@ class Database:
 
     @staticmethod
     def _tariff_from_row(row: sqlite3.Row) -> TariffRead:
-        data = json.loads(row["payload"])
         return TariffRead.model_validate(
             {
-                **data,
+                "tariff_id": row["tariff_id"],
+                "name": row["name"],
+                "mode": row["mode"],
+                "transmission_and_fund": row["transmission_and_fund"],
+                "tiers": json.loads(row["tiers_json"]),
                 "created_at": _parse_dt(row["created_at"]),
                 "updated_at": _parse_dt(row["updated_at"]),
             }

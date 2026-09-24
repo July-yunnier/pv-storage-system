@@ -40,6 +40,7 @@ class RuleDispatchEngine:
         min_energy = storage.soc_min * storage.capacity_kwh
         max_energy = storage.soc_max * storage.capacity_kwh
         usable_capacity = (storage.soc_max - storage.soc_min) * storage.capacity_kwh
+        demand_limit_kw = inputs.site.demand_limit_kw
         points: list[DispatchPoint] = []
         baseline_cost = 0.0
         optimized_cost = 0.0
@@ -49,8 +50,10 @@ class RuleDispatchEngine:
         for pv, load, price in zip(inputs.pv_points, inputs.load_points, inputs.price_points):
             if pv.ts != load.ts or pv.ts != price.ts:
                 raise ValueError("pv, load and price timestamps must align")
-            pv_kw = pv.value or 0.0
-            load_kw = load.value or 0.0
+            if pv.value is None or load.value is None:
+                raise ValueError(f"存在缺失点，无法生成调度: {pv.ts.isoformat()}")
+            pv_kw = pv.value
+            load_kw = load.value
             net_load = load_kw - pv_kw
             baseline_grid_import = max(net_load, 0.0)
             baseline_cost += baseline_grid_import * dt_hours * price.price
@@ -64,6 +67,7 @@ class RuleDispatchEngine:
             available_kwh = max(soc_energy - min_energy, 0.0)
 
             if net_load < 0:
+                # 光伏余电充电：不经过电网，不受需量限制
                 surplus_kw = -net_load
                 charge_kw = min(
                     storage.pcs_kw,
@@ -76,6 +80,8 @@ class RuleDispatchEngine:
                     storage.pcs_kw,
                     headroom_kwh / storage.charge_eff / dt_hours,
                 )
+                if demand_limit_kw is not None:
+                    charge_kw = min(charge_kw, max(demand_limit_kw - net_load, 0.0))
             elif tier in {"peak", "sharp"} and net_load > 0:
                 discharge_kw = min(
                     storage.pcs_kw,
@@ -85,7 +91,8 @@ class RuleDispatchEngine:
                 )
 
             if charge_kw > 0 and discharge_kw > 0:
-                raise AssertionError("a dispatch point cannot charge and discharge together")
+                # 引擎内部不变量被破坏属于程序 bug，不是业务输入错误
+                raise RuntimeError("a dispatch point cannot charge and discharge together")
 
             soc_start = soc_energy / storage.capacity_kwh
             soc_energy += charge_kw * dt_hours * storage.charge_eff
@@ -126,6 +133,14 @@ class RuleDispatchEngine:
             )
 
         cycles = discharged_energy / usable_capacity if usable_capacity > 0 else 0.0
+        constraints = [
+            f"soc_range[{storage.soc_min},{storage.soc_max}]",
+            f"pcs_limit_kw={storage.pcs_kw}",
+            f"max_cycles_per_day={storage.cycles_per_day_max}",
+            f"grid_export_enabled={storage.allow_grid_export}",
+        ]
+        if demand_limit_kw is not None:
+            constraints.append(f"demand_limit_kw={demand_limit_kw}")
         return ScheduleResponse(
             site_id=inputs.site.site_id,
             date=inputs.target_date,
@@ -135,10 +150,5 @@ class RuleDispatchEngine:
             optimized_cost_yuan=round(optimized_cost, 6),
             equivalent_full_cycles=round(cycles, 6),
             schedule=points,
-            constraints_applied=[
-                f"soc_range[{storage.soc_min},{storage.soc_max}]",
-                f"pcs_limit_kw={storage.pcs_kw}",
-                f"max_cycles_per_day={storage.cycles_per_day_max}",
-                f"grid_export_enabled={storage.allow_grid_export}",
-            ],
+            constraints_applied=constraints,
         )

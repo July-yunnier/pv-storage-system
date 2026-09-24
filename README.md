@@ -34,23 +34,33 @@
 
 ## 当前开发状态
 
-第一轮后端闭环已完成：
+后端闭环已完成，当前处于 I6（容量规划 + 经济性 + PDF 报告）迭代：
 
-- FastAPI 服务骨架和健康检查
-- SQLite 站点、价目和测量数据存储
+- FastAPI 服务骨架、统一错误结构（含 request_id）和健康检查
+- SQLite 列式存储（站点/价目/测量，时间戳统一 UTC 规范化）
 - 站点创建、查询、修改
-- 光伏/负荷/SOC/电网测量数据上传
-- TOU 电价 Provider
-- 规则式日调度和 SOC 计算
-- 2 个单元/API 流程测试
+- 光伏/负荷/SOC/电网测量数据上传（JSON + CSV 文件 `POST /api/v1/sites/{site_id}/measurements/csv`，行级容错）
+- 数据质量报告 `GET /api/v1/sites/{site_id}/data-quality`（完整度、缺失区间合并）
+- TOU 电价 Provider、价目查询、站点日价格点 `GET /api/v1/sites/{site_id}/tariff-points`
+- 规则式日调度和 SOC 计算（需量感知：站点可配 `demand_limit_kw` 限制谷段电网充电功率）
+- 调度运行落库追溯 `GET /api/v1/sites/{site_id}/dispatch-runs[/{run_id}]`（含 input_digest，可复现性校验）
+- 曲线聚合 `GET /api/v1/sites/{site_id}/curves`（多日 15 分钟网格，pv/load/net_load/price/tier 单一对齐数据源）
+- 超短期预测 `POST /api/v1/forecast`（pv 同刻均值统计法 + 回测精度口径 + p10/p90；load 同刻均值；TOU 价格政策给定）
+- 调度支持 `source=auto/measurements/forecast`（auto 按当天数据完整性自动选择，dispatch_runs 记录实际 data_source）
+- 容量规划 `POST /api/v1/storage/sizing`（同一调度引擎跑代表日折算全年，NPV/IRR/回本 + 价差/电池单价敏感性，全量 assumptions；`GET /sites/{id}/sizing-runs[/{run_id}]` 追溯）
+- Sizing PDF 报告 `POST/GET /api/v1/reports[/{id}[/download]]`（reportlab，中文 CID 字体）
+- pytest 测试套件
 
 本地运行：
 
 ```powershell
 Set-Location backend
-python -m unittest discover -s tests -p "test_*.py" -v
+python -m pytest -q        # 运行全部测试
+python scripts/seed_demo.py  # 写入示例电价、站点和 3 天合成数据（幂等，可重复执行）
 python run.py
 ```
+
+种子脚本会创建江苏示例 TOU 电价 `T-JIANGSU-DEMO`、南京示例站点 `S-NANJING-DEMO` 以及最近 3 天 15 分钟粒度的光伏/负荷合成数据（写入 `backend/data/storage.db`），脚本末尾会打印一条可直接调用的 `/api/v1/storage/schedule` 示例请求。
 
 启动后访问 <http://127.0.0.1:8000/docs> 查看 OpenAPI 文档。
 

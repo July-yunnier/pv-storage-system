@@ -62,6 +62,7 @@ class SiteCreate(BaseModel):
     load: LoadConfig = Field(default_factory=LoadConfig)
     storage: StorageConfig
     tariff_id: str | None = "T-DEFAULT"
+    demand_limit_kw: float | None = Field(default=None, gt=0)
 
     @field_validator("site_id")
     @classmethod
@@ -180,6 +181,93 @@ class ScheduleRequest(BaseModel):
     initial_soc: float = Field(default=0.5, ge=0, le=1)
     strategy: Literal["rule_v1"] = "rule_v1"
     resolution_minutes: int = Field(default=15, gt=0)
+    source: Literal["auto", "measurements", "forecast"] = "auto"
+
+
+ForecastTarget = Literal["pv_power", "load_power", "price"]
+
+
+class ForecastOptions(BaseModel):
+    include_uncertainty: bool = True
+    quantiles: list[float] = Field(default_factory=lambda: [0.1, 0.5, 0.9])
+
+
+class ForecastRequest(BaseModel):
+    site_id: str
+    targets: list[ForecastTarget] = Field(min_length=1)
+    horizon_hours: int = Field(default=24, gt=0)
+    resolution_minutes: int = Field(default=15, gt=0)
+    issued_at: datetime | None = None
+    options: ForecastOptions = Field(default_factory=ForecastOptions)
+
+    @field_validator("issued_at")
+    @classmethod
+    def require_timezone(cls, value: datetime | None) -> datetime | None:
+        if value is not None and (value.tzinfo is None or value.utcoffset() is None):
+            raise ValueError("issued_at must include a timezone")
+        return value
+
+
+class SizingCandidates(BaseModel):
+    pcs_kw: list[float] = Field(min_length=1)
+    duration_hours: list[float] = Field(min_length=1)
+
+    @field_validator("pcs_kw", "duration_hours")
+    @classmethod
+    def positive_values(cls, values: list[float]) -> list[float]:
+        if any(value <= 0 for value in values):
+            raise ValueError("candidate values must be positive")
+        return values
+
+
+class FinancialOverrides(BaseModel):
+    battery_price_per_kwh: float | None = Field(default=None, ge=0)
+    pcs_price_per_kw: float | None = Field(default=None, ge=0)
+    install_ratio: float | None = Field(default=None, ge=0)
+    opex_ratio: float | None = Field(default=None, ge=0)
+    project_years: int | None = Field(default=None, ge=1)
+    battery_life_years: int | None = Field(default=None, ge=1)
+    replacement_cost_ratio: float | None = Field(default=None, ge=0)
+    discount_rate: float | None = Field(default=None, ge=-0.99)
+    residual_ratio: float | None = Field(default=None, ge=0)
+
+
+class SizingRequest(BaseModel):
+    site_id: str
+    candidates: SizingCandidates
+    representative_days: int = Field(default=3, ge=1, le=14)
+    financial: FinancialOverrides = Field(default_factory=FinancialOverrides)
+
+
+class ReportCreate(BaseModel):
+    site_id: str
+    sizing_run_id: str
+
+
+ReportStatus = Literal["pending", "running", "succeeded", "failed"]
+
+
+class ReportJob(BaseModel):
+    report_id: str
+    site_id: str
+    report_type: str
+    sizing_run_id: str | None
+    status: ReportStatus
+    error: str | None
+    file_path: str | None
+    created_at: datetime
+    finished_at: datetime | None
+
+
+class ReportJobStatusResponse(BaseModel):
+    report_id: str
+    site_id: str
+    report_type: str
+    status: ReportStatus
+    error: str | None
+    created_at: datetime
+    finished_at: datetime | None
+    download_url: str
 
 
 class DispatchPoint(BaseModel):
@@ -207,6 +295,27 @@ class ScheduleResponse(BaseModel):
     equivalent_full_cycles: float
     schedule: list[DispatchPoint]
     constraints_applied: list[str]
+    run_id: str | None = None
+    data_source: Literal["measurements", "forecast"] = "measurements"
+
+
+class DispatchRunSummary(BaseModel):
+    run_id: str
+    site_id: str
+    date: date
+    strategy: str
+    initial_soc: float
+    expected_benefit_yuan: float
+    baseline_cost_yuan: float
+    optimized_cost_yuan: float
+    equivalent_full_cycles: float
+    data_source: Literal["measurements", "forecast"] = "measurements"
+    created_at: datetime
+
+
+class DispatchRunDetail(ScheduleResponse):
+    input_digest: str
+    created_at: datetime
 
 
 def generate_site_id() -> str:
