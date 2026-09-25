@@ -1,16 +1,30 @@
-"""预测编排：读取历史测量 → 调 forecast 纯函数 → 组装 TargetForecast。不依赖 FastAPI。"""
+"""预测编排：读取历史测量/气象预报 → 调 forecast 纯函数 → 组装 TargetForecast。
+
+不依赖 FastAPI。光伏模型选择：
+- auto（默认）：历史 ≥3 天 → blend 融合（气象失败回退统计法）；否则 physics 物理链
+- statistical：同刻均值基线（需 ≥3 天历史）
+- physics：纯 pvlib 物理链（无需历史，冷启动可用）
+- intraday=True：日内滚动修正（仅光伏，覆盖今日剩余时段）
+"""
 
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
 
 from app.api import errors
+from app.domain.forecast.blend import blend_pv_forecast
 from app.domain.forecast.load import predict_load_profile
 from app.domain.forecast.price import forecast_price_tou
-from app.domain.forecast.pv import predict_pv_diurnal
+from app.domain.forecast.pv import (
+    predict_pv_diurnal,
+    predict_pv_intraday,
+    predict_pv_physics,
+)
 from app.domain.forecast.result import ForecastPoint, ForecastResponse, TargetForecast
+from app.domain.forecast.stats import MIN_HISTORY_DAYS, daily_series
 from app.domain.models import ForecastRequest, SiteRead
 from app.infrastructure.db import Database, _zone
+from app.infrastructure.weather.factory import get_weather_provider
 
 N_DAYS = 12
 MAX_HORIZON_HOURS = 72
@@ -34,6 +48,61 @@ def _history(
     return history
 
 
+def _history_days_available(history: list[tuple[datetime, float]], tz) -> int:
+    return len(daily_series(history, tz))
+
+
+def _weather_window(site: SiteRead, start_date: date, days: int, past_days: int) -> list:
+    """取覆盖 [start-past_days, start+days) 的逐小时辐射窗口。"""
+    tz = _zone(site.location.timezone)
+    today = datetime.now(tz).date()
+    forecast_days = max((start_date + timedelta(days=days) - today).days, 1)
+    provider = get_weather_provider()
+    return provider.irradiance_window(
+        lat=site.location.lat,
+        lon=site.location.lon,
+        timezone_name=site.location.timezone,
+        past_days=past_days,
+        forecast_days=forecast_days,
+    )
+
+
+def _pv_day_forecast(
+    db: Database,
+    site: SiteRead,
+    day: date,
+    history: list[tuple[datetime, float]],
+    pv_model: str,
+) -> TargetForecast:
+    """单日光伏预测，按模型选择路径。auto 语义见模块 docstring。"""
+    tz = _zone(site.location.timezone)
+    pv = site.pv
+    lat, lon = site.location.lat, site.location.lon
+    has_history = _history_days_available(history, tz) >= MIN_HISTORY_DAYS
+
+    if pv_model == "statistical" or (pv_model == "auto" and has_history):
+        try:
+            if pv_model == "auto":
+                # 有历史：融合优先，气象不可用时回退统计法
+                try:
+                    weather = _weather_window(site, day, 1, past_days=N_DAYS)
+                    past = [p for p in weather if p.ts.date() < day]
+                    future = [p for p in weather if p.ts.date() >= day]
+                    return blend_pv_forecast(
+                        past, future, history, pv, lat, lon, day, tz, N_DAYS
+                    )
+                except errors.AppError:
+                    pass  # 气象不可用 → 回退统计法
+            return predict_pv_diurnal(history, day, pv.capacity_kwp, tz, N_DAYS)
+        except ValueError as exc:
+            raise errors.data_quality_error(str(exc)) from exc
+
+    # physics / auto 无历史：纯物理链
+    weather = _weather_window(site, day, 1, past_days=0)
+    provider = get_weather_provider()
+    return predict_pv_physics(weather, day, pv, lat, lon, tz, provider.name)
+
+
 def forecast_series(
     db: Database,
     site: SiteRead,
@@ -41,14 +110,15 @@ def forecast_series(
     target_date: date,
     n_days: int = N_DAYS,
 ) -> list[ForecastPoint]:
-    """供调度复用的单日 pv/load 预测点。历史不足抛 ValueError。"""
-    tz = _zone(site.location.timezone)
+    """供调度复用的单日 pv/load 预测点。全部路径失败抛 ValueError。"""
     history = _history(db, site, data_type, target_date, n_days)
     if data_type == "pv_power":
-        forecast = predict_pv_diurnal(history, target_date, site.pv.capacity_kwp, tz, n_days)
-    else:
-        forecast = predict_load_profile(history, target_date, tz, n_days)
-    return forecast.points
+        try:
+            return _pv_day_forecast(db, site, target_date, history, "auto").points
+        except errors.AppError as exc:
+            raise ValueError(f"pv forecast unavailable: {exc.message}") from exc
+    tz = _zone(site.location.timezone)
+    return predict_load_profile(history, target_date, tz, n_days).points
 
 
 def _forecast_target(
@@ -58,6 +128,9 @@ def _forecast_target(
     start_date: date,
     days: int,
     include_uncertainty: bool,
+    pv_model: str,
+    intraday: bool,
+    issued_at: datetime,
 ) -> TargetForecast:
     tz = _zone(site.location.timezone)
     if target == "price":
@@ -68,12 +141,22 @@ def _forecast_target(
         return forecast_price_tou(tariff, start_date, days, tz)
 
     history = _history(db, site, target, start_date, N_DAYS)
+    if intraday and target == "pv_power":
+        # 日内滚动修正：今日已发生实测 + 今日剩余时段；历史包含今日已发生部分
+        history_today = _history(db, site, target, start_date + timedelta(days=1), N_DAYS)
+        try:
+            return predict_pv_intraday(
+                history_today, issued_at.astimezone(tz), site.pv.capacity_kwp, tz, N_DAYS
+            )
+        except ValueError as exc:
+            raise errors.data_quality_error(str(exc)) from exc
+
     merged: TargetForecast | None = None
     for offset in range(days):
         day = start_date + timedelta(days=offset)
         try:
             if target == "pv_power":
-                forecast = predict_pv_diurnal(history, day, site.pv.capacity_kwp, tz, N_DAYS)
+                forecast = _pv_day_forecast(db, site, day, history, pv_model)
             else:
                 forecast = predict_load_profile(history, day, tz, N_DAYS)
         except ValueError as exc:
@@ -105,13 +188,25 @@ def run_forecast(db: Database, payload: ForecastRequest) -> ForecastResponse:
 
     issued_at = payload.issued_at or datetime.now(timezone.utc)
     tz = _zone(site.location.timezone)
-    # 日前预测：覆盖站点时区次日 00:00 起的完整天
-    start_date = issued_at.astimezone(tz).date() + timedelta(days=1)
-    days = payload.horizon_hours // 24
+    # 日前预测：覆盖站点时区次日 00:00 起的完整天；intraday 模式覆盖今日剩余时段
+    if payload.options.intraday:
+        start_date = issued_at.astimezone(tz).date()
+        days = 1
+    else:
+        start_date = issued_at.astimezone(tz).date() + timedelta(days=1)
+        days = payload.horizon_hours // 24
 
     results = [
         _forecast_target(
-            db, site, target, start_date, days, payload.options.include_uncertainty
+            db,
+            site,
+            target,
+            start_date,
+            days,
+            payload.options.include_uncertainty,
+            payload.options.pv_model,
+            payload.options.intraday,
+            issued_at,
         )
         for target in payload.targets
     ]

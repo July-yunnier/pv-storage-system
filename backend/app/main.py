@@ -18,6 +18,7 @@ from app.api.routes_sizing import runs_router as sizing_runs_router
 from app.api.routes_storage import router as storage_router
 from app.api.routes_storage import runs_router as dispatch_runs_router
 from app.api.routes_tariffs import router as tariffs_router
+from app.api.routes_weather import router as weather_router
 from app.infrastructure.db import Database
 
 
@@ -95,6 +96,7 @@ def create_app(database_path: str | None = None) -> FastAPI:
     app.include_router(sizing_router, prefix="/api/v1")
     app.include_router(sizing_runs_router, prefix="/api/v1")
     app.include_router(reports_router, prefix="/api/v1")
+    app.include_router(weather_router, prefix="/api/v1")
     return app
 
 

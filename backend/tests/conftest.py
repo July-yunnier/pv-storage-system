@@ -30,6 +30,12 @@ def client(tmp_path) -> TestClient:
     return TestClient(create_app(str(tmp_path / "test.db")))
 
 
+@pytest.fixture(autouse=True)
+def mock_weather_provider(monkeypatch: pytest.MonkeyPatch) -> None:
+    """测试一律走 mock 气象源，不打外网。"""
+    monkeypatch.setenv("WEATHER_PROVIDER", "mock")
+
+
 @pytest.fixture()
 def site_client(client: TestClient) -> TestClient:
     response = client.post("/api/v1/sites", json=SITE_PAYLOAD)

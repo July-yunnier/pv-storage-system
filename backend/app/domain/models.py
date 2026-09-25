@@ -190,6 +190,8 @@ ForecastTarget = Literal["pv_power", "load_power", "price"]
 class ForecastOptions(BaseModel):
     include_uncertainty: bool = True
     quantiles: list[float] = Field(default_factory=lambda: [0.1, 0.5, 0.9])
+    pv_model: Literal["auto", "statistical", "physics"] = "auto"
+    intraday: bool = False
 
 
 class ForecastRequest(BaseModel):

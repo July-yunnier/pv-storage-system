@@ -65,12 +65,40 @@ def ensure_site(db: Database) -> str:
     return "created"
 
 
-def pv_power_kw(hour_float: float, rng: random.Random, capacity_kwp: float, system_loss: float) -> float:
-    if not 6.0 <= hour_float <= 18.0:
-        return 0.0
-    sine = math.sin(math.pi * (hour_float - 6.0) / 12.0)
-    cloud = rng.uniform(0.75, 1.0)
-    return round(capacity_kwp * (1 - system_loss) * sine * cloud, 3)
+# 云况情景：晴空物理基线 × 逐槽云衰减系数。
+# clear/partly/overcast 轮替，让演示数据有真实的天气多样性。
+CLOUD_SCENARIOS = ("clear", "partly_cloudy", "overcast")
+
+
+def pv_day_values(day: date, scenario: str, rng: random.Random) -> list[float]:
+    """pvlib 晴空链 + 云况情景的一天 96 点功率。"""
+    from app.domain.forecast.pv_physics import clearsky_series
+
+    tz = _zone(TIMEZONE)
+    site = _site_pv_config()
+    base = clearsky_series(site, 32.06, 118.79, day, tz)
+    values: list[float] = []
+    drift = 1.0
+    for clear_kw in base:
+        if clear_kw <= 0:
+            values.append(0.0)
+            continue
+        if scenario == "clear":
+            factor = rng.uniform(0.92, 1.0)
+        elif scenario == "partly_cloudy":
+            # 云团漂移：缓慢随机游走
+            drift = min(max(drift + rng.uniform(-0.15, 0.15), 0.35), 1.0)
+            factor = drift
+        else:  # overcast
+            factor = rng.uniform(0.12, 0.3)
+        values.append(round(clear_kw * factor, 3))
+    return values
+
+
+def _site_pv_config():
+    from app.domain.models import PVConfig
+
+    return PVConfig(capacity_kwp=1000, tilt_deg=22.5, azimuth_deg=180, system_loss=0.14)
 
 
 def load_power_kw(hour_float: float, rng: random.Random) -> float:
@@ -83,11 +111,11 @@ def load_power_kw(hour_float: float, rng: random.Random) -> float:
 
 def seed_measurements(db: Database, days: list[date], rng: random.Random) -> dict[str, int]:
     tz = _zone(TIMEZONE)
-    site = db.get_site(SITE_ID)
-    assert site is not None
     counts = {"pv_power": 0, "load_power": 0}
     points_per_day = 24 * 60 // RESOLUTION_MINUTES
-    for day in days:
+    for day_index, day in enumerate(days):
+        scenario = CLOUD_SCENARIOS[day_index % len(CLOUD_SCENARIOS)]
+        pv_values = pv_day_values(day, scenario, rng)
         start = datetime.combine(day, time.min, tzinfo=tz)
         pv_points = []
         load_points = []
@@ -95,11 +123,7 @@ def seed_measurements(db: Database, days: list[date], rng: random.Random) -> dic
             ts = start + timedelta(minutes=RESOLUTION_MINUTES * index)
             hour_float = ts.hour + ts.minute / 60
             pv_points.append(
-                {
-                    "ts": ts.isoformat(),
-                    "value": pv_power_kw(hour_float, rng, site.pv.capacity_kwp, site.pv.system_loss),
-                    "quality": "estimated",
-                }
+                {"ts": ts.isoformat(), "value": pv_values[index], "quality": "estimated"}
             )
             load_points.append(
                 {"ts": ts.isoformat(), "value": load_power_kw(hour_float, rng), "quality": "estimated"}
@@ -143,6 +167,8 @@ def main() -> None:
     print(f"电价 {TARIFF_ID}: {tariff_status}")
     print(f"站点 {SITE_ID}: {site_status}")
     print(f"种子日期: {', '.join(day.isoformat() for day in days)} ({TIMEZONE})")
+    scenarios = [CLOUD_SCENARIOS[i % len(CLOUD_SCENARIOS)] for i in range(len(days))]
+    print(f"光伏云况情景: {', '.join(scenarios)}（pvlib 晴空基线 × 云衰减）")
     for data_type, count in counts.items():
         print(f"写入 {data_type}: {count} 点")
     print("示例调度请求 POST /api/v1/storage/schedule:")

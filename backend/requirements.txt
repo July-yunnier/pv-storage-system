@@ -5,3 +5,4 @@ pytest>=8
 pyyaml>=6
 python-multipart>=0.0.9
 reportlab>=4
+httpx>=0.27
