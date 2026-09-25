@@ -6,3 +6,5 @@ pyyaml>=6
 python-multipart>=0.0.9
 reportlab>=4
 httpx>=0.27
+pvlib>=0.11
+pandas>=2.2
