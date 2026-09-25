@@ -31,6 +31,8 @@ def post_forecast(client: TestClient, **overrides) -> object:
         "horizon_hours": 24,
         "resolution_minutes": 15,
         "issued_at": "2026-09-17T18:00:00+08:00",
+        # 统计法路径的契约测试固定 pv_model，避免 auto 路由到 blend/physics
+        "options": {"pv_model": "statistical"},
     }
     payload.update(overrides)
     return client.post("/api/v1/forecast", json=payload)
@@ -98,7 +100,9 @@ def test_forecast_unknown_site_404(site_client: TestClient) -> None:
 def test_forecast_without_uncertainty(site_client: TestClient) -> None:
     seed_history(site_client)
     response = post_forecast(
-        site_client, targets=["pv_power"], options={"include_uncertainty": False}
+        site_client,
+        targets=["pv_power"],
+        options={"include_uncertainty": False, "pv_model": "statistical"},
     )
     assert response.status_code == 200, response.text
     result = response.json()["results"][0]

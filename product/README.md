@@ -45,8 +45,10 @@
 - 规则式日调度和 SOC 计算（需量感知：站点可配 `demand_limit_kw` 限制谷段电网充电功率）
 - 调度运行落库追溯 `GET /api/v1/sites/{site_id}/dispatch-runs[/{run_id}]`（含 input_digest，可复现性校验）
 - 曲线聚合 `GET /api/v1/sites/{site_id}/curves`（多日 15 分钟网格，pv/load/net_load/price/tier 单一对齐数据源）
-- 超短期预测 `POST /api/v1/forecast`（pv 同刻均值统计法 + 回测精度口径 + p10/p90；load 同刻均值；TOU 价格政策给定）
-- 调度支持 `source=auto/measurements/forecast`（auto 按当天数据完整性自动选择，dispatch_runs 记录实际 data_source）
+- 超短期预测 `POST /api/v1/forecast`（pv 三模型可选：`auto`（默认，有历史→融合/无历史→物理）/`statistical`（同刻均值基线）/`physics`（pvlib 物理链）；回测精度口径 + p10/p90；`intraday` 日内滚动修正；load 同刻均值；TOU 价格政策给定）
+- 气象 Provider `GET /api/v1/sites/{site_id}/weather`（Open-Meteo 逐小时 GHI/DNI/DHI 辐射预报，Provider 可插拔，`WEATHER_PROVIDER=mock` 离线开发）
+- 光伏物理链 `domain/forecast/pv_physics.py`（pvlib：太阳位置 → Hay-Davies 转置 → Faiman 温度 → PVWatts 直流，逐小时插值 15 分钟）与融合校准 `blend.py`（物理 × 实测校准系数）
+- 调度支持 `source=auto/measurements/forecast`（auto 按当天数据完整性自动选择，dispatch_runs 记录实际 data_source；光伏预测可走物理链冷启动）
 - 容量规划 `POST /api/v1/storage/sizing`（同一调度引擎跑代表日折算全年，NPV/IRR/回本 + 价差/电池单价敏感性，全量 assumptions；`GET /sites/{id}/sizing-runs[/{run_id}]` 追溯）
 - Sizing PDF 报告 `POST/GET /api/v1/reports[/{id}[/download]]`（reportlab，中文 CID 字体）
 - pytest 测试套件

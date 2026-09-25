@@ -26,11 +26,11 @@
 
 ## 3. 开发顺序（已确认）
 
-1. **Open-Meteo Provider**：站点经纬度 → 逐小时 GHI/DNI/DHI 预报（日前 + 冷启动）
-2. **pvlib 转换链**：GHI/DNI/DHI → 组件面辐射（POA，Hay-Davies 转置）→ 功率（装机 × (1−系统损耗)），物理转换不自研，使用 pvlib
-3. **统计法残差修正**：站点积累实测后，用实测偏差校准辐射模型输出（两层融合）
-4. **日内滚动修正**：启用 alpha 偏差延续，用当日已发生实测修正当日剩余时段（兄弟项目算法的正确位置）
-5. **仿真层升级**：L1 pvlib 晴空模型 + 云况情景（替换正弦玩具）/ L2 实测回放 / L3 辐射驱动；Sizing 年化从"典型日×365"升级为 TMY 8760 逐时（后续）
+1. **Open-Meteo Provider**：站点经纬度 → 逐小时 GHI/DNI/DHI 预报（日前 + 冷启动） ✅ 已完成（infrastructure/weather/）
+2. **pvlib 转换链**：GHI/DNI/DHI → 组件面辐射（POA，Hay-Davies 转置）→ 功率（装机 × (1−系统损耗)），物理转换不自研，使用 pvlib ✅ 已完成（domain/forecast/pv_physics.py）
+3. **统计法残差修正**：站点积累实测后，用实测偏差校准辐射模型输出（两层融合） ✅ 已完成（domain/forecast/blend.py，pv_model=auto 默认走融合）
+4. **日内滚动修正**：启用 alpha 偏差延续，用当日已发生实测修正当日剩余时段（兄弟项目算法的正确位置） ✅ 已完成（predict_pv_intraday，options.intraday=true）
+5. **仿真层升级**：L1 pvlib 晴空模型 + 云况情景（替换正弦玩具）/ L2 实测回放 / L3 辐射驱动；Sizing 年化从"典型日×365"升级为 TMY 8760 逐时（后续） — L1 ✅ 已完成（seed_demo.py 云况情景）；Sizing TMY 待做
 
 明确不做：
 - 自己分析卫星云图（FY-4A 等）：原始数据为 HDF 图像、免费渠道仅最近 24h、反演为专业团队级工程量；消费成品辐射产品即可

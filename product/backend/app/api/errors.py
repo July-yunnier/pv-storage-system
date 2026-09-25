@@ -35,3 +35,7 @@ def data_quality_error(message: str, details: list[dict[str, Any]] | None = None
 
 def conflict(message: str, details: list[dict[str, Any]] | None = None) -> AppError:
     return AppError(message, status_code=409, code="CONFLICT", details=details)
+
+
+def provider_error(message: str, details: list[dict[str, Any]] | None = None) -> AppError:
+    return AppError(message, status_code=502, code="PROVIDER_ERROR", details=details)
