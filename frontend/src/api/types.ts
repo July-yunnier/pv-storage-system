@@ -130,7 +130,7 @@ export interface CreateScheduleRequest {
   initial_soc: number
   strategy: string
   resolution_minutes: number
-  source?: DataSource
+  source?: 'auto' | DataSource
 }
 
 export interface DispatchRunSummary {
@@ -242,6 +242,48 @@ export interface ReportJob {
   status: ReportStatus
   error?: string | null
   download_url?: string | null
+}
+
+export type ForecastTarget = 'pv_power' | 'load_power' | 'price'
+
+export interface ForecastRequest {
+  site_id: string
+  targets: ForecastTarget[]
+  horizon_hours: number
+  resolution_minutes: number
+  options?: {
+    include_uncertainty?: boolean
+    pv_model?: 'auto' | 'statistical' | 'physics'
+    intraday?: boolean
+  }
+}
+
+export interface ForecastModel {
+  name: string
+  version: string
+}
+
+export interface ForecastPoint {
+  ts: string
+  value: number
+}
+
+export interface TargetForecast {
+  target: ForecastTarget
+  unit: string
+  model: ForecastModel
+  points: ForecastPoint[]
+  p10: number[] | null
+  p90: number[] | null
+  accuracy: { metric: string; value: number } | null
+  notes: string
+}
+
+export interface ForecastResponse {
+  site_id: string
+  issued_at: string
+  resolution_minutes: number
+  results: TargetForecast[]
 }
 
 export interface OverviewSiteInfo {

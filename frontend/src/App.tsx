@@ -1,8 +1,6 @@
 import { Layout, Menu, Typography } from 'antd'
 import {
   DashboardOutlined,
-  LineChartOutlined,
-  ScheduleOutlined,
   FundOutlined,
   DatabaseOutlined,
 } from '@ant-design/icons'
@@ -10,12 +8,12 @@ import {
   BrowserRouter,
   Routes,
   Route,
+  Navigate,
   useNavigate,
   useLocation,
 } from 'react-router-dom'
-import OverviewPage from './pages/OverviewPage'
+import OperationsPage from './pages/OperationsPage'
 import CurvesPage from './pages/CurvesPage'
-import DispatchPage from './pages/DispatchPage'
 import DispatchDetailPage from './pages/DispatchDetailPage'
 import SizingPage from './pages/SizingPage'
 import SizingDetailPage from './pages/SizingDetailPage'
@@ -24,10 +22,8 @@ import DataPage from './pages/DataPage'
 const { Sider, Content } = Layout
 
 const menuItems = [
-  { key: '/', icon: <DashboardOutlined />, label: '站点总览' },
-  { key: '/curves', icon: <LineChartOutlined />, label: '曲线分析' },
-  { key: '/dispatch', icon: <ScheduleOutlined />, label: '调度计划' },
-  { key: '/sizing', icon: <FundOutlined />, label: '方案分析' },
+  { key: '/', icon: <DashboardOutlined />, label: '运营' },
+  { key: '/sizing', icon: <FundOutlined />, label: '投资' },
   { key: '/data', icon: <DatabaseOutlined />, label: '数据管理' },
 ]
 
@@ -83,9 +79,9 @@ function AppLayout() {
         <Content style={{ padding: 24, background: '#f5f5f5' }}>
           <div style={{ maxWidth: 1280, margin: '0 auto' }}>
             <Routes>
-              <Route path="/" element={<OverviewPage />} />
+              <Route path="/" element={<OperationsPage />} />
               <Route path="/curves" element={<CurvesPage />} />
-              <Route path="/dispatch" element={<DispatchPage />} />
+              <Route path="/dispatch" element={<Navigate to="/" replace />} />
               <Route path="/dispatch/:runId" element={<DispatchDetailPage />} />
               <Route path="/sizing" element={<SizingPage />} />
               <Route path="/sizing/:runId" element={<SizingDetailPage />} />
