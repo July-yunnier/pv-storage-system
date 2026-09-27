@@ -4,6 +4,8 @@ import type {
   CurvesResponse,
   DataType,
   DispatchRunDetail,
+  ForecastRequest,
+  ForecastResponse,
   DispatchRunSummary,
   QualityReport,
   ReportJob,
@@ -122,6 +124,14 @@ export function getDataQuality(
 
 export function createSchedule(body: CreateScheduleRequest): Promise<ScheduleResponse> {
   return request<ScheduleResponse>('/storage/schedule', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+}
+
+export function runForecast(body: ForecastRequest): Promise<ForecastResponse> {
+  return request<ForecastResponse>('/forecast', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),

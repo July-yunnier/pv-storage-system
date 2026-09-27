@@ -14,6 +14,8 @@ import {
   Typography,
 } from 'antd'
 import dayjs, { Dayjs } from 'dayjs'
+import { Link } from 'react-router-dom'
+import { ArrowLeftOutlined } from '@ant-design/icons'
 import PageHeader from '../components/PageHeader'
 import EnergyChart from '../charts/EnergyChart'
 import { buildEnergyChartOption, mergeScheduleInputs } from '../charts/energyOptions'
@@ -173,8 +175,13 @@ export default function CurvesPage() {
   return (
     <>
       <PageHeader
-        title="曲线分析"
+        title="曲线分析（验数）"
         description="电价、光伏、负荷、储能与 SOC 同一时间轴分析"
+        extra={
+          <Link to="/">
+            <Button icon={<ArrowLeftOutlined />}>返回运营</Button>
+          </Link>
+        }
       />
       <Space direction="vertical" size={16} style={{ width: '100%' }}>
         <Card>

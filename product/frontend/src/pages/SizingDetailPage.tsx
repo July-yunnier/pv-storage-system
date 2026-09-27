@@ -17,8 +17,9 @@ import { ArrowLeftOutlined, DownloadOutlined, FilePdfOutlined } from '@ant-desig
 import dayjs from 'dayjs'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import PageHeader from '../components/PageHeader'
-import { createReport, getReport, getSizingRun } from '../api/client'
+import { createReport, getReport, getSizingRun, listSites } from '../api/client'
 import type {
+  Site,
   SizingCandidate,
   SizingResult,
   SizingSensitivityPoint,
@@ -108,6 +109,7 @@ export default function SizingDetailPage() {
   const siteId = searchParams.get('site')
   const navigate = useNavigate()
   const [result, setResult] = useState<SizingResult | null>(null)
+  const [site, setSite] = useState<Site | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [report, setReport] = useState<ReportPhase>({ phase: 'idle' })
@@ -139,6 +141,13 @@ export default function SizingDetailPage() {
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
+      })
+    listSites()
+      .then((data) => {
+        if (!cancelled) setSite(data.find((s) => s.site_id === siteId) ?? null)
+      })
+      .catch(() => {
+        if (!cancelled) setSite(null)
       })
     return () => {
       cancelled = true
@@ -180,6 +189,14 @@ export default function SizingDetailPage() {
   }
 
   const rec = result?.recommended ?? null
+  const currentCandidate =
+    result && site
+      ? (result.candidates.find(
+          (c) =>
+            c.pcs_kw === site.storage.pcs_kw &&
+            c.capacity_kwh === site.storage.capacity_kwh,
+        ) ?? null)
+      : null
 
   const exportButton =
     report.phase === 'done' ? (
@@ -208,10 +225,10 @@ export default function SizingDetailPage() {
   return (
     <>
       <PageHeader
-        title="方案分析详情"
+        title="投资分析结果"
         description={
           result
-            ? `站点：${result.site_id}　生成时间：${dayjs(result.created_at).format('YYYY-MM-DD HH:mm:ss')}　代表日：${result.representative_dates.length} 天`
+            ? `站点：${site?.name ?? result.site_id}　生成时间：${dayjs(result.created_at).format('YYYY-MM-DD HH:mm:ss')}　代表日：${result.representative_dates.length} 天`
             : undefined
         }
         extra={
@@ -252,6 +269,42 @@ export default function SizingDetailPage() {
         />
       ) : result ? (
         <Space direction="vertical" size={16} style={{ width: '100%' }}>
+          {rec && (
+            <Card>
+              <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                <Typography.Title level={4} style={{ margin: 0 }}>
+                  结论：推荐 {rec.pcs_kw} kW / {rec.capacity_kwh} kWh
+                  <Typography.Text type="secondary" style={{ fontSize: 14, marginLeft: 12 }}>
+                    （{rec.duration_h} h 系统）
+                  </Typography.Text>
+                </Typography.Title>
+                <Typography.Text style={{ fontSize: 15 }}>
+                  总投资约{' '}
+                  <Typography.Text strong>{fmtWanYuan(rec.capex_yuan)}</Typography.Text>{' '}
+                  万元，每年净赚{' '}
+                  <Typography.Text strong style={{ color: '#3f8600' }}>
+                    {fmtYuan(rec.annual_benefit_yuan - rec.annual_opex_yuan)}
+                  </Typography.Text>{' '}
+                  元，<Typography.Text strong>{fmtYears(rec.payback_years)}</Typography.Text>{' '}
+                  年回本，项目期净现值 {fmtWanYuan(rec.npv_yuan)} 万元
+                </Typography.Text>
+                {currentCandidate &&
+                  (currentCandidate.pcs_kw !== rec.pcs_kw ||
+                    currentCandidate.capacity_kwh !== rec.capacity_kwh) && (
+                    <Typography.Text type="secondary">
+                      对比当前安装的 {currentCandidate.pcs_kw} kW /{' '}
+                      {currentCandidate.capacity_kwh} kWh（年收益{' '}
+                      {fmtYuan(currentCandidate.annual_benefit_yuan)} 元），推荐配置每年多赚{' '}
+                      <Typography.Text type="success" strong>
+                        {fmtYuan(rec.annual_benefit_yuan - currentCandidate.annual_benefit_yuan)}
+                      </Typography.Text>{' '}
+                      元
+                    </Typography.Text>
+                  )}
+              </Space>
+            </Card>
+          )}
+
           <Card title="推荐方案">
             {!rec ? (
               <Alert
@@ -261,52 +314,45 @@ export default function SizingDetailPage() {
               />
             ) : (
               <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                <Space wrap size={8}>
-                  <Typography.Text strong>推荐配置</Typography.Text>
-                  <Tag color="blue">{rec.pcs_kw} kW</Tag>
-                  <Tag color="blue">{rec.capacity_kwh} kWh</Tag>
-                  <Tag color="blue">{rec.duration_h} h</Tag>
-                </Space>
                 <Row gutter={16}>
-                  <Col xs={12} md={8} lg={4}>
+                  <Col xs={12} md={8}>
                     <Statistic
                       title="总投资（万元）"
                       value={fmtWanYuan(rec.capex_yuan)}
+                      valueStyle={{ fontSize: 24, fontWeight: 600 }}
                     />
                   </Col>
-                  <Col xs={12} md={8} lg={4}>
+                  <Col xs={12} md={8}>
                     <Statistic
                       title="年收益（元/年）"
                       value={fmtYuan(rec.annual_benefit_yuan)}
-                      valueStyle={{ color: '#3f8600', fontWeight: 600 }}
+                      valueStyle={{ color: '#3f8600', fontWeight: 600, fontSize: 24 }}
                     />
                   </Col>
-                  <Col xs={12} md={8} lg={4}>
-                    <Statistic
-                      title="年运维（元/年）"
-                      value={fmtYuan(rec.annual_opex_yuan)}
-                    />
-                  </Col>
-                  <Col xs={12} md={8} lg={4}>
+                  <Col xs={12} md={8}>
                     <Statistic
                       title="回本年限（年）"
                       value={fmtYears(rec.payback_years)}
-                    />
-                  </Col>
-                  <Col xs={12} md={8} lg={4}>
-                    <Statistic title="IRR" value={fmtIrr(rec.irr)} />
-                  </Col>
-                  <Col xs={12} md={8} lg={4}>
-                    <Statistic
-                      title="NPV（元）"
-                      value={fmtYuan(rec.npv_yuan)}
-                      valueStyle={{
-                        color: rec.npv_yuan >= 0 ? '#3f8600' : '#cf1322',
-                        fontWeight: 600,
-                      }}
+                      valueStyle={{ fontSize: 24, fontWeight: 600 }}
                     />
                   </Col>
                 </Row>
+                <Descriptions column={{ xs: 2, md: 4 }} size="small">
+                  <Descriptions.Item label="年运维（元/年）">
+                    {fmtYuan(rec.annual_opex_yuan)}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="IRR（内部收益率）">
+                    {fmtIrr(rec.irr)}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="NPV（净现值）">
+                    <span style={{ color: rec.npv_yuan >= 0 ? '#3f8600' : '#cf1322' }}>
+                      {fmtYuan(rec.npv_yuan)}
+                    </span>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="日循环次数">
+                    {rec.equivalent_full_cycles_per_day.toFixed(2)}
+                  </Descriptions.Item>
+                </Descriptions>
               </Space>
             )}
           </Card>

@@ -142,12 +142,15 @@ export default function SizingPage() {
   return (
     <>
       <PageHeader
-        title="方案分析"
-        description="比较不同储能配置的经济性，辅助投资决策"
+        title="投资"
+        description="储能买多大最划算？对比候选配置，算清每年赚多少、几年回本"
       />
       <Space direction="vertical" size={16} style={{ width: '100%' }}>
         <Card title="分析参数">
           <Space direction="vertical" size={12} style={{ width: '100%' }}>
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              选出想比较的储能规格（功率 × 时长），系统对每种组合模拟全年运行，对比回本年限和净收益
+            </Typography.Text>
             <Form layout="inline" style={{ rowGap: 8 }}>
               <Form.Item label="站点" style={{ marginBottom: 0 }}>
                 <Select
