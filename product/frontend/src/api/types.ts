@@ -110,6 +110,14 @@ export interface SchedulePoint {
   pv_curtailment_kw: number
 }
 
+export interface BenefitBreakdown {
+  discharge_value_yuan: number
+  grid_charge_cost_yuan: number
+  discharge_kwh: number
+  grid_charge_kwh: number
+  surplus_charge_kwh: number
+}
+
 export interface ScheduleResponse {
   run_id?: string
   site_id: string
@@ -122,6 +130,7 @@ export interface ScheduleResponse {
   equivalent_full_cycles: number
   schedule: SchedulePoint[]
   constraints_applied: string[]
+  benefit_breakdown?: BenefitBreakdown | null
 }
 
 export interface CreateScheduleRequest {
@@ -276,6 +285,12 @@ export interface TargetForecast {
   p10: number[] | null
   p90: number[] | null
   accuracy: { metric: string; value: number } | null
+  provenance?: {
+    provider?: string | null
+    fetched_at?: string | null
+    factor?: number | null
+    window?: string | null
+  } | null
   notes: string
 }
 

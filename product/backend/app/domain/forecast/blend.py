@@ -18,6 +18,7 @@ from app.domain.forecast.result import (
     AccuracyCaliber,
     ForecastAccuracy,
     ForecastModel,
+    ForecastProvenance,
     TargetForecast,
 )
 from app.domain.forecast.stats import (
@@ -117,6 +118,10 @@ def blend_pv_forecast(
         p10=p10,
         p90=p90,
         accuracy=accuracy,
+        provenance=ForecastProvenance(
+            factor=round(factor, 4),
+            window=f"回测{len(dates)}天 + 预报1天",
+        ),
         notes=(
             f"融合预测：pvlib 物理链 × 实测校准系数 {factor:.3f}"
             f"（最近 {len(dates)} 天回测）；物理负责天气变化，校准负责站点偏差"
