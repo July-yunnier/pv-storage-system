@@ -33,6 +33,15 @@ class ForecastPoint(BaseModel):
     value: float
 
 
+class ForecastProvenance(BaseModel):
+    """预测溯源：数据从哪来、怎么校准的。供前端"计算路线"展示。"""
+
+    provider: str | None = None  # 气象数据源（open_meteo / mock）
+    fetched_at: datetime | None = None  # 气象数据拉取时间（UTC）
+    factor: float | None = None  # 融合校准系数（实测/物理回测，仅 blend）
+    window: str | None = None  # 使用的数据窗口描述
+
+
 class TargetForecast(BaseModel):
     target: Literal["pv_power", "load_power", "price"]
     unit: str
@@ -41,6 +50,7 @@ class TargetForecast(BaseModel):
     p10: list[float] | None = None
     p90: list[float] | None = None
     accuracy: ForecastAccuracy | None = None
+    provenance: ForecastProvenance | None = None
     notes: str = ""
 
 

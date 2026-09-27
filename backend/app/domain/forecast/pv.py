@@ -14,6 +14,7 @@ from app.domain.forecast.result import (
     ForecastAccuracy,
     ForecastModel,
     ForecastPoint,
+    ForecastProvenance,
     TargetForecast,
 )
 from app.domain.forecast.stats import (
@@ -108,6 +109,7 @@ def predict_pv_physics(
         model=ForecastModel(name="pvlib_pvwatts", version="v1"),
         points=_points_for_day(target_date, values, tz),
         accuracy=None,
+        provenance=ForecastProvenance(window="预报1天"),
         notes=(
             f"物理模型：{provider_name} 辐射预报（逐小时线性插值到 15 分钟）"
             f"经 pvlib 转换链（Hay-Davies 转置 + Faiman 温度 + PVWatts 直流）；"

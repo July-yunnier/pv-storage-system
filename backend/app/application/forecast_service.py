@@ -52,19 +52,37 @@ def _history_days_available(history: list[tuple[datetime, float]], tz) -> int:
     return len(daily_series(history, tz))
 
 
-def _weather_window(site: SiteRead, start_date: date, days: int, past_days: int) -> list:
-    """取覆盖 [start-past_days, start+days) 的逐小时辐射窗口。"""
+def _weather_window(
+    site: SiteRead, start_date: date, days: int, past_days: int
+) -> tuple[list, str, datetime]:
+    """取覆盖 [start-past_days, start+days) 的逐小时辐射窗口。
+
+    返回 (气象点, provider 名, 拉取时间 UTC)——后两者用于预测溯源。
+    """
     tz = _zone(site.location.timezone)
     today = datetime.now(tz).date()
     forecast_days = max((start_date + timedelta(days=days) - today).days, 1)
     provider = get_weather_provider()
-    return provider.irradiance_window(
+    fetched_at = datetime.now(timezone.utc)
+    points = provider.irradiance_window(
         lat=site.location.lat,
         lon=site.location.lon,
         timezone_name=site.location.timezone,
         past_days=past_days,
         forecast_days=forecast_days,
     )
+    return points, provider.name, fetched_at
+
+
+def _with_provenance(
+    forecast: TargetForecast, provider_name: str, fetched_at: datetime
+) -> TargetForecast:
+    """把气象来源与拉取时间回填到 pv 预测的 provenance（blend/physics 均有）。"""
+    base = forecast.provenance
+    provenance = base.model_copy(
+        update={"provider": provider_name, "fetched_at": fetched_at}
+    ) if base else None
+    return forecast.model_copy(update={"provenance": provenance})
 
 
 def _pv_day_forecast(
@@ -85,11 +103,17 @@ def _pv_day_forecast(
             if pv_model == "auto":
                 # 有历史：融合优先，气象不可用时回退统计法
                 try:
-                    weather = _weather_window(site, day, 1, past_days=N_DAYS)
+                    weather, provider_name, fetched_at = _weather_window(
+                        site, day, 1, past_days=N_DAYS
+                    )
                     past = [p for p in weather if p.ts.date() < day]
                     future = [p for p in weather if p.ts.date() >= day]
-                    return blend_pv_forecast(
-                        past, future, history, pv, lat, lon, day, tz, N_DAYS
+                    return _with_provenance(
+                        blend_pv_forecast(
+                            past, future, history, pv, lat, lon, day, tz, N_DAYS
+                        ),
+                        provider_name,
+                        fetched_at,
                     )
                 except errors.AppError:
                     pass  # 气象不可用 → 回退统计法
@@ -98,9 +122,13 @@ def _pv_day_forecast(
             raise errors.data_quality_error(str(exc)) from exc
 
     # physics / auto 无历史：纯物理链
-    weather = _weather_window(site, day, 1, past_days=0)
+    weather, provider_name, fetched_at = _weather_window(site, day, 1, past_days=0)
     provider = get_weather_provider()
-    return predict_pv_physics(weather, day, pv, lat, lon, tz, provider.name)
+    return _with_provenance(
+        predict_pv_physics(weather, day, pv, lat, lon, tz, provider.name),
+        provider_name,
+        fetched_at,
+    )
 
 
 def forecast_series(

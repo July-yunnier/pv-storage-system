@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 
 from app.domain.models import (
+    BenefitBreakdown,
     DispatchPoint,
     MeasurementRead,
     PricePoint,
@@ -45,6 +46,10 @@ class RuleDispatchEngine:
         baseline_cost = 0.0
         optimized_cost = 0.0
         discharged_energy = 0.0
+        discharge_value = 0.0
+        grid_charge_cost = 0.0
+        grid_charge_energy = 0.0
+        surplus_charge_energy = 0.0
         max_discharge_energy = storage.cycles_per_day_max * usable_capacity
 
         for pv, load, price in zip(inputs.pv_points, inputs.load_points, inputs.price_points):
@@ -115,6 +120,13 @@ class RuleDispatchEngine:
 
             optimized_cost += grid_import * dt_hours * price.price
             discharged_energy += discharge_kw * dt_hours
+            discharge_value += discharge_kw * dt_hours * price.price
+            if charge_kw > 0:
+                if net_load < 0:
+                    surplus_charge_energy += charge_kw * dt_hours
+                else:
+                    grid_charge_energy += charge_kw * dt_hours
+                    grid_charge_cost += charge_kw * dt_hours * price.price
             points.append(
                 DispatchPoint(
                     ts=pv.ts,
@@ -151,4 +163,11 @@ class RuleDispatchEngine:
             equivalent_full_cycles=round(cycles, 6),
             schedule=points,
             constraints_applied=constraints,
+            benefit_breakdown=BenefitBreakdown(
+                discharge_value_yuan=round(discharge_value, 6),
+                grid_charge_cost_yuan=round(grid_charge_cost, 6),
+                discharge_kwh=round(discharged_energy, 6),
+                grid_charge_kwh=round(grid_charge_energy, 6),
+                surplus_charge_kwh=round(surplus_charge_energy, 6),
+            ),
         )

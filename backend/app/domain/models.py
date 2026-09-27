@@ -287,6 +287,20 @@ class DispatchPoint(BaseModel):
     pv_curtailment_kw: float = Field(ge=0)
 
 
+class BenefitBreakdown(BaseModel):
+    """预期收益的构成（单位：元 / kWh），供前端"电费去哪了"展示。
+
+    恒等式：expected_benefit = discharge_value − grid_charge_cost（不允许上网口径下精确成立）。
+    中午光伏余电充电不花电网的钱，其价值通过随后的放电体现。
+    """
+
+    discharge_value_yuan: float  # 放电时段替代电网购电的价值
+    grid_charge_cost_yuan: float  # 谷段从电网购电充电的成本
+    discharge_kwh: float
+    grid_charge_kwh: float
+    surplus_charge_kwh: float  # 光伏余电充入电量（免费，不含效率损耗）
+
+
 class ScheduleResponse(BaseModel):
     site_id: str
     date: date
@@ -297,6 +311,7 @@ class ScheduleResponse(BaseModel):
     equivalent_full_cycles: float
     schedule: list[DispatchPoint]
     constraints_applied: list[str]
+    benefit_breakdown: BenefitBreakdown | None = None
     run_id: str | None = None
     data_source: Literal["measurements", "forecast"] = "measurements"
 

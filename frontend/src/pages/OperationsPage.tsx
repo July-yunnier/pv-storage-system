@@ -237,6 +237,113 @@ function buildPlanOption(schedule: SchedulePoint[]): EChartsOption {
   }
 }
 
+/** 电费去哪了：基准购电 vs 执行计划后的购电，差值即省下的钱。 */
+function buildCostCompareOption(schedule: SchedulePoint[]): EChartsOption {
+  const labels = schedule.map((p) => dayjs(p.ts).format('HH:mm'))
+  return {
+    animation: false,
+    grid: { left: 48, right: 44, top: 28, bottom: 20 },
+    legend: { top: 0 },
+    tooltip: { trigger: 'axis' },
+    xAxis: { type: 'category', data: labels, axisLabel: { interval: 7 } },
+    yAxis: [{ type: 'value', name: 'kW' }],
+    series: [
+      {
+        name: '基准购电（无储能）',
+        type: 'line',
+        symbol: 'none',
+        data: schedule.map((p) => Math.round(Math.max(p.load_power_kw - p.pv_power_kw, 0) * 10) / 10),
+        lineStyle: { color: '#bfbfbf', width: 2, type: 'dashed' },
+        itemStyle: { color: '#bfbfbf' },
+        areaStyle: { color: 'rgba(191, 191, 191, 0.15)' },
+      },
+      {
+        name: '优化后购电（执行计划）',
+        type: 'line',
+        symbol: 'none',
+        data: schedule.map((p) => Math.round(p.grid_import_kw * 10) / 10),
+        lineStyle: { color: '#1677ff', width: 2 },
+        itemStyle: { color: '#1677ff' },
+        areaStyle: { color: 'rgba(22, 119, 255, 0.12)' },
+      },
+    ],
+  }
+}
+
+/** 光伏计算路线：按模型高亮实际走过的节点。 */
+function PvPipeline({ forecast }: { forecast: ForecastResponse }) {
+  const target = forecast.results.find((r) => r.target === 'pv_power')
+  if (!target) return null
+  const name = target.model.name
+  const prov = target.provenance
+  const weatherNode = (
+    <Tag color={name !== 'pv_diurnal_stats' ? 'geekblue' : 'default'}>
+      {prov?.provider === 'open_meteo' ? 'Open-Meteo 气象预报' : '气象预报'}
+    </Tag>
+  )
+  const physicsNode = (
+    <Tag color={name.startsWith('pvlib') ? 'geekblue' : 'default'}>
+      pvlib 物理转换
+    </Tag>
+  )
+  const statsNode = (
+    <Tag color={name === 'pv_diurnal_stats' ? 'geekblue' : 'default'}>
+      历史同刻均值
+    </Tag>
+  )
+  const blendNode = (
+    <Tag color={name === 'pvlib_blend' ? 'geekblue' : 'default'}>
+      实测校准{prov?.factor != null ? ` ×${prov.factor}` : ''}
+    </Tag>
+  )
+  const arrow = (
+    <Typography.Text type="secondary" style={{ margin: '0 2px' }}>
+      →
+    </Typography.Text>
+  )
+  return (
+    <div style={{ marginTop: 8 }}>
+      <Space size={2} wrap style={{ fontSize: 12 }}>
+        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+          计算路线：
+        </Typography.Text>
+        {name === 'pv_diurnal_stats' ? (
+          <>
+            {statsNode}
+            {arrow}
+            <Tag color="geekblue">明日曲线</Tag>
+          </>
+        ) : name === 'pvlib_blend' ? (
+          <>
+            {weatherNode}
+            {arrow}
+            {physicsNode}
+            {arrow}
+            {blendNode}
+            {arrow}
+            <Tag color="geekblue">明日曲线</Tag>
+          </>
+        ) : (
+          <>
+            {weatherNode}
+            {arrow}
+            {physicsNode}
+            {arrow}
+            <Tag color="geekblue">明日曲线</Tag>
+          </>
+        )}
+        {prov && (
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            （{[prov.window, prov.fetched_at ? `拉取于 ${dayjs(prov.fetched_at).format('MM-DD HH:mm')}` : null]
+              .filter(Boolean)
+              .join(' · ')}）
+          </Typography.Text>
+        )}
+      </Space>
+    </div>
+  )
+}
+
 function dailyEnergyKwh(points: { value: number }[]): number {
   return Math.round(points.reduce((s, p) => s + p.value, 0) * 0.25)
 }
@@ -468,6 +575,7 @@ export default function OperationsPage() {
                       kW
                     </Typography.Text>
                   </Space>
+                  <PvPipeline forecast={forecast!} />
                 </>
               )}
             </Card>
@@ -656,6 +764,48 @@ export default function OperationsPage() {
               </div>
 
               <EnergyChart option={buildPlanOption(tomorrowRun.schedule)} height={240} />
+
+              <div>
+                <Typography.Text strong>电费去哪了</Typography.Text>
+                <Typography.Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>
+                  灰线=没有储能要买多少电，蓝线=执行计划后买多少电，差值就是省下的钱
+                </Typography.Text>
+                <EnergyChart
+                  option={buildCostCompareOption(tomorrowRun.schedule)}
+                  height={200}
+                />
+                {tomorrowRun.benefit_breakdown ? (
+                  <Space split="|" size={12} wrap style={{ fontSize: 12 }}>
+                    <Typography.Text type="secondary">
+                      放电抵购电{' '}
+                      <Typography.Text strong style={{ color: '#3f8600' }}>
+                        +{tomorrowRun.benefit_breakdown.discharge_value_yuan.toFixed(2)}
+                      </Typography.Text>{' '}
+                      元（{Math.round(tomorrowRun.benefit_breakdown.discharge_kwh)} kWh 高峰时段）
+                    </Typography.Text>
+                    <Typography.Text type="secondary">
+                      谷段充电成本{' '}
+                      <Typography.Text strong style={{ color: '#cf1322' }}>
+                        −{tomorrowRun.benefit_breakdown.grid_charge_cost_yuan.toFixed(2)}
+                      </Typography.Text>{' '}
+                      元（{Math.round(tomorrowRun.benefit_breakdown.grid_charge_kwh)} kWh）
+                    </Typography.Text>
+                    {tomorrowRun.benefit_breakdown.surplus_charge_kwh > 0 && (
+                      <Typography.Text type="secondary">
+                        其中光伏余电{' '}
+                        <Typography.Text strong>
+                          {Math.round(tomorrowRun.benefit_breakdown.surplus_charge_kwh)}
+                        </Typography.Text>{' '}
+                        kWh（免费）
+                      </Typography.Text>
+                    )}
+                  </Space>
+                ) : (
+                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                    该计划生成于收益分解功能之前，重新生成后可查看构成
+                  </Typography.Text>
+                )}
+              </div>
             </Space>
           )}
         </Card>
