@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import hashlib
+import math
 from datetime import datetime, time, timedelta, tzinfo
 
 from app.domain.forecast.pv_physics import clearsky_series
@@ -79,6 +80,9 @@ def simulate_live_points(
 
         soc = plan_by_slot.get(slot).soc_end if slot in plan_by_slot else 0.5
         plan = plan_by_slot.get(slot)
+        # 执行扰动：真实电站不会完美跟计划——SOC 缓漂 ±4%，光伏叠加云团扰动
+        soc = min(max(soc + 0.04 * math.sin(slot * 0.7), 0.05), 0.98)
+        pv_kw = round(pv_kw * (0.85 + 0.15 * math.sin(slot * 1.3 + 1.0)), 3)
         charge_kw = plan.power_kw if plan and plan.action == "charge" else 0.0
         discharge_kw = plan.power_kw if plan and plan.action == "discharge" else 0.0
         grid_kw = max(load_kw - pv_kw + charge_kw - discharge_kw, 0.0)

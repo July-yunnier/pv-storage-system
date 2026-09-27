@@ -123,6 +123,18 @@ class Database:
                     PRIMARY KEY (site_id, data_type, ts_utc),
                     FOREIGN KEY (site_id) REFERENCES sites(site_id)
                 );
+                CREATE TABLE IF NOT EXISTS rolling_plans (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    site_id TEXT NOT NULL,
+                    date TEXT NOT NULL,
+                    revision INTEGER NOT NULL,
+                    base_run_id TEXT NOT NULL,
+                    initial_soc REAL NOT NULL,
+                    schedule_json TEXT NOT NULL,
+                    expected_benefit_yuan REAL NOT NULL,
+                    trigger_reason TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );
                 CREATE TABLE IF NOT EXISTS dispatch_runs (
                     run_id TEXT PRIMARY KEY,
                     site_id TEXT NOT NULL,
@@ -484,6 +496,66 @@ class Database:
                 "created_at": _parse_dt(row["created_at"]),
             }
         )
+
+    def insert_rolling_plan(
+        self,
+        *,
+        site_id: str,
+        date: str,
+        revision: int,
+        base_run_id: str,
+        initial_soc: float,
+        schedule_json: str,
+        expected_benefit_yuan: float,
+        trigger_reason: str,
+    ) -> datetime:
+        now = _now()
+        with self.connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO rolling_plans(
+                    site_id, date, revision, base_run_id, initial_soc,
+                    schedule_json, expected_benefit_yuan, trigger_reason, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    site_id,
+                    date,
+                    revision,
+                    base_run_id,
+                    initial_soc,
+                    schedule_json,
+                    expected_benefit_yuan,
+                    trigger_reason,
+                    now.isoformat(),
+                ),
+            )
+        return now
+
+    def get_rolling_plans(self, site_id: str, target_date: date) -> list[dict]:
+        with self.connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT revision, base_run_id, initial_soc, schedule_json,
+                       expected_benefit_yuan, trigger_reason, created_at
+                FROM rolling_plans
+                WHERE site_id = ? AND date = ?
+                ORDER BY revision ASC
+                """,
+                (site_id, target_date.isoformat()),
+            ).fetchall()
+        return [
+            {
+                "revision": row["revision"],
+                "base_run_id": row["base_run_id"],
+                "initial_soc": row["initial_soc"],
+                "schedule_json": row["schedule_json"],
+                "expected_benefit_yuan": row["expected_benefit_yuan"],
+                "trigger_reason": row["trigger_reason"],
+                "created_at": _parse_dt(row["created_at"]),
+            }
+            for row in rows
+        ]
 
     def insert_sizing_run(
         self, *, run_id: str, site_id: str, input_digest: str, result: SizingResponse

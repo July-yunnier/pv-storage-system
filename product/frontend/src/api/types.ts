@@ -351,6 +351,27 @@ export interface LiveSimulateResponse {
   up_to_slot: number
 }
 
+export interface RollingRevision {
+  revision: number
+  created_at: string
+  initial_soc: number
+  expected_benefit_yuan: number
+  trigger_reason: string
+}
+
+export interface RollingState {
+  site_id: string
+  date: string
+  base_run_id: string | null
+  base_expected_benefit_yuan: number | null
+  revisions: RollingRevision[]
+  latest_schedule: SchedulePoint[] | null
+  latest_revision: number
+  cooldown_until: string | null
+  deviation_now: number | null
+  last_trigger_reason: string | null
+}
+
 export interface OverviewSiteInfo {
   name: string
   pv_capacity_kwp: number
