@@ -91,6 +91,7 @@ def _pv_day_forecast(
     day: date,
     history: list[tuple[datetime, float]],
     pv_model: str,
+    explain: bool = False,
 ) -> TargetForecast:
     """单日光伏预测，按模型选择路径。auto 语义见模块 docstring。"""
     tz = _zone(site.location.timezone)
@@ -110,7 +111,8 @@ def _pv_day_forecast(
                     future = [p for p in weather if p.ts.date() >= day]
                     return _with_provenance(
                         blend_pv_forecast(
-                            past, future, history, pv, lat, lon, day, tz, N_DAYS
+                            past, future, history, pv, lat, lon, day, tz, N_DAYS,
+                            explain=explain,
                         ),
                         provider_name,
                         fetched_at,
@@ -125,7 +127,7 @@ def _pv_day_forecast(
     weather, provider_name, fetched_at = _weather_window(site, day, 1, past_days=0)
     provider = get_weather_provider()
     return _with_provenance(
-        predict_pv_physics(weather, day, pv, lat, lon, tz, provider.name),
+        predict_pv_physics(weather, day, pv, lat, lon, tz, provider.name, explain=explain),
         provider_name,
         fetched_at,
     )
@@ -159,6 +161,7 @@ def _forecast_target(
     pv_model: str,
     intraday: bool,
     issued_at: datetime,
+    explain: bool = False,
 ) -> TargetForecast:
     tz = _zone(site.location.timezone)
     if target == "price":
@@ -184,7 +187,9 @@ def _forecast_target(
         day = start_date + timedelta(days=offset)
         try:
             if target == "pv_power":
-                forecast = _pv_day_forecast(db, site, day, history, pv_model)
+                forecast = _pv_day_forecast(
+                    db, site, day, history, pv_model, explain=explain
+                )
             else:
                 forecast = predict_load_profile(history, day, tz, N_DAYS)
         except ValueError as exc:
@@ -235,6 +240,7 @@ def run_forecast(db: Database, payload: ForecastRequest) -> ForecastResponse:
             payload.options.pv_model,
             payload.options.intraday,
             issued_at,
+            payload.options.explain,
         )
         for target in payload.targets
     ]

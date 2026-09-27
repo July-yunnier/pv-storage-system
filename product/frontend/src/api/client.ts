@@ -6,6 +6,8 @@ import type {
   DispatchRunDetail,
   ForecastRequest,
   ForecastResponse,
+  LiveSimulateResponse,
+  LiveStatus,
   DispatchRunSummary,
   QualityReport,
   ReportJob,
@@ -136,6 +138,17 @@ export function runForecast(body: ForecastRequest): Promise<ForecastResponse> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
+}
+
+export function getLive(siteId: string): Promise<LiveStatus> {
+  return request<LiveStatus>(`/sites/${encodeURIComponent(siteId)}/live`)
+}
+
+export function simulateLive(siteId: string): Promise<LiveSimulateResponse> {
+  return request<LiveSimulateResponse>(
+    `/sites/${encodeURIComponent(siteId)}/simulate-live`,
+    { method: 'POST' },
+  )
 }
 
 export async function listDispatchRuns(siteId: string): Promise<DispatchRunSummary[]> {

@@ -16,7 +16,10 @@ from app.domain.forecast.pv import _points_for_day
 from app.domain.forecast.pv_physics import day_power_values
 from app.domain.forecast.result import (
     AccuracyCaliber,
+    ExplainBacktest,
+    ExplainWeatherPoint,
     ForecastAccuracy,
+    ForecastExplain,
     ForecastModel,
     ForecastProvenance,
     TargetForecast,
@@ -43,8 +46,8 @@ def _calibration(
     lat: float,
     lon: float,
     tz: tzinfo,
-) -> tuple[float, list[float]]:
-    """返回 (校准系数, 回测残差列表)。"""
+) -> tuple[float, list[float], float, float]:
+    """返回 (校准系数, 回测残差列表, Σ实测, Σ物理回测)。"""
     sum_measured = 0.0
     sum_physics = 0.0
     for day in dates:
@@ -67,7 +70,7 @@ def _calibration(
                 continue
             pred = min(max(physics[slot] * factor, 0.0), pv.capacity_kwp)
             residuals.append(days_measured[day][minute] - pred)
-    return factor, residuals
+    return factor, residuals, sum_measured, sum_physics
 
 
 def blend_pv_forecast(
@@ -80,12 +83,15 @@ def blend_pv_forecast(
     target_date: date,
     tz: tzinfo,
     n_days: int = 12,
+    explain: bool = False,
 ) -> TargetForecast:
     """融合预测：物理预测 × 实测校准系数。历史不足 n_days 时抛 ValueError。"""
     days_measured = daily_series(measured_history, tz)
     dates = history_dates(days_measured, target_date, n_days, "pv_power")
 
-    factor, residuals = _calibration(weather_past, days_measured, dates, pv, lat, lon, tz)
+    factor, residuals, sum_measured, sum_physics = _calibration(
+        weather_past, days_measured, dates, pv, lat, lon, tz
+    )
 
     physics_values = day_power_values(weather_future, pv, lat, lon, target_date, tz)
     values = [min(max(v * factor, 0.0), pv.capacity_kwp) for v in physics_values]
@@ -121,6 +127,26 @@ def blend_pv_forecast(
         provenance=ForecastProvenance(
             factor=round(factor, 4),
             window=f"回测{len(dates)}天 + 预报1天",
+            explain=ForecastExplain(
+                weather=[
+                    ExplainWeatherPoint(
+                        ts=p.ts,
+                        ghi_wm2=p.ghi_wm2,
+                        dni_wm2=p.dni_wm2,
+                        dhi_wm2=p.dhi_wm2,
+                        temperature_c=p.temperature_c,
+                    )
+                    for p in weather_future
+                ],
+                backtest=ExplainBacktest(
+                    dates=dates,
+                    sum_measured_kwh=round(sum_measured * SLOT_MINUTES / 60, 3),
+                    sum_physics_kwh=round(sum_physics * SLOT_MINUTES / 60, 3),
+                    factor=round(factor, 4),
+                ),
+            )
+            if explain
+            else None,
         ),
         notes=(
             f"融合预测：pvlib 物理链 × 实测校准系数 {factor:.3f}"

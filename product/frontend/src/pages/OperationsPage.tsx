@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
 import {
   Alert,
   App as AntdApp,
@@ -8,6 +9,7 @@ import {
   Collapse,
   Empty,
   InputNumber,
+  Popover,
   Row,
   Segmented,
   Select,
@@ -16,6 +18,7 @@ import {
   Spin,
   Statistic,
   Table,
+  Tabs,
   Tag,
   Typography,
 } from 'antd'
@@ -26,6 +29,7 @@ import type { EChartsOption } from 'echarts'
 import PageHeader from '../components/PageHeader'
 import SourceTag from '../components/SourceTag'
 import StatusRing from '../components/StatusRing'
+import TodayPanel from '../components/TodayPanel'
 import EnergyChart from '../charts/EnergyChart'
 import {
   createSchedule,
@@ -270,66 +274,210 @@ function buildCostCompareOption(schedule: SchedulePoint[]): EChartsOption {
   }
 }
 
-/** 光伏计算路线：按模型高亮实际走过的节点。 */
-function PvPipeline({ forecast }: { forecast: ForecastResponse }) {
+/** 光伏计算路线：按模型高亮实际走过的节点；每个节点可点开看详情。 */
+function PvPipeline({ forecast, site }: { forecast: ForecastResponse; site?: Site }) {
   const target = forecast.results.find((r) => r.target === 'pv_power')
   if (!target) return null
   const name = target.model.name
   const prov = target.provenance
-  const weatherNode = (
-    <Tag color={name !== 'pv_diurnal_stats' ? 'geekblue' : 'default'}>
-      {prov?.provider === 'open_meteo' ? 'Open-Meteo 气象预报' : '气象预报'}
-    </Tag>
-  )
-  const physicsNode = (
-    <Tag color={name.startsWith('pvlib') ? 'geekblue' : 'default'}>
-      pvlib 物理转换
-    </Tag>
-  )
-  const statsNode = (
-    <Tag color={name === 'pv_diurnal_stats' ? 'geekblue' : 'default'}>
-      历史同刻均值
-    </Tag>
-  )
-  const blendNode = (
-    <Tag color={name === 'pvlib_blend' ? 'geekblue' : 'default'}>
-      实测校准{prov?.factor != null ? ` ×${prov.factor}` : ''}
-    </Tag>
-  )
+  const explain = prov?.explain
   const arrow = (
     <Typography.Text type="secondary" style={{ margin: '0 2px' }}>
       →
     </Typography.Text>
   )
+
+  const weatherChart: EChartsOption | null = useMemo(() => {
+    const weather = explain?.weather
+    if (!weather || weather.length === 0) return null
+    return {
+      animation: false,
+      grid: { left: 44, right: 12, top: 24, bottom: 20 },
+      legend: { top: 0, textStyle: { fontSize: 11 } },
+      tooltip: { trigger: 'axis' },
+      xAxis: {
+        type: 'category',
+        data: weather.map((p) => dayjs(p.ts).format('HH:00')),
+        axisLabel: { interval: 3, fontSize: 10 },
+      },
+      yAxis: { type: 'value', name: 'W/m²', axisLabel: { fontSize: 10 } },
+      series: [
+        {
+          name: 'GHI 总辐射',
+          type: 'line',
+          symbol: 'none',
+          data: weather.map((p) => p.ghi_wm2),
+          lineStyle: { color: '#f5a623' },
+          itemStyle: { color: '#f5a623' },
+        },
+        {
+          name: 'DNI 直射',
+          type: 'line',
+          symbol: 'none',
+          data: weather.map((p) => p.dni_wm2),
+          lineStyle: { color: '#cf1322' },
+          itemStyle: { color: '#cf1322' },
+        },
+        {
+          name: 'DHI 散射',
+          type: 'line',
+          symbol: 'none',
+          data: weather.map((p) => p.dhi_wm2),
+          lineStyle: { color: '#1677ff' },
+          itemStyle: { color: '#1677ff' },
+        },
+      ],
+    }
+  }, [explain])
+
+  const weatherDetail = (
+    <div style={{ width: 340 }}>
+      <Space direction="vertical" size={4}>
+        <Typography.Text strong>气象预报原始输入</Typography.Text>
+        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+          数据源 {prov?.provider ?? '—'} · 拉取于{' '}
+          {prov?.fetched_at ? dayjs(prov.fetched_at).format('MM-DD HH:mm') : '—'} · {prov?.window ?? ''}
+        </Typography.Text>
+        {weatherChart ? (
+          <EnergyChart option={weatherChart} height={150} />
+        ) : (
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            原始辐照数据未随本次请求返回（explain 未开启）
+          </Typography.Text>
+        )}
+        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+          GHI 是水平面接收到的总太阳辐射，是光伏功率的最直接驱动量
+        </Typography.Text>
+      </Space>
+    </div>
+  )
+
+  const pvlibDetail = (
+    <div style={{ width: 300 }}>
+      <Space direction="vertical" size={4}>
+        <Typography.Text strong>pvlib 物理转换（五步）</Typography.Text>
+        {[
+          '1. 太阳位置：按经纬度算每时刻太阳高度角/方位角',
+          '2. 转置：Hay-Davies 把水平面辐射换算到组件斜面',
+          '3. 温度：Faiman 模型算电池板温度',
+          '4. 直流功率：PVWatts（温度系数 −0.4%/°C）',
+          '5. 系统损耗与装机容量裁剪',
+        ].map((line) => (
+          <Typography.Text key={line} style={{ fontSize: 12 }}>
+            {line}
+          </Typography.Text>
+        ))}
+        {site && (
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            站点参数：{site.pv.capacity_kwp} kWp · 倾角 {site.pv.tilt_deg}° · 方位角{' '}
+            {site.pv.azimuth_deg}°
+          </Typography.Text>
+        )}
+      </Space>
+    </div>
+  )
+
+  const backtest = explain?.backtest
+  const blendDetail = (
+    <div style={{ width: 300 }}>
+      <Space direction="vertical" size={4}>
+        <Typography.Text strong>实测校准：物理 × 系数</Typography.Text>
+        <Typography.Text style={{ fontSize: 12 }}>
+          系数 = 回测期实测发电量 ÷ 物理模型回测发电量
+        </Typography.Text>
+        {backtest ? (
+          <>
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              回测 {backtest.dates.length} 天（{backtest.dates[0]} ~ {backtest.dates[backtest.dates.length - 1]}）
+            </Typography.Text>
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              实测 {backtest.sum_measured_kwh.toLocaleString()} kWh ÷ 物理{' '}
+              {backtest.sum_physics_kwh.toLocaleString()} kWh ={' '}
+              <Typography.Text strong>{backtest.factor}</Typography.Text>
+            </Typography.Text>
+          </>
+        ) : (
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            回测明细未随本次请求返回
+          </Typography.Text>
+        )}
+        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+          物理负责"明天和晴天的差别"，校准负责"这个站和教科书的差别"（积灰、朝向偏差、遮挡）
+        </Typography.Text>
+      </Space>
+    </div>
+  )
+
+  const resultDetail = (
+    <div style={{ width: 280 }}>
+      <Space direction="vertical" size={4}>
+        <Typography.Text strong>最终预测</Typography.Text>
+        <Typography.Text style={{ fontSize: 12 }}>
+          模型 {target.model.name} v{target.model.version}，15 分钟 × 96 点
+        </Typography.Text>
+        {target.p10 && target.p90 && (
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            阴影区间 = 按历史回测残差给出的 p10~p90 不确定带（全天混合口径，夜间偏宽是已知近似）
+          </Typography.Text>
+        )}
+        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+          {target.notes}
+        </Typography.Text>
+      </Space>
+    </div>
+  )
+
+  const node = (
+    label: string,
+    active: boolean,
+    detail: ReactNode,
+    key: string,
+  ) => (
+    <Popover key={key} content={detail} placement="bottom">
+      <Tag color={active ? 'geekblue' : 'default'} style={{ cursor: 'pointer' }}>
+        {label}
+      </Tag>
+    </Popover>
+  )
+
+  const isStats = name === 'pv_diurnal_stats'
+  const isBlend = name === 'pvlib_blend'
+  const isPhysics = name === 'pvlib_pvwatts'
+
   return (
     <div style={{ marginTop: 8 }}>
       <Space size={2} wrap style={{ fontSize: 12 }}>
         <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-          计算路线：
+          计算路线（点击节点看详情）：
         </Typography.Text>
-        {name === 'pv_diurnal_stats' ? (
+        {isStats ? (
           <>
-            {statsNode}
+            {node('历史同刻均值', true, resultDetail, 'stats')}
             {arrow}
-            <Tag color="geekblue">明日曲线</Tag>
-          </>
-        ) : name === 'pvlib_blend' ? (
-          <>
-            {weatherNode}
-            {arrow}
-            {physicsNode}
-            {arrow}
-            {blendNode}
-            {arrow}
-            <Tag color="geekblue">明日曲线</Tag>
+            {node('明日曲线', true, resultDetail, 'out')}
           </>
         ) : (
           <>
-            {weatherNode}
+            {node(
+              prov?.provider === 'open_meteo' ? 'Open-Meteo 气象预报' : '气象预报',
+              true,
+              weatherDetail,
+              'weather',
+            )}
             {arrow}
-            {physicsNode}
+            {node('pvlib 物理转换', true, pvlibDetail, 'pvlib')}
             {arrow}
-            <Tag color="geekblue">明日曲线</Tag>
+            {isBlend
+              ? node(
+                  `实测校准${prov?.factor != null ? ` ×${prov.factor}` : ''}`,
+                  true,
+                  blendDetail,
+                  'blend',
+                )
+              : null}
+            {isBlend ? arrow : null}
+            {isPhysics && arrow}
+            {node('明日曲线', true, resultDetail, 'out')}
           </>
         )}
         {prov && (
@@ -415,6 +563,7 @@ export default function OperationsPage() {
       targets: ['pv_power', 'load_power', 'price'],
       horizon_hours: 24,
       resolution_minutes: 15,
+      options: { explain: true },
     })
       .then((data) => {
         if (!cancelled) setForecast(data)
@@ -540,8 +689,20 @@ export default function OperationsPage() {
         }
       />
 
-      <Space direction="vertical" size={16} style={{ width: '100%' }}>
-        <Row gutter={16}>
+      <Tabs
+        defaultActiveKey="today"
+        items={[
+          {
+            key: 'today',
+            label: '今日',
+            children: <TodayPanel siteId={siteId} />,
+          },
+          {
+            key: 'tomorrow',
+            label: '明日',
+            children: (
+              <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                <Row gutter={16}>
           <Col xs={24} lg={12}>
             <Card
               title={`① 明日光伏预测（${tomorrowStr}）`}
@@ -575,7 +736,10 @@ export default function OperationsPage() {
                       kW
                     </Typography.Text>
                   </Space>
-                  <PvPipeline forecast={forecast!} />
+                  <PvPipeline
+                    forecast={forecast!}
+                    site={sites.find((s) => s.site_id === siteId)}
+                  />
                 </>
               )}
             </Card>
@@ -892,8 +1056,12 @@ export default function OperationsPage() {
               ),
             },
           ]}
-        />
-      </Space>
+              />
+              </Space>
+            ),
+          },
+        ]}
+      />
     </>
   )
 }

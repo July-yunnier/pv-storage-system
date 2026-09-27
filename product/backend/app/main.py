@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.errors import AppError
 from app.api.routes_forecast import router as forecast_router
+from app.api.routes_live import router as live_router
 from app.api.routes_measurements import quality_router as data_quality_router
 from app.api.routes_measurements import router as measurements_router
 from app.api.routes_reports import router as reports_router
@@ -97,6 +98,7 @@ def create_app(database_path: str | None = None) -> FastAPI:
     app.include_router(sizing_runs_router, prefix="/api/v1")
     app.include_router(reports_router, prefix="/api/v1")
     app.include_router(weather_router, prefix="/api/v1")
+    app.include_router(live_router, prefix="/api/v1")
     return app
 
 
