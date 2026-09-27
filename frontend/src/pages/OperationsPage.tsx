@@ -51,9 +51,9 @@ import type {
 } from '../api/types'
 
 const ACTION_COLOR: Record<ScheduleAction, string> = {
-  charge: '#1677ff',
-  discharge: '#52c41a',
-  idle: '#e8e8e8',
+  charge: '#2f7cf6',
+  discharge: '#34a853',
+  idle: '#e4e7e2',
 }
 
 const ACTION_LABEL: Record<ScheduleAction, string> = {
@@ -234,8 +234,8 @@ function buildPlanOption(schedule: SchedulePoint[]): EChartsOption {
         yAxisIndex: 1,
         symbol: 'none',
         data: schedule.map((p) => Math.round(p.soc_end * 1000) / 10),
-        lineStyle: { type: 'dashed', width: 1.5, color: '#722ed1' },
-        itemStyle: { color: '#722ed1' },
+        lineStyle: { type: 'dashed', width: 1.5, color: '#7c5cff' },
+        itemStyle: { color: '#7c5cff' },
       },
     ],
   }
@@ -266,8 +266,8 @@ function buildCostCompareOption(schedule: SchedulePoint[]): EChartsOption {
         type: 'line',
         symbol: 'none',
         data: schedule.map((p) => Math.round(p.grid_import_kw * 10) / 10),
-        lineStyle: { color: '#1677ff', width: 2 },
-        itemStyle: { color: '#1677ff' },
+        lineStyle: { color: '#2f7cf6', width: 2 },
+        itemStyle: { color: '#2f7cf6' },
         areaStyle: { color: 'rgba(22, 119, 255, 0.12)' },
       },
     ],
@@ -323,8 +323,8 @@ function PvPipeline({ forecast, site }: { forecast: ForecastResponse; site?: Sit
           type: 'line',
           symbol: 'none',
           data: weather.map((p) => p.dhi_wm2),
-          lineStyle: { color: '#1677ff' },
-          itemStyle: { color: '#1677ff' },
+          lineStyle: { color: '#2f7cf6' },
+          itemStyle: { color: '#2f7cf6' },
         },
       ],
     }

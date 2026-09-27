@@ -376,6 +376,29 @@ class LiveSimulateResponse(BaseModel):
     up_to_slot: int
 
 
+class RollingRevisionRead(BaseModel):
+    revision: int
+    created_at: datetime
+    initial_soc: float
+    expected_benefit_yuan: float
+    trigger_reason: str
+
+
+class RollingState(BaseModel):
+    """日内滚动修正状态：原计划 + 修正历史 + 最新修正计划（仅剩余时段）。"""
+
+    site_id: str
+    date: date
+    base_run_id: str | None = None
+    base_expected_benefit_yuan: float | None = None
+    revisions: list[RollingRevisionRead]
+    latest_schedule: list[DispatchPoint] | None = None
+    latest_revision: int
+    cooldown_until: datetime | None = None
+    deviation_now: float | None = None
+    last_trigger_reason: str | None = None
+
+
 def generate_site_id() -> str:
     return f"S{uuid4().hex[:8].upper()}"
 

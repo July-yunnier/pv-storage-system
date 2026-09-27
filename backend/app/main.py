@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from app.api.errors import AppError
 from app.api.routes_forecast import router as forecast_router
 from app.api.routes_live import router as live_router
+from app.api.routes_rolling import router as rolling_router
 from app.api.routes_measurements import quality_router as data_quality_router
 from app.api.routes_measurements import router as measurements_router
 from app.api.routes_reports import router as reports_router
@@ -21,6 +22,7 @@ from app.api.routes_storage import runs_router as dispatch_runs_router
 from app.api.routes_tariffs import router as tariffs_router
 from app.api.routes_weather import router as weather_router
 from app.infrastructure.db import Database
+from app.application import rolling_service
 
 
 def _request_id(request: Request) -> str:
@@ -99,6 +101,25 @@ def create_app(database_path: str | None = None) -> FastAPI:
     app.include_router(reports_router, prefix="/api/v1")
     app.include_router(weather_router, prefix="/api/v1")
     app.include_router(live_router, prefix="/api/v1")
+    app.include_router(rolling_router, prefix="/api/v1")
+
+    @app.on_event("startup")
+    async def start_rolling_loop() -> None:
+        """每分钟巡检：新测量槽位到位且偏差超限时，自动触发日内滚动修正。"""
+        import asyncio
+
+        async def loop() -> None:
+            while True:
+                await asyncio.sleep(60)
+                try:
+                    db: Database = app.state.db
+                    for site in db.list_sites():
+                        rolling_service.maybe_rolling_adjust(db, site.site_id)
+                except Exception:
+                    continue  # 巡检失败不拖垮服务，下一分钟再试
+
+        asyncio.create_task(loop())
+
     return app
 
 

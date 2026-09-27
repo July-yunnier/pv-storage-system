@@ -16,15 +16,15 @@ export default function PageHeader({ title, description, extra }: PageHeaderProp
         alignItems: 'flex-end',
         flexWrap: 'wrap',
         gap: 12,
-        marginBottom: 16,
+        marginBottom: 18,
       }}
     >
       <div>
-        <Typography.Title level={3} style={{ margin: 0 }}>
-          {title}
-        </Typography.Title>
+        <div className="ps-page-title">{title}</div>
         {description && (
-          <Typography.Text type="secondary">{description}</Typography.Text>
+          <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+            {description}
+          </Typography.Text>
         )}
       </div>
       {extra}

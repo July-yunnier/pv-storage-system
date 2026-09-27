@@ -8,6 +8,7 @@ import type {
   ForecastResponse,
   LiveSimulateResponse,
   LiveStatus,
+  RollingState,
   DispatchRunSummary,
   QualityReport,
   ReportJob,
@@ -147,6 +148,17 @@ export function getLive(siteId: string): Promise<LiveStatus> {
 export function simulateLive(siteId: string): Promise<LiveSimulateResponse> {
   return request<LiveSimulateResponse>(
     `/sites/${encodeURIComponent(siteId)}/simulate-live`,
+    { method: 'POST' },
+  )
+}
+
+export function getRolling(siteId: string): Promise<RollingState> {
+  return request<RollingState>(`/sites/${encodeURIComponent(siteId)}/rolling`)
+}
+
+export function runRolling(siteId: string): Promise<RollingState> {
+  return request<RollingState>(
+    `/sites/${encodeURIComponent(siteId)}/rolling/run`,
     { method: 'POST' },
   )
 }

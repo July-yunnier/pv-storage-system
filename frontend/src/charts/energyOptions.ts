@@ -102,7 +102,7 @@ export function buildEnergyChartOption({
         type: 'bar',
         stack: 'dispatch',
         data: charge,
-        itemStyle: { color: '#1677ff' },
+        itemStyle: { color: '#2f7cf6' },
       },
       {
         name: '放电',
@@ -118,8 +118,8 @@ export function buildEnergyChartOption({
         symbol: 'none',
         connectNulls: false,
         data: soc,
-        lineStyle: { type: 'dashed', width: 1.5, color: '#722ed1' },
-        itemStyle: { color: '#722ed1' },
+        lineStyle: { type: 'dashed', width: 1.5, color: '#7c5cff' },
+        itemStyle: { color: '#7c5cff' },
       },
     )
   }
