@@ -11,7 +11,9 @@ from statistics import mean
 
 from app.domain.forecast.result import (
     AccuracyCaliber,
+    ExplainWeatherPoint,
     ForecastAccuracy,
+    ForecastExplain,
     ForecastModel,
     ForecastPoint,
     ForecastProvenance,
@@ -98,6 +100,7 @@ def predict_pv_physics(
     lon: float,
     tz: tzinfo,
     provider_name: str,
+    explain: bool = False,
 ) -> TargetForecast:
     """纯物理预测：辐射预报 → pvlib 转换链。无需历史数据（冷启动可用）。"""
     from app.domain.forecast.pv_physics import day_power_values
@@ -109,7 +112,23 @@ def predict_pv_physics(
         model=ForecastModel(name="pvlib_pvwatts", version="v1"),
         points=_points_for_day(target_date, values, tz),
         accuracy=None,
-        provenance=ForecastProvenance(window="预报1天"),
+        provenance=ForecastProvenance(
+            window="预报1天",
+            explain=ForecastExplain(
+                weather=[
+                    ExplainWeatherPoint(
+                        ts=p.ts,
+                        ghi_wm2=p.ghi_wm2,
+                        dni_wm2=p.dni_wm2,
+                        dhi_wm2=p.dhi_wm2,
+                        temperature_c=p.temperature_c,
+                    )
+                    for p in weather
+                ]
+            )
+            if explain
+            else None,
+        ),
         notes=(
             f"物理模型：{provider_name} 辐射预报（逐小时线性插值到 15 分钟）"
             f"经 pvlib 转换链（Hay-Davies 转置 + Faiman 温度 + PVWatts 直流）；"

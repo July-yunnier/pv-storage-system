@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel
@@ -40,6 +40,34 @@ class ForecastProvenance(BaseModel):
     fetched_at: datetime | None = None  # 气象数据拉取时间（UTC）
     factor: float | None = None  # 融合校准系数（实测/物理回测，仅 blend）
     window: str | None = None  # 使用的数据窗口描述
+    explain: "ForecastExplain | None" = None  # 仅 options.explain=true 时返回
+
+
+class ExplainWeatherPoint(BaseModel):
+    """气象预报原始点（逐小时）。"""
+
+    ts: datetime
+    ghi_wm2: float
+    dni_wm2: float
+    dhi_wm2: float
+    temperature_c: float | None = None
+
+
+class ExplainBacktest(BaseModel):
+    """融合校准回测明细。"""
+
+    dates: list[date]
+    sum_measured_kwh: float
+    sum_physics_kwh: float
+    factor: float
+
+
+class ForecastExplain(BaseModel):
+    weather: list[ExplainWeatherPoint] | None = None
+    backtest: ExplainBacktest | None = None
+
+
+ForecastProvenance.model_rebuild()
 
 
 class TargetForecast(BaseModel):

@@ -192,6 +192,7 @@ class ForecastOptions(BaseModel):
     quantiles: list[float] = Field(default_factory=lambda: [0.1, 0.5, 0.9])
     pv_model: Literal["auto", "statistical", "physics"] = "auto"
     intraday: bool = False
+    explain: bool = False  # true 时 provenance 附带气象原始点与回测明细
 
 
 class ForecastRequest(BaseModel):
@@ -333,6 +334,46 @@ class DispatchRunSummary(BaseModel):
 class DispatchRunDetail(ScheduleResponse):
     input_digest: str
     created_at: datetime
+
+
+class LiveLatestPoint(BaseModel):
+    ts: datetime
+    value: float
+
+
+class LivePriceNow(BaseModel):
+    price: float
+    tier: TierName | None
+    next_change_at: datetime | None = None
+    next_tier: TierName | None = None
+
+
+class LiveTodayPlan(BaseModel):
+    run_id: str
+    expected_benefit_yuan: float
+    created_at: datetime
+
+
+class LiveStatus(BaseModel):
+    """实时看板快照：当前功率/SOC/电价档 + 今日数据覆盖与今日计划。"""
+
+    site_id: str
+    now_local: datetime
+    latest_pv: LiveLatestPoint | None
+    latest_load: LiveLatestPoint | None
+    latest_soc: LiveLatestPoint | None
+    latest_grid: LiveLatestPoint | None
+    price_now: LivePriceNow
+    today_plan: LiveTodayPlan | None
+    pv_points_today: int
+    load_points_today: int
+    expected_points_today: int
+
+
+class LiveSimulateResponse(BaseModel):
+    site_id: str
+    inserted: dict[str, int]
+    up_to_slot: int
 
 
 def generate_site_id() -> str:

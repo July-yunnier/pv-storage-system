@@ -264,6 +264,7 @@ export interface ForecastRequest {
     include_uncertainty?: boolean
     pv_model?: 'auto' | 'statistical' | 'physics'
     intraday?: boolean
+    explain?: boolean
   }
 }
 
@@ -290,6 +291,21 @@ export interface TargetForecast {
     fetched_at?: string | null
     factor?: number | null
     window?: string | null
+    explain?: {
+      weather: {
+        ts: string
+        ghi_wm2: number
+        dni_wm2: number
+        dhi_wm2: number
+        temperature_c: number | null
+      }[] | null
+      backtest: {
+        dates: string[]
+        sum_measured_kwh: number
+        sum_physics_kwh: number
+        factor: number
+      } | null
+    } | null
   } | null
   notes: string
 }
@@ -299,6 +315,40 @@ export interface ForecastResponse {
   issued_at: string
   resolution_minutes: number
   results: TargetForecast[]
+}
+
+export interface LiveLatestPoint {
+  ts: string
+  value: number
+}
+
+export interface LiveStatus {
+  site_id: string
+  now_local: string
+  latest_pv: LiveLatestPoint | null
+  latest_load: LiveLatestPoint | null
+  latest_soc: LiveLatestPoint | null
+  latest_grid: LiveLatestPoint | null
+  price_now: {
+    price: number
+    tier: TierName | null
+    next_change_at: string | null
+    next_tier: TierName | null
+  }
+  today_plan: {
+    run_id: string
+    expected_benefit_yuan: number
+    created_at: string
+  } | null
+  pv_points_today: number
+  load_points_today: number
+  expected_points_today: number
+}
+
+export interface LiveSimulateResponse {
+  site_id: string
+  inserted: Record<string, number>
+  up_to_slot: number
 }
 
 export interface OverviewSiteInfo {
