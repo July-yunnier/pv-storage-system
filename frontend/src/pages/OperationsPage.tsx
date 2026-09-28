@@ -821,7 +821,7 @@ export default function OperationsPage() {
               <Spin />
             </div>
           ) : !tomorrowRun ? (
-            <Empty description="明日暂无计划，点击右上角生成" />
+            <Empty description="系统将于 23:00 自动生成明日计划（日前调度）；现在生成亦可" />
           ) : (
             <Space direction="vertical" size={16} style={{ width: '100%' }}>
               {tomorrowRun.data_source === 'forecast' && (
@@ -859,7 +859,14 @@ export default function OperationsPage() {
                     <Typography.Text type="secondary" style={{ fontSize: 12 }}>
                       策略 {tomorrowRun.strategy}
                     </Typography.Text>
-                    <SourceTag source={tomorrowRun.data_source ?? 'measurements'} />
+                    <Space size={4}>
+                      <SourceTag source={tomorrowRun.data_source ?? 'measurements'} />
+                      {tomorrowSummary?.auto_generated && (
+                        <Tag color="orange" style={{ fontSize: 11 }}>
+                          自动生成于 {dayjs(tomorrowSummary.created_at).format('HH:mm')}
+                        </Tag>
+                      )}
+                    </Space>
                     <Link to={`/dispatch/${tomorrowRun.run_id}?site=${siteId}`}>
                       查看详情
                     </Link>
