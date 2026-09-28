@@ -25,11 +25,13 @@ import {
   getLive,
   getRolling,
   listDispatchRuns,
+  runForecast,
   simulateLive,
 } from '../api/client'
 import type {
   CurvePoint,
   DispatchRunDetail,
+  ForecastPoint,
   LiveStatus,
   RollingState,
   SchedulePoint,
@@ -50,17 +52,25 @@ function tierTag(tier: string | null) {
   return <Tag color={meta.color}>{meta.label}</Tag>
 }
 
-/** 今日实况图：现在线分古今，左侧实测（定死），右侧原计划 vs 最新修正（动态）。 */
+/** 今日实况图：现在线分古今，左侧实测（定死），右侧实测的同色虚线延续=日内预测，叠加原计划与最新修正。 */
 function buildTodayOption(
   points: CurvePoint[],
   basePlan: SchedulePoint[] | null,
   revision: SchedulePoint[] | null,
   nowLabel: string,
+  pvFuture: ForecastPoint[],
+  loadFuture: ForecastPoint[],
 ): EChartsOption {
   const labels = points.map((p) => dayjs(p.ts).format('HH:mm'))
   const first = labels[0]
   const last = labels[labels.length - 1]
   const labelIndex = new Map(labels.map((l, i) => [l, i]))
+  const futureByLabel = (list: ForecastPoint[]) =>
+    new Map(list.map((p) => [dayjs(p.ts).format('HH:mm'), p.value]))
+  const pvFutureMap = futureByLabel(pvFuture)
+  const loadFutureMap = futureByLabel(loadFuture)
+  const futureSeries = (map: Map<string, number>) =>
+    labels.map((l) => (map.has(l) ? map.get(l)! : null))
 
   const zeros: (number | null)[] = new Array(labels.length).fill(null)
   const baseCharge = [...zeros]
@@ -162,6 +172,24 @@ function buildTodayOption(
       itemStyle: { color: '#2b302b' },
     },
     {
+      name: '光伏预测（剩余）',
+      type: 'line',
+      symbol: 'none',
+      connectNulls: false,
+      data: futureSeries(pvFutureMap),
+      lineStyle: { color: PV, width: 2, type: 'dashed' },
+      itemStyle: { color: PV },
+    },
+    {
+      name: '负荷预测（剩余）',
+      type: 'line',
+      symbol: 'none',
+      connectNulls: false,
+      data: futureSeries(loadFutureMap),
+      lineStyle: { color: '#2b302b', width: 2, type: 'dashed' },
+      itemStyle: { color: '#2b302b' },
+    },
+    {
       name: '电价',
       type: 'line',
       step: 'end',
@@ -245,6 +273,8 @@ export default function TodayPanel({ siteId }: { siteId: string | undefined }) {
   const [simulating, setSimulating] = useState(false)
   const [makingPlan, setMakingPlan] = useState(false)
   const [points, setPoints] = useState<CurvePoint[] | null>(null)
+  const [pvFuture, setPvFuture] = useState<ForecastPoint[]>([])
+  const [loadFuture, setLoadFuture] = useState<ForecastPoint[]>([])
   const [plan, setPlan] = useState<DispatchRunDetail | null>(null)
   const [curvesError, setCurvesError] = useState<string | null>(null)
   const autoSimulatedRef = useRef(false)
@@ -313,6 +343,36 @@ export default function TodayPanel({ siteId }: { siteId: string | undefined }) {
     if (siteId) void loadCurves(siteId)
   }, [siteId, loadCurves])
 
+  // 日内滚动预测（实测线之后的虚线延续）：随曲线一起每 2 分钟刷新
+  const loadFutureForecast = useCallback(async (sid: string) => {
+    try {
+      const res = await runForecast({
+        site_id: sid,
+        targets: ['pv_power', 'load_power'],
+        horizon_hours: 24,
+        resolution_minutes: 15,
+        options: { intraday: true },
+      })
+      const now = dayjs()
+      const futureOnly = (target: 'pv_power' | 'load_power') =>
+        res.results.find((r) => r.target === target)?.points.filter((p) =>
+          dayjs(p.ts).isAfter(now),
+        ) ?? []
+      setPvFuture(futureOnly('pv_power'))
+      setLoadFuture(futureOnly('load_power'))
+    } catch {
+      setPvFuture([])
+      setLoadFuture([])
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!siteId) return
+    void loadFutureForecast(siteId)
+    const timer = setInterval(() => void loadFutureForecast(siteId), 120000)
+    return () => clearInterval(timer)
+  }, [siteId, loadFutureForecast])
+
   // 实测曲线每 2 分钟补拉一次（新槽位到达后图上的"现在线"右侧逐步变成左侧）
   useEffect(() => {
     if (!siteId) return
@@ -355,9 +415,16 @@ export default function TodayPanel({ siteId }: { siteId: string | undefined }) {
   const chartOption = useMemo(
     () =>
       points
-        ? buildTodayOption(points, plan?.schedule ?? null, rolling?.latest_schedule ?? null, nowLabel)
+        ? buildTodayOption(
+            points,
+            plan?.schedule ?? null,
+            rolling?.latest_schedule ?? null,
+            nowLabel,
+            pvFuture,
+            loadFuture,
+          )
         : null,
-    [points, plan, rolling, nowLabel],
+    [points, plan, rolling, nowLabel, pvFuture, loadFuture],
   )
 
   const price = live?.price_now
@@ -522,7 +589,8 @@ export default function TodayPanel({ siteId }: { siteId: string | undefined }) {
               type="secondary"
               style={{ fontSize: 12, display: 'block', marginTop: 4 }}
             >
-              红线左侧为已发生实测（定死），右侧为未来：浅灰柱=今早原计划，彩色柱=最新修正计划。
+              红线左侧为已发生实测（定死），右侧为未来：实线之后的同色虚线=日内滚动预测（随实测每 15 分钟修正）；
+              浅灰柱=今早原计划，彩色柱=最新修正计划。
               自动修正运行中：光伏实测偏差超 15% 即自动重算（30 分钟冷却防抖），无需人工干预；每 30 秒自动刷新
             </Typography.Text>
           </>
