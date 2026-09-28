@@ -328,6 +328,7 @@ class DispatchRunSummary(BaseModel):
     optimized_cost_yuan: float
     equivalent_full_cycles: float
     data_source: Literal["measurements", "forecast"] = "measurements"
+    auto_generated: bool = False
     created_at: datetime
 
 

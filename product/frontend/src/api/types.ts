@@ -148,6 +148,7 @@ export interface DispatchRunSummary {
   date: string
   strategy: string
   data_source?: DataSource
+  auto_generated?: boolean
   initial_soc: number
   expected_benefit_yuan: number
   baseline_cost_yuan: number

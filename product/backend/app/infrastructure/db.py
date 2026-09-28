@@ -135,6 +135,14 @@ class Database:
                     trigger_reason TEXT NOT NULL,
                     created_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS auto_plan_runs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    site_id TEXT NOT NULL,
+                    plan_date TEXT NOT NULL,
+                    run_id TEXT NOT NULL,
+                    kind TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );
                 CREATE TABLE IF NOT EXISTS dispatch_runs (
                     run_id TEXT PRIMARY KEY,
                     site_id TEXT NOT NULL,
@@ -410,6 +418,38 @@ class Database:
             return None
         return _parse_dt(row["latest"]).astimezone(_zone(timezone_name))
 
+    def insert_auto_plan_run(
+        self, *, site_id: str, plan_date: date, run_id: str, kind: str
+    ) -> None:
+        with self.connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO auto_plan_runs(site_id, plan_date, run_id, kind, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (site_id, plan_date.isoformat(), run_id, kind, _now().isoformat()),
+            )
+
+    def get_auto_plan_run(self, run_id: str) -> dict | None:
+        with self.connection() as conn:
+            row = conn.execute(
+                """
+                SELECT site_id, plan_date, run_id, kind, created_at
+                FROM auto_plan_runs
+                WHERE run_id = ?
+                """,
+                (run_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return {
+            "site_id": row["site_id"],
+            "plan_date": row["plan_date"],
+            "run_id": row["run_id"],
+            "kind": row["kind"],
+            "created_at": _parse_dt(row["created_at"]),
+        }
+
     def insert_dispatch_run(
         self,
         *,
@@ -455,6 +495,11 @@ class Database:
                 """,
                 (site_id,),
             ).fetchall()
+            auto_rows = conn.execute(
+                "SELECT run_id FROM auto_plan_runs WHERE site_id = ?",
+                (site_id,),
+            ).fetchall()
+        auto_ids = {row["run_id"] for row in auto_rows}
         summaries: list[DispatchRunSummary] = []
         for row in rows:
             result = json.loads(row["result_json"])
@@ -470,6 +515,7 @@ class Database:
                     optimized_cost_yuan=result["optimized_cost_yuan"],
                     equivalent_full_cycles=result["equivalent_full_cycles"],
                     data_source=row["data_source"],
+                    auto_generated=row["run_id"] in auto_ids,
                     created_at=_parse_dt(row["created_at"]),
                 )
             )

@@ -13,7 +13,7 @@ import {
   Tag,
   Typography,
 } from 'antd'
-import { RedoOutlined, ThunderboltOutlined } from '@ant-design/icons'
+import { ThunderboltOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { Link } from 'react-router-dom'
 import type { EChartsOption } from 'echarts'
@@ -25,7 +25,6 @@ import {
   getLive,
   getRolling,
   listDispatchRuns,
-  runRolling,
   simulateLive,
 } from '../api/client'
 import type {
@@ -245,7 +244,6 @@ export default function TodayPanel({ siteId }: { siteId: string | undefined }) {
   const [rolling, setRolling] = useState<RollingState | null>(null)
   const [simulating, setSimulating] = useState(false)
   const [makingPlan, setMakingPlan] = useState(false)
-  const [forcing, setForcing] = useState(false)
   const [points, setPoints] = useState<CurvePoint[] | null>(null)
   const [plan, setPlan] = useState<DispatchRunDetail | null>(null)
   const [curvesError, setCurvesError] = useState<string | null>(null)
@@ -344,20 +342,6 @@ export default function TodayPanel({ siteId }: { siteId: string | undefined }) {
       message.error(e instanceof Error ? e.message : '今日计划生成失败')
     } finally {
       setMakingPlan(false)
-    }
-  }
-
-  const forceAdjust = async () => {
-    if (!siteId) return
-    setForcing(true)
-    try {
-      const state = await runRolling(siteId)
-      setRolling(state)
-      message.success(`已生成第 ${state.latest_revision} 版修正计划`)
-    } catch (e) {
-      message.error(e instanceof Error ? e.message : '修正失败')
-    } finally {
-      setForcing(false)
     }
   }
 
@@ -499,17 +483,7 @@ export default function TodayPanel({ siteId }: { siteId: string | undefined }) {
                 生成今日计划
               </Button>
             ) : (
-              <>
-                <Link to={`/dispatch/${plan.run_id}?site=${siteId}`}>查看原计划</Link>
-                <Button
-                  icon={<RedoOutlined />}
-                  loading={forcing}
-                  onClick={forceAdjust}
-                  disabled={!plan}
-                >
-                  立即修正
-                </Button>
-              </>
+              <Link to={`/dispatch/${plan.run_id}?site=${siteId}`}>查看原计划</Link>
             )}
           </Space>
         }
@@ -527,8 +501,8 @@ export default function TodayPanel({ siteId }: { siteId: string | undefined }) {
               type="secondary"
               style={{ fontSize: 12, display: 'block', marginTop: 4 }}
             >
-              红线左侧为已发生实测（定死），右侧为未来：浅灰柱=今早原计划，彩色柱=最新修正计划；实测偏差超
-              15% 时系统自动重算（也可点"立即修正"）；每 30 秒自动刷新
+              红线左侧为已发生实测（定死），右侧为未来：浅灰柱=今早原计划，彩色柱=最新修正计划。
+              自动修正运行中：光伏实测偏差超 15% 即自动重算（30 分钟冷却防抖），无需人工干预；每 30 秒自动刷新
             </Typography.Text>
           </>
         )}
