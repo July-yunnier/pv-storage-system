@@ -133,3 +133,30 @@ def simulate_live(db: Database, site_id: str) -> LiveSimulateResponse:
     return LiveSimulateResponse(
         site_id=site_id, inserted=inserted, up_to_slot=current_slot
     )
+
+
+def auto_extend_simulated(db: Database) -> list[str]:
+    """模拟数据源自动续传：每分钟巡检，把"在用模拟数据"的站点补到当前时刻。
+
+    只碰 simulator 源的站点——接真实 EMS/CSV 数据的站点永远不会被改写。
+    判定：该站点最新一条光伏测量（不限日期）的 source == "simulator"。
+    """
+    extended: list[str] = []
+    for site in db.list_sites():
+        latest = db.get_latest_measurement_with_source(site.site_id, "pv_power")
+        if latest is None or latest[2] != "simulator":
+            continue
+        tz = _zone(site.location.timezone)
+        now_local = datetime.now(tz)
+        latest_local = latest[0].astimezone(tz)
+        # 已过最近一个完整槽位边界 → 补到现在
+        if latest_local.date() < now_local.date() or (
+            (now_local.hour * 60 + now_local.minute) // SLOT_MINUTES
+            > (latest_local.hour * 60 + latest_local.minute) // SLOT_MINUTES
+        ):
+            try:
+                simulate_live(db, site.site_id)
+                extended.append(site.site_id)
+            except Exception:
+                continue  # 单站失败不影响其他站
+    return extended

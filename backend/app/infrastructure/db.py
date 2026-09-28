@@ -401,6 +401,23 @@ class Database:
             return None
         return _parse_dt(row["ts_utc"]).astimezone(_zone(timezone_name)), row["value"]
 
+    def get_latest_measurement_with_source(
+        self, site_id: str, data_type: str
+    ) -> tuple[datetime, float, str] | None:
+        """最新非 None 点（UTC 时间戳、值、source），供模拟源自动续传判定。"""
+        with self.connection() as conn:
+            row = conn.execute(
+                """
+                SELECT ts_utc, value, source FROM measurements
+                WHERE site_id = ? AND data_type = ? AND value IS NOT NULL
+                ORDER BY ts_utc DESC LIMIT 1
+                """,
+                (site_id, data_type),
+            ).fetchone()
+        if row is None:
+            return None
+        return _parse_dt(row["ts_utc"]), row["value"], row["source"]
+
     def get_latest_measurement_ts(
         self, site_id: str, data_types: list[str], timezone_name: str
     ) -> datetime | None:

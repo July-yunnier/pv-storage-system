@@ -42,6 +42,52 @@ def test_simulate_live_is_idempotent(site_client: TestClient) -> None:
     assert first["inserted"]["pv_power"] == second["inserted"]["pv_power"]
 
 
+def test_auto_extend_simulated_tops_up(site_client: TestClient) -> None:
+    """simulate-live 后模拟源被标记，auto_extend 应补齐到当前槽位且不重复劳动。"""
+    from app.application.live_service import auto_extend_simulated
+
+    site_client.post("/api/v1/sites/S-API/simulate-live")
+    db = site_client.app.state.db
+    # 已是最新槽位 → 无需续传
+    assert auto_extend_simulated(db) == []
+    # 删掉最后一个点模拟"落后一个槽位" → 续传补回
+    with db.connection() as conn:
+        conn.execute(
+            """
+            DELETE FROM measurements
+            WHERE site_id = 'S-API' AND data_type = 'pv_power'
+              AND ts_utc = (SELECT MAX(ts_utc) FROM measurements
+                            WHERE site_id = 'S-API' AND data_type = 'pv_power')
+            """
+        )
+    assert auto_extend_simulated(db) == ["S-API"]
+    live = site_client.get("/api/v1/sites/S-API/live").json()
+    assert live["pv_points_today"] > 0
+
+
+def test_auto_extend_skips_real_data(site_client: TestClient) -> None:
+    """非 simulator 源的站点不被自动续传碰。"""
+    from datetime import datetime as dt
+
+    from app.application.live_service import auto_extend_simulated
+    from app.domain.models import MeasurementPoint, MeasurementUpload
+
+    db = site_client.app.state.db
+    db.insert_measurements(
+        "S-API",
+        MeasurementUpload(
+            data_type="pv_power",
+            source="api",  # 真实接入源
+            points=[
+                MeasurementPoint(
+                    ts=dt(2020, 1, 1, tzinfo=CN_TZ), value=100.0
+                )
+            ],
+        ),
+    )
+    assert auto_extend_simulated(db) == []
+
+
 def test_live_unknown_site(site_client: TestClient) -> None:
     response = site_client.get("/api/v1/sites/S-NOPE/live")
     assert response.status_code == 404
