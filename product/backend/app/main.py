@@ -22,7 +22,7 @@ from app.api.routes_storage import runs_router as dispatch_runs_router
 from app.api.routes_tariffs import router as tariffs_router
 from app.api.routes_weather import router as weather_router
 from app.infrastructure.db import Database
-from app.application import automation_service, rolling_service
+from app.application import automation_service, live_service, rolling_service
 
 
 def _request_id(request: Request) -> str:
@@ -115,6 +115,7 @@ def create_app(database_path: str | None = None) -> FastAPI:
                     db: Database = app.state.db
                     for site in db.list_sites():
                         rolling_service.maybe_rolling_adjust(db, site.site_id)
+                    live_service.auto_extend_simulated(db)
                     automation_service.ensure_daily_plans(db)
                 except Exception:
                     continue  # 巡检失败不拖垮服务，下一分钟再试

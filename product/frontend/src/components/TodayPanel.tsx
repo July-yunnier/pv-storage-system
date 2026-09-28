@@ -313,6 +313,13 @@ export default function TodayPanel({ siteId }: { siteId: string | undefined }) {
     if (siteId) void loadCurves(siteId)
   }, [siteId, loadCurves])
 
+  // 实测曲线每 2 分钟补拉一次（新槽位到达后图上的"现在线"右侧逐步变成左侧）
+  useEffect(() => {
+    if (!siteId) return
+    const timer = setInterval(() => void loadCurves(siteId), 120000)
+    return () => clearInterval(timer)
+  }, [siteId, loadCurves])
+
   // 今日无数据时自动接入一次模拟源（演示友好）
   useEffect(() => {
     if (!siteId || !live || autoSimulatedRef.current) return
@@ -429,6 +436,20 @@ export default function TodayPanel({ siteId }: { siteId: string | undefined }) {
           </Card>
         </Col>
       </Row>
+
+      <div style={{ marginTop: -8 }}>
+        {(() => {
+          const stamps = [live?.latest_pv?.ts, live?.latest_load?.ts]
+            .filter((t): t is string => !!t)
+            .map((t) => dayjs(t))
+            .sort((a, b) => b.valueOf() - a.valueOf())
+          return stamps.length > 0 ? (
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              数据截至 {stamps[0].format('HH:mm')} · 每 15 分钟自动进数，30 秒刷新展示
+            </Typography.Text>
+          ) : null
+        })()}
+      </div>
 
       {live && live.pv_points_today === 0 && (
         <Alert
