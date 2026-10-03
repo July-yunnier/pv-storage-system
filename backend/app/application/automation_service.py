@@ -54,11 +54,20 @@ def _auto_generate(db: Database, site_id: str, day: date, kind: str) -> str | No
 
 
 def ensure_daily_plans(db: Database, now_override: datetime | None = None) -> list[str]:
-    """巡检入口：到点且缺计划则自动生成。返回本轮生成的 run_id 列表。"""
+    """巡检入口：到点且缺计划则自动生成。返回本轮生成的 run_id 列表。
+
+    只在"活"站点上生成：最新测量在 3 天内（历史回放站点的数据停在历史区间，
+    不应触发面向明天的自动计划）。
+    """
     generated: list[str] = []
     for site in db.list_sites():
         tz = _zone(site.location.timezone)
         now = now_override.astimezone(tz) if now_override else datetime.now(tz)
+        latest = db.get_latest_measurement_ts(
+            site.site_id, ["pv_power", "load_power"], site.location.timezone
+        )
+        if latest is None or (now - latest).days > 3:
+            continue
         tomorrow = now.date() + timedelta(days=1)
 
         if now.hour == DAY_AHEAD_HOUR and not _has_plan(db, site.site_id, tomorrow):

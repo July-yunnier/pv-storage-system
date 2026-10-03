@@ -423,3 +423,95 @@ export interface SiteOverview {
   data_status: OverviewDataStatus | null
   latest_run: OverviewLatestRun | null
 }
+
+// ---------- 观测体系：预测精度对账 ----------
+
+export interface AccuracyRow {
+  site_id: string
+  target: ForecastTarget
+  method: string
+  target_date: string
+  skill_all_day: number | null
+  skill_daylight: number | null
+  rmse: number | null
+  mae: number | null
+  bias: number | null
+  n_points: number
+}
+
+export interface AccuracyMethodSummary {
+  method: string
+  days: number
+  skill_all_day: number | null
+  skill_daylight: number | null
+  rmse: number | null
+  bias: number | null
+}
+
+export interface AccuracyResponse {
+  site_id: string
+  days: number
+  rows: AccuracyRow[]
+  summary: Record<string, AccuracyMethodSummary>
+}
+
+// ---------- 回放实验 ----------
+
+export interface ReplayRunSummary {
+  run_id: string
+  site_id: string
+  config: {
+    test_days: number
+    test_window: [string, string]
+    pv_methods: string[]
+    strategies: string[]
+    weather_proxy?: string
+  }
+  status: 'running' | 'finished' | 'failed'
+  created_at: string
+  finished_at: string | null
+}
+
+export interface ReplayForecastMetric {
+  days: number
+  skill_all_day: number | null
+  skill_daylight: number | null
+  rmse: number | null
+  bias: number | null
+}
+
+export interface ReplayStrategyMetric {
+  days: number
+  total_cost_yuan: number
+  total_saving_yuan: number
+  avg_daily_saving_yuan: number
+  max_peak_import_kw: number
+  total_discharge_kwh: number
+  pv_self_use_ratio: number
+  soc_violations: number
+}
+
+export interface ReplayDayResult {
+  date: string
+  pv_method: string
+  strategy: string
+  metrics: {
+    cost_yuan: number
+    saving_vs_d0_yuan: number
+    grid_import_kwh: number
+    peak_import_kw: number
+    pv_self_use_ratio: number
+    curtailment_kwh: number
+    discharge_kwh: number
+    end_soc: number
+    soc_violations: number
+  }
+}
+
+export interface ReplayRunDetail extends ReplayRunSummary {
+  summary: {
+    forecasts: Record<string, ReplayForecastMetric>
+    strategies: Record<string, ReplayStrategyMetric>
+  } | null
+  day_results: ReplayDayResult[]
+}

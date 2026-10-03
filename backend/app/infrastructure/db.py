@@ -174,6 +174,50 @@ class Database:
                     finished_at TEXT,
                     FOREIGN KEY (site_id) REFERENCES sites(site_id)
                 );
+                CREATE TABLE IF NOT EXISTS replay_runs (
+                    run_id TEXT PRIMARY KEY,
+                    site_id TEXT NOT NULL,
+                    config_json TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    summary_json TEXT,
+                    created_at TEXT NOT NULL,
+                    finished_at TEXT,
+                    FOREIGN KEY (site_id) REFERENCES sites(site_id)
+                );
+                CREATE TABLE IF NOT EXISTS replay_day_results (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    run_id TEXT NOT NULL,
+                    date TEXT NOT NULL,
+                    pv_method TEXT NOT NULL,
+                    strategy TEXT NOT NULL,
+                    metrics_json TEXT NOT NULL,
+                    FOREIGN KEY (run_id) REFERENCES replay_runs(run_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_replay_day_results_run
+                    ON replay_day_results(run_id);
+                CREATE TABLE IF NOT EXISTS forecast_archive (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    site_id TEXT NOT NULL,
+                    target TEXT NOT NULL,
+                    method TEXT NOT NULL,
+                    target_date TEXT NOT NULL,
+                    issued_at TEXT NOT NULL,
+                    points_json TEXT NOT NULL,
+                    provenance_json TEXT,
+                    FOREIGN KEY (site_id) REFERENCES sites(site_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_forecast_archive_lookup
+                    ON forecast_archive(site_id, target, target_date);
+                CREATE TABLE IF NOT EXISTS forecast_accuracy (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    site_id TEXT NOT NULL,
+                    target TEXT NOT NULL,
+                    method TEXT NOT NULL,
+                    target_date TEXT NOT NULL,
+                    metrics_json TEXT NOT NULL,
+                    computed_at TEXT NOT NULL,
+                    UNIQUE(site_id, target, method, target_date)
+                );
                 """
             )
         self._migrate_dispatch_runs()
@@ -434,6 +478,237 @@ class Database:
         if row is None or row["latest"] is None:
             return None
         return _parse_dt(row["latest"]).astimezone(_zone(timezone_name))
+
+    def get_measurement_first_date(self, site_id: str, data_type: str) -> date | None:
+        with self.connection() as conn:
+            row = conn.execute(
+                """
+                SELECT MIN(ts_utc) AS earliest FROM measurements
+                WHERE site_id = ? AND data_type = ? AND value IS NOT NULL
+                """,
+                (site_id, data_type),
+            ).fetchone()
+        if row is None or row["earliest"] is None:
+            return None
+        return _parse_dt(row["earliest"]).astimezone(timezone.utc).date()
+
+    def get_measurement_last_date(self, site_id: str, data_type: str) -> date | None:
+        with self.connection() as conn:
+            row = conn.execute(
+                """
+                SELECT MAX(ts_utc) AS latest FROM measurements
+                WHERE site_id = ? AND data_type = ? AND value IS NOT NULL
+                """,
+                (site_id, data_type),
+            ).fetchone()
+        if row is None or row["latest"] is None:
+            return None
+        return _parse_dt(row["latest"]).astimezone(timezone.utc).date()
+
+    def insert_replay_run(self, run_id: str, site_id: str, config: dict) -> None:
+        with self.connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO replay_runs(run_id, site_id, config_json, status, created_at)
+                VALUES (?, ?, ?, 'running', ?)
+                """,
+                (run_id, site_id, json.dumps(config, ensure_ascii=False), _now().isoformat()),
+            )
+
+    def finish_replay_run(self, run_id: str, summary: dict) -> None:
+        with self.connection() as conn:
+            conn.execute(
+                """
+                UPDATE replay_runs SET status = 'finished', summary_json = ?, finished_at = ?
+                WHERE run_id = ?
+                """,
+                (json.dumps(summary, ensure_ascii=False), _now().isoformat(), run_id),
+            )
+
+    def fail_replay_run(self, run_id: str, error: str) -> None:
+        with self.connection() as conn:
+            conn.execute(
+                "UPDATE replay_runs SET status = ?, finished_at = ? WHERE run_id = ?",
+                (f"failed: {error[:200]}", _now().isoformat(), run_id),
+            )
+
+    def insert_replay_day_result(
+        self, run_id: str, day: date, pv_method: str, strategy: str, metrics: dict
+    ) -> None:
+        with self.connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO replay_day_results(run_id, date, pv_method, strategy, metrics_json)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (run_id, day.isoformat(), pv_method, strategy,
+                 json.dumps(metrics, ensure_ascii=False)),
+            )
+
+    def list_replay_runs(self, site_id: str) -> list[dict]:
+        with self.connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT run_id, site_id, config_json, status, summary_json, created_at, finished_at
+                FROM replay_runs WHERE site_id = ? ORDER BY created_at DESC
+                """,
+                (site_id,),
+            ).fetchall()
+        return [
+            {
+                "run_id": row["run_id"],
+                "site_id": row["site_id"],
+                "config": json.loads(row["config_json"]),
+                "status": row["status"],
+                "summary": json.loads(row["summary_json"]) if row["summary_json"] else None,
+                "created_at": _parse_dt(row["created_at"]),
+                "finished_at": _parse_dt(row["finished_at"]) if row["finished_at"] else None,
+            }
+            for row in rows
+        ]
+
+    def get_replay_run(self, run_id: str) -> dict | None:
+        with self.connection() as conn:
+            row = conn.execute(
+                """
+                SELECT run_id, site_id, config_json, status, summary_json, created_at, finished_at
+                FROM replay_runs WHERE run_id = ?
+                """,
+                (run_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return {
+            "run_id": row["run_id"],
+            "site_id": row["site_id"],
+            "config": json.loads(row["config_json"]),
+            "status": row["status"],
+            "summary": json.loads(row["summary_json"]) if row["summary_json"] else None,
+            "created_at": _parse_dt(row["created_at"]),
+            "finished_at": _parse_dt(row["finished_at"]) if row["finished_at"] else None,
+        }
+
+    def get_replay_day_results(self, run_id: str) -> list[dict]:
+        with self.connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT date, pv_method, strategy, metrics_json
+                FROM replay_day_results WHERE run_id = ? ORDER BY date, pv_method, strategy
+                """,
+                (run_id,),
+            ).fetchall()
+        return [
+            {
+                "date": row["date"],
+                "pv_method": row["pv_method"],
+                "strategy": row["strategy"],
+                "metrics": json.loads(row["metrics_json"]),
+            }
+            for row in rows
+        ]
+
+    def insert_forecast_archive(
+        self,
+        *,
+        site_id: str,
+        target: str,
+        method: str,
+        target_date: date,
+        issued_at: datetime,
+        points: list[dict],
+        provenance: dict | None,
+    ) -> None:
+        with self.connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO forecast_archive(
+                    site_id, target, method, target_date, issued_at, points_json, provenance_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    site_id, target, method, target_date.isoformat(), issued_at.isoformat(),
+                    json.dumps(points, ensure_ascii=False),
+                    json.dumps(provenance, ensure_ascii=False) if provenance else None,
+                ),
+            )
+
+    def get_unreconciled_forecasts(self, site_id: str, up_to_date: date) -> list[dict]:
+        """已有实测覆盖、但尚未对账的封存预测。"""
+        with self.connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT fa.id, fa.target, fa.method, fa.target_date, fa.points_json
+                FROM forecast_archive fa
+                WHERE fa.site_id = ? AND fa.target_date <= ?
+                  AND NOT EXISTS (
+                      SELECT 1 FROM forecast_accuracy ac
+                      WHERE ac.site_id = fa.site_id AND ac.target = fa.target
+                        AND ac.method = fa.method AND ac.target_date = fa.target_date
+                  )
+                ORDER BY fa.target_date
+                """,
+                (site_id, up_to_date.isoformat()),
+            ).fetchall()
+        return [
+            {
+                "id": row["id"],
+                "target": row["target"],
+                "method": row["method"],
+                "target_date": row["target_date"],
+                "points": json.loads(row["points_json"]),
+            }
+            for row in rows
+        ]
+
+    def upsert_forecast_accuracy(
+        self,
+        *,
+        site_id: str,
+        target: str,
+        method: str,
+        target_date: date,
+        metrics: dict,
+    ) -> None:
+        with self.connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO forecast_accuracy(site_id, target, method, target_date, metrics_json, computed_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(site_id, target, method, target_date) DO UPDATE SET
+                    metrics_json = excluded.metrics_json,
+                    computed_at = excluded.computed_at
+                """,
+                (site_id, target, method, target_date.isoformat(),
+                 json.dumps(metrics, ensure_ascii=False), _now().isoformat()),
+            )
+
+    def list_forecast_accuracy(
+        self, site_id: str, target: str | None = None, since: date | None = None
+    ) -> list[dict]:
+        sql = """
+            SELECT target, method, target_date, metrics_json, computed_at
+            FROM forecast_accuracy WHERE site_id = ?
+        """
+        params: list = [site_id]
+        if target is not None:
+            sql += " AND target = ?"
+            params.append(target)
+        if since is not None:
+            sql += " AND target_date >= ?"
+            params.append(since.isoformat())
+        sql += " ORDER BY target_date DESC, method"
+        with self.connection() as conn:
+            rows = conn.execute(sql, params).fetchall()
+        return [
+            {
+                "target": row["target"],
+                "method": row["method"],
+                "target_date": row["target_date"],
+                "metrics": json.loads(row["metrics_json"]),
+                "computed_at": _parse_dt(row["computed_at"]),
+            }
+            for row in rows
+        ]
 
     def insert_auto_plan_run(
         self, *, site_id: str, plan_date: date, run_id: str, kind: str

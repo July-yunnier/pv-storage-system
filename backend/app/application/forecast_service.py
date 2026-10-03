@@ -244,9 +244,35 @@ def run_forecast(db: Database, payload: ForecastRequest) -> ForecastResponse:
         )
         for target in payload.targets
     ]
+    _archive_forecasts(db, site, results, issued_at, tz)
     return ForecastResponse(
         site_id=site.site_id,
         issued_at=issued_at,
         resolution_minutes=payload.resolution_minutes,
         results=results,
     )
+
+
+def _archive_forecasts(
+    db: Database,
+    site: SiteRead,
+    results: list[TargetForecast],
+    issued_at: datetime,
+    tz,
+) -> None:
+    """观测体系：每次发出的预测原样封存，供实测到位后对账。封存失败不阻断主流程。"""
+    for result in results:
+        if not result.points:
+            continue
+        try:
+            db.insert_forecast_archive(
+                site_id=site.site_id,
+                target=result.target,
+                method=result.model.name,
+                target_date=result.points[0].ts.astimezone(tz).date(),
+                issued_at=issued_at,
+                points=[{"ts": p.ts.isoformat(), "value": p.value} for p in result.points],
+                provenance=result.provenance.model_dump(mode="json") if result.provenance else None,
+            )
+        except Exception:  # noqa: BLE001 - 观测写库不应影响预测主链路
+            continue
