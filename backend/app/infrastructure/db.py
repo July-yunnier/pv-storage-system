@@ -220,7 +220,31 @@ class Database:
                 );
                 """
             )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS replay_config (
+                    site_id TEXT PRIMARY KEY,
+                    shift_days INTEGER NOT NULL DEFAULT 0,
+                    cursor_date TEXT,
+                    cursor_for TEXT,
+                    window_start TEXT,
+                    window_end TEXT,
+                    updated_at TEXT NOT NULL
+                );
+                """
+            )
         self._migrate_dispatch_runs()
+        self._migrate_replay_config()
+
+    def _migrate_replay_config(self) -> None:
+        """回放配置补列：live 指针（cursor_date/cursor_for）与窗口边界。"""
+        with self.connection() as conn:
+            columns = {
+                row["name"] for row in conn.execute("PRAGMA table_info(replay_config)").fetchall()
+            }
+            for col in ("cursor_date", "cursor_for", "window_start", "window_end"):
+                if col not in columns:
+                    conn.execute(f"ALTER TABLE replay_config ADD COLUMN {col} TEXT")
 
     def _migrate_dispatch_runs(self) -> None:
         """I5 起 dispatch_runs 增加 data_source 列；存量库原地补列。"""
@@ -461,6 +485,51 @@ class Database:
         if row is None:
             return None
         return _parse_dt(row["ts_utc"]), row["value"], row["source"]
+
+    # ---- 回放映射：public_replay 站点的历史平移 + live 回放指针 ----
+
+    def set_replay_config(
+        self,
+        site_id: str,
+        shift_days: int,
+        window_start: str,
+        window_end: str,
+        cursor_date: str | None = None,
+        cursor_for: str | None = None,
+    ) -> None:
+        """写入回放配置。cursor_date：live 下一次重播的本地日；cursor_for：该指针服务过的本地日期。"""
+        with self.connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO replay_config
+                    (site_id, shift_days, window_start, window_end, cursor_date, cursor_for, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(site_id) DO UPDATE SET
+                    shift_days = excluded.shift_days,
+                    window_start = excluded.window_start,
+                    window_end = excluded.window_end,
+                    cursor_date = excluded.cursor_date,
+                    cursor_for = excluded.cursor_for,
+                    updated_at = excluded.updated_at
+                """,
+                (site_id, shift_days, window_start, window_end,
+                 cursor_date, cursor_for, _now()),
+            )
+
+    def get_replay_config(self, site_id: str) -> dict | None:
+        with self.connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM replay_config WHERE site_id = ?", (site_id,)
+            ).fetchone()
+        return None if row is None else dict(row)
+
+    def update_replay_cursor(self, site_id: str, cursor_date: str, cursor_for: str) -> None:
+        with self.connection() as conn:
+            conn.execute(
+                "UPDATE replay_config SET cursor_date = ?, cursor_for = ?, updated_at = ? "
+                "WHERE site_id = ?",
+                (cursor_date, cursor_for, _now(), site_id),
+            )
 
     def get_latest_measurement_ts(
         self, site_id: str, data_types: list[str], timezone_name: str

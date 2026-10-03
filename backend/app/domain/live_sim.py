@@ -42,10 +42,14 @@ def simulate_live_points(
     site: SiteRead,
     now_local: datetime,
     plan_points: list[DispatchPoint] | None = None,
+    pv_override: list[float] | None = None,
+    load_override: list[float] | None = None,
 ) -> dict[str, list[tuple[datetime, float]]]:
     """生成今日 00:00 至当前时刻（含）的 15 分钟测量点。
 
     返回 {data_type: [(ts_local, value), ...]}，pv/load/grid 单位 kW，soc 为 0~1。
+    pv_override / load_override：回放驱动模式的全天 96 点真实曲线，
+    提供时替换合成值（SOC/并网仍按当日计划执行逻辑推算）。
     """
     tz: tzinfo = now_local.tzinfo  # type: ignore[assignment]
     today = now_local.date()
@@ -77,12 +81,17 @@ def simulate_live_points(
 
         pv_kw = round(clearsky[slot] * cloud * wiggle, 3)
         load_kw = round(site.load.peak_kw * shape * wiggle, 3)
+        if pv_override is not None and slot < len(pv_override):
+            pv_kw = round(max(pv_override[slot], 0.0), 3)
+        if load_override is not None and slot < len(load_override):
+            load_kw = round(max(load_override[slot], 0.0), 3)
 
         soc = plan_by_slot.get(slot).soc_end if slot in plan_by_slot else 0.5
         plan = plan_by_slot.get(slot)
-        # 执行扰动：真实电站不会完美跟计划——SOC 缓漂 ±4%，光伏叠加云团扰动
+        # 执行扰动：真实电站不会完美跟计划——SOC 缓漂 ±4%；合成光伏叠加云团扰动
         soc = min(max(soc + 0.04 * math.sin(slot * 0.7), 0.05), 0.98)
-        pv_kw = round(pv_kw * (0.85 + 0.15 * math.sin(slot * 1.3 + 1.0)), 3)
+        if pv_override is None:
+            pv_kw = round(pv_kw * (0.85 + 0.15 * math.sin(slot * 1.3 + 1.0)), 3)
         charge_kw = plan.power_kw if plan and plan.action == "charge" else 0.0
         discharge_kw = plan.power_kw if plan and plan.action == "discharge" else 0.0
         grid_kw = max(load_kw - pv_kw + charge_kw - discharge_kw, 0.0)
