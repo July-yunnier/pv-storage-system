@@ -286,6 +286,20 @@ class DispatchPoint(BaseModel):
     grid_import_kw: float = Field(ge=0)
     grid_export_kw: float = Field(ge=0)
     pv_curtailment_kw: float = Field(ge=0)
+    # 充电来源拆分（charge 时）：光伏余电直充 vs 电网购电充电；默认 0 兼容旧记录
+    charge_from_pv_kw: float = Field(default=0, ge=0)
+    charge_from_grid_kw: float = Field(default=0, ge=0)
+
+
+class PlanSegment(BaseModel):
+    """计划说明的一段：连续相同动作的时段 + 人话解释。"""
+
+    start: str  # HH:mm
+    end: str  # HH:mm（段终点，闭区间的下一槽）
+    action: Literal["charge_pv", "charge_grid", "discharge"]
+    tier: TierName | None
+    avg_power_kw: float
+    text: str
 
 
 class BenefitBreakdown(BaseModel):
@@ -315,6 +329,8 @@ class ScheduleResponse(BaseModel):
     benefit_breakdown: BenefitBreakdown | None = None
     run_id: str | None = None
     data_source: Literal["measurements", "forecast"] = "measurements"
+    # 计划说明（分时段人话解释）；None = 旧记录，读取路径会补算
+    explanation: list[PlanSegment] | None = None
 
 
 class DispatchRunSummary(BaseModel):

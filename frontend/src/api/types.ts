@@ -108,6 +108,17 @@ export interface SchedulePoint {
   grid_import_kw: number
   grid_export_kw: number
   pv_curtailment_kw: number
+  charge_from_pv_kw?: number
+  charge_from_grid_kw?: number
+}
+
+export interface PlanSegment {
+  start: string
+  end: string
+  action: 'charge_pv' | 'charge_grid' | 'discharge'
+  tier: TierName | null
+  avg_power_kw: number
+  text: string
 }
 
 export interface BenefitBreakdown {
@@ -131,6 +142,7 @@ export interface ScheduleResponse {
   schedule: SchedulePoint[]
   constraints_applied: string[]
   benefit_breakdown?: BenefitBreakdown | null
+  explanation?: PlanSegment[] | null
 }
 
 export interface CreateScheduleRequest {

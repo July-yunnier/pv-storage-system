@@ -895,7 +895,7 @@ class Database:
         if row is None:
             return None
         result = json.loads(row["result_json"])
-        return DispatchRunDetail.model_validate(
+        detail = DispatchRunDetail.model_validate(
             {
                 **result,
                 "run_id": row["run_id"],
@@ -903,6 +903,14 @@ class Database:
                 "created_at": _parse_dt(row["created_at"]),
             }
         )
+        # 旧记录没有说明字段：读取时按计划点补算（拆分字段缺失时按光伏盈余回退推断）
+        if detail.explanation is None:
+            from app.domain.explain import explain_schedule
+
+            detail = detail.model_copy(
+                update={"explanation": explain_schedule(detail.schedule)}
+            )
+        return detail
 
     def insert_rolling_plan(
         self,

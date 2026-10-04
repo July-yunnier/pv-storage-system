@@ -121,10 +121,14 @@ class RuleDispatchEngine:
             optimized_cost += grid_import * dt_hours * price.price
             discharged_energy += discharge_kw * dt_hours
             discharge_value += discharge_kw * dt_hours * price.price
+            charge_pv_kw = 0.0
+            charge_grid_kw = 0.0
             if charge_kw > 0:
                 if net_load < 0:
+                    charge_pv_kw = charge_kw
                     surplus_charge_energy += charge_kw * dt_hours
                 else:
+                    charge_grid_kw = charge_kw
                     grid_charge_energy += charge_kw * dt_hours
                     grid_charge_cost += charge_kw * dt_hours * price.price
             points.append(
@@ -141,6 +145,8 @@ class RuleDispatchEngine:
                     grid_import_kw=round(grid_import, 6),
                     grid_export_kw=round(grid_export, 6),
                     pv_curtailment_kw=round(curtailment_kw, 6),
+                    charge_from_pv_kw=round(charge_pv_kw, 6),
+                    charge_from_grid_kw=round(charge_grid_kw, 6),
                 )
             )
 
