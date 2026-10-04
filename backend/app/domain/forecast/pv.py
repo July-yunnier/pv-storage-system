@@ -177,9 +177,13 @@ def predict_pv_intraday(
         deviation = mean([value - base[slot] for slot, value in recent])
 
     values: list[float] = []
+    baseline: list[float] = []
+    corrections: list[float] = []
     for slot in range(current_slot + 1, SLOTS_PER_DAY):
         horizon_minutes = (slot - current_slot) * SLOT_MINUTES
         weight = alpha * math.exp(-horizon_minutes / tau_minutes)
+        baseline.append(round(base[slot], 6))
+        corrections.append(round(weight * deviation, 6))
         values.append(min(max(base[slot] + weight * deviation, 0.0), cap_kw))
 
     day_start = datetime.combine(today, time.min, tzinfo=tz)
@@ -202,4 +206,5 @@ def predict_pv_intraday(
             f"0~15min 权重≈{alpha}，15min~4h 按 tau={tau_minutes:.0f}min 指数衰减，4h+ 回基线；"
             "仅覆盖今日剩余时段，无云图输入时为统计基线"
         ),
+        components={"baseline": baseline, "correction": corrections},
     )

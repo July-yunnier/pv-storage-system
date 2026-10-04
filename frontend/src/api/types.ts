@@ -287,6 +287,7 @@ export interface TargetForecast {
   p10: number[] | null
   p90: number[] | null
   accuracy: { metric: string; value: number } | null
+  components?: Record<string, number[]> | null
   provenance?: {
     provider?: string | null
     fetched_at?: string | null

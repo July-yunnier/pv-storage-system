@@ -43,12 +43,24 @@ function buildForecastOption(forecast: ForecastResponse): EChartsOption {
       },
     )
   }
+  if (target.components?.physics_raw) {
+    series.push({
+      name: '物理链原始输出',
+      type: 'line',
+      data: target.components.physics_raw.map((v) => Math.round(v * 10) / 10),
+      smooth: true,
+      symbol: 'none',
+      itemStyle: { color: '#9ba19b' },
+      lineStyle: { width: 1.5, type: 'dashed', color: '#9ba19b' },
+    })
+  }
   series.push({
     name: '预测功率',
     type: 'line',
     data: target.points.map((p) => Math.round(p.value * 10) / 10),
     smooth: true,
     symbol: 'none',
+    itemStyle: { color: '#e8722a' },
     lineStyle: { width: 2.5, color: '#e8722a' },
     areaStyle: { color: 'rgba(232,114,42,0.10)' },
   })
@@ -57,7 +69,7 @@ function buildForecastOption(forecast: ForecastResponse): EChartsOption {
     xAxis: { type: 'category', data: labels, boundaryGap: false },
     yAxis: { type: 'value', name: 'kW' },
     tooltip: { trigger: 'axis' },
-    legend: { data: ['预测功率'] },
+    legend: { data: ['物理链原始输出', '预测功率'] },
     series,
   }
 }
@@ -93,6 +105,18 @@ function buildTodayOption(
       forecastData[firstForecast - 1] = measuredData[firstForecast - 1]
     }
   }
+  const baselineData: (number | null)[] = Array(96).fill(null)
+  const corrData: (number | null)[] = Array(96).fill(null)
+  if (target?.components) {
+    const { baseline, correction } = target.components
+    target.points.forEach((p, i) => {
+      const d = dayjs(p.ts)
+      const slot = d.hour() * 4 + Math.floor(d.minute() / 15)
+      if (slot < 0 || slot >= 96) return
+      if (baseline?.[i] != null) baselineData[slot] = Math.round(baseline[i] * 10) / 10
+      if (correction?.[i] != null) corrData[slot] = Math.round(correction[i] * 10) / 10
+    })
+  }
   const lastMeasured = measuredData.reduce<number>(
     (acc, v, i) => (v != null ? i : acc),
     -1,
@@ -118,22 +142,40 @@ function buildTodayOption(
     xAxis: { type: 'category', data: labels, boundaryGap: false },
     yAxis: { type: 'value', name: 'kW' },
     tooltip: { trigger: 'axis' },
-    legend: { data: ['今日实测', '剩余时段预测'] },
+    legend: { data: ['今日实测', '剩余时段预测', '气候基线', '偏差修正'] },
     series: [
       {
         name: '今日实测',
         type: 'line',
         data: measuredData,
         symbol: 'none',
+        itemStyle: { color: '#e8722a' },
         lineStyle: { width: 2.5, color: '#e8722a' },
         areaStyle: { color: 'rgba(232,114,42,0.12)' },
         connectNulls: false,
+      },
+      {
+        name: '气候基线',
+        type: 'line',
+        data: baselineData,
+        symbol: 'none',
+        itemStyle: { color: '#9ba19b' },
+        lineStyle: { width: 1.5, type: 'dotted', color: '#9ba19b' },
+        connectNulls: false,
+      },
+      {
+        name: '偏差修正',
+        type: 'bar',
+        data: corrData,
+        itemStyle: { color: 'rgba(179,127,235,0.45)' },
+        barWidth: '60%',
       },
       {
         name: '剩余时段预测',
         type: 'line',
         data: forecastData,
         symbol: 'none',
+        itemStyle: { color: '#b37feb' },
         lineStyle: { width: 2, type: 'dashed', color: '#b37feb' },
         connectNulls: false,
         markArea: scaleMarkArea,
@@ -238,8 +280,9 @@ export default function PvForecastPage() {
         >
           <EnergyChart option={todayOption} height={260} />
           <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            计算过程：预测（紫色虚线）= 气候基线（灰点线，近 12 天同刻均值）+ 偏差修正（紫柱，当前实测偏差随时效衰减叠加，可正可负）。
             分尺度：① 0~15 分钟 · 持续性外推（近实时）；② 15 分钟~4 小时 ·
-            短临滚动修正（统计基线，随预报时效衰减回基线；站点装天空相机或接入卫星云图算法后，由该算法接管此区间）；
+            短临滚动修正（统计基线；站点装天空相机或接入卫星云图算法后，由该算法接管此区间）；
             ③ 4 小时以上 · 回归气候基线（与次日 NWP 日前预测衔接）。
           </Typography.Text>
         </Card>
