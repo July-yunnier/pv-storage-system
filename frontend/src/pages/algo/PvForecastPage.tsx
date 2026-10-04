@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, Card, Space, Spin, Table, Tag, Typography } from 'antd'
 import dayjs from 'dayjs'
-import type { EChartsOption } from 'echarts'
+import type { EChartsOption, LineSeriesOption } from 'echarts'
 import PageHeader from '../../components/PageHeader'
 import AccuracyPanel, { methodLabel } from '../../components/AccuracyPanel'
 import { SiteSelect, useSites } from '../../components/SitePicker'
@@ -80,6 +80,7 @@ function buildTodayOption(
   }
   const forecastData: (number | null)[] = Array(96).fill(null)
   const target = intraday?.results.find((r) => r.target === 'pv_power')
+  let firstForecast = -1
   if (target) {
     for (const p of target.points) {
       const d = dayjs(p.ts)
@@ -87,7 +88,7 @@ function buildTodayOption(
       if (slot >= 0 && slot < 96) forecastData[slot] = Math.round(p.value * 10) / 10
     }
     // 接续点：把实测最后一个有效值接到预测起点，虚线不断档
-    const firstForecast = forecastData.findIndex((v) => v != null)
+    firstForecast = forecastData.findIndex((v) => v != null)
     if (firstForecast > 0 && forecastData[firstForecast - 1] == null) {
       forecastData[firstForecast - 1] = measuredData[firstForecast - 1]
     }
@@ -96,6 +97,22 @@ function buildTodayOption(
     (acc, v, i) => (v != null ? i : acc),
     -1,
   )
+  // 分尺度分区：① 0~15min 持续外推 ② 15min~4h 短临滚动修正 ③ 4h+ 回气候基线
+  const zoneDefs = [
+    { name: '①', from: firstForecast, to: firstForecast + 1, color: 'rgba(179,127,235,0.14)' },
+    { name: '②', from: firstForecast + 1, to: firstForecast + 17, color: 'rgba(179,127,235,0.06)' },
+    { name: '③', from: firstForecast + 17, to: 95, color: 'rgba(155,161,155,0.06)' },
+  ].filter((z) => firstForecast >= 0 && z.from <= 95 && z.from <= Math.min(z.to, 95))
+  const scaleMarkArea: LineSeriesOption['markArea'] = zoneDefs.length
+    ? {
+        silent: true,
+        label: { show: true, position: 'insideTopLeft' as const, fontSize: 11, color: '#8c8c8c' },
+        data: zoneDefs.map((z) => [
+          { name: z.name, xAxis: labels[z.from], itemStyle: { color: z.color } },
+          { xAxis: labels[Math.min(z.to, 95)] },
+        ]) as unknown as NonNullable<LineSeriesOption['markArea']>['data'],
+      }
+    : undefined
   return {
     grid: { left: 56, right: 20, top: 30, bottom: 28 },
     xAxis: { type: 'category', data: labels, boundaryGap: false },
@@ -119,6 +136,7 @@ function buildTodayOption(
         symbol: 'none',
         lineStyle: { width: 2, type: 'dashed', color: '#b37feb' },
         connectNulls: false,
+        markArea: scaleMarkArea,
       },
     ],
     graphic: lastMeasured >= 0
@@ -219,6 +237,11 @@ export default function PvForecastPage() {
           }
         >
           <EnergyChart option={todayOption} height={260} />
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            分尺度：① 0~15 分钟 · 持续性外推（近实时）；② 15 分钟~4 小时 ·
+            短临滚动修正（统计基线，随预报时效衰减回基线；站点装天空相机或接入卫星云图算法后，由该算法接管此区间）；
+            ③ 4 小时以上 · 回归气候基线（与次日 NWP 日前预测衔接）。
+          </Typography.Text>
         </Card>
 
         <Card
