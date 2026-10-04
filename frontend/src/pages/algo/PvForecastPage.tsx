@@ -1,18 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Alert, Card, Space, Spin, Table, Tag, Typography } from 'antd'
+import { Alert, Card, Space, Spin, Tabs, Tag, Typography } from 'antd'
 import dayjs from 'dayjs'
 import type { EChartsOption, LineSeriesOption } from 'echarts'
 import PageHeader from '../../components/PageHeader'
-import AccuracyPanel, { methodLabel } from '../../components/AccuracyPanel'
+import { methodLabel } from '../../components/AccuracyPanel'
 import { SiteSelect, useSites } from '../../components/SitePicker'
 import EnergyChart from '../../charts/EnergyChart'
-import { getCurves, getReplayRun, listReplayRuns, runForecast } from '../../api/client'
-import type {
-  CurvePoint,
-  ForecastResponse,
-  ReplayForecastMetric,
-  ReplayRunDetail,
-} from '../../api/types'
+import { getCurves, runForecast } from '../../api/client'
+import type { CurvePoint, ForecastResponse } from '../../api/types'
 
 /** 明日光伏预测曲线（含 p10/p90 区间带）。 */
 function buildForecastOption(forecast: ForecastResponse): EChartsOption {
@@ -195,11 +190,10 @@ function buildTodayOption(
 }
 
 export default function PvForecastPage() {
-  const { sites, site, siteId, setSiteId } = useSites()
+  const { sites, siteId, setSiteId } = useSites()
   const [forecast, setForecast] = useState<ForecastResponse | null>(null)
   const [forecastErr, setForecastErr] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [replay, setReplay] = useState<ReplayRunDetail | null>(null)
   const [todayMeasured, setTodayMeasured] = useState<CurvePoint[]>([])
   const [intraday, setIntraday] = useState<ForecastResponse | null>(null)
 
@@ -234,13 +228,6 @@ export default function PvForecastPage() {
     })
       .then(setIntraday)
       .catch(() => setIntraday(null))
-
-    listReplayRuns(siteId)
-      .then(async (runs) => {
-        const done = runs.find((r) => r.status === 'finished')
-        setReplay(done ? await getReplayRun(done.run_id) : null)
-      })
-      .catch(() => setReplay(null))
   }, [siteId])
 
   const option = useMemo(
@@ -257,10 +244,6 @@ export default function PvForecastPage() {
     : null
   const peak = pv ? Math.round(Math.max(...pv.points.map((p) => p.value))) : null
 
-  const forecastRows = Object.entries(
-    (replay?.summary?.forecasts ?? {}) as Record<string, ReplayForecastMetric>,
-  ).map(([method, m]) => ({ method, ...m }))
-
   return (
     <div>
       <PageHeader
@@ -268,120 +251,68 @@ export default function PvForecastPage() {
         description="气象预报 → pvlib 物理转换 → 实测校准的融合链路；精度以封存对账与回放实验为准"
         extra={<SiteSelect sites={sites} value={siteId} onChange={setSiteId} />}
       />
-      <Space direction="vertical" size={16} style={{ width: '100%' }}>
-        <Card
-          title={`今日光伏（${dayjs().format('YYYY-MM-DD')}，实测 + 剩余预测）`}
-          size="small"
-          extra={
-            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-              实线为已发生实测，虚线为日内滚动修正预测（随实测每 15 分钟修正）
-            </Typography.Text>
-          }
-        >
-          <EnergyChart option={todayOption} height={260} />
-          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-            计算过程：预测（紫色虚线）= 气候基线（灰点线，近 12 天同刻均值）+ 偏差修正（紫柱，当前实测偏差随时效衰减叠加，可正可负）。
-            分尺度：① 0~15 分钟 · 持续性外推（近实时）；② 15 分钟~4 小时 ·
-            短临滚动修正（统计基线；站点装天空相机或接入卫星云图算法后，由该算法接管此区间）；
-            ③ 4 小时以上 · 回归气候基线（与次日 NWP 日前预测衔接）。
-          </Typography.Text>
-        </Card>
-
-        <Card
-          title={`明日光伏预测${site ? `（${site.pv.capacity_kwp} kWp）` : ''}`}
-          size="small"
-          extra={
-            pv && (
-              <Space size={16}>
-                <Typography.Text type="secondary">
-                  日发电量 <b>{dayKwh?.toLocaleString()}</b> kWh
-                </Typography.Text>
-                <Typography.Text type="secondary">
-                  峰值 <b>{peak}</b> kW
-                </Typography.Text>
-                <Tag color="orange">{methodLabel(pv.model.name)}</Tag>
-                {pv.provenance?.factor != null && (
-                  <Tag>校准系数 ×{pv.provenance.factor.toFixed(3)}</Tag>
-                )}
-              </Space>
-            )
-          }
-        >
-          <Spin spinning={loading}>
-            {forecastErr ? (
-              <Alert type="warning" showIcon message={forecastErr} />
-            ) : (
-              <EnergyChart option={option} height={300} />
-            )}
-          </Spin>
-          {pv?.notes && (
-            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-              {pv.notes}
-            </Typography.Text>
-          )}
-        </Card>
-
-        <Card
-          title="预测方法对比（回放实验，30 天滚动）"
-          size="small"
-          extra={
-            replay && (
-              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                {replay.config.test_window?.[0]} ~ {replay.config.test_window?.[1]} ·
-                气象代理：再分析数据
-              </Typography.Text>
-            )
-          }
-        >
-          {forecastRows.length === 0 ? (
-            <Typography.Text type="secondary">
-              该站点暂无回放实验记录，可在「调度计划」页发起。
-            </Typography.Text>
-          ) : (
-            <Table
-              size="small"
-              rowKey="method"
-              dataSource={forecastRows}
-              pagination={false}
-              columns={[
-                {
-                  title: '方法',
-                  dataIndex: 'method',
-                  render: (m: string) => <Tag>{methodLabel(m)}</Tag>,
-                },
-                {
-                  title: 'skill 全天',
-                  dataIndex: 'skill_all_day',
-                  render: (v: number | null) => v?.toFixed(4) ?? '—',
-                  sorter: (a, b) => (b.skill_all_day ?? 0) - (a.skill_all_day ?? 0),
-                  defaultSortOrder: 'ascend',
-                },
-                {
-                  title: 'skill 白天',
-                  dataIndex: 'skill_daylight',
-                  render: (v: number | null) => v?.toFixed(4) ?? '—',
-                },
-                { title: 'RMSE (kW)', dataIndex: 'rmse', render: (v: number) => v?.toFixed(1) },
-                {
-                  title: '偏差 (kW)',
-                  dataIndex: 'bias',
-                  render: (v: number) => (
-                    <Typography.Text type={v < -20 ? 'warning' : undefined}>
-                      {v?.toFixed(1)}
+      <Card size="small">
+        <Tabs
+          items={[
+            {
+              key: 'today',
+              label: `今日 · 实测 + 滚动修正（${dayjs().format('MM-DD')}）`,
+              children: (
+                <>
+                  <Typography.Text
+                    type="secondary"
+                    style={{ fontSize: 12, display: 'block', marginBottom: 4 }}
+                  >
+                    实线为已发生实测，虚线为日内滚动修正预测（随实测每 15 分钟修正）
+                  </Typography.Text>
+                  <EnergyChart option={todayOption} height={320} />
+                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                    计算过程：预测（紫色虚线）= 气候基线（灰点线，近 12 天同刻均值）+
+                    偏差修正（紫柱，当前实测偏差随时效衰减叠加，可正可负）。
+                    分尺度：① 0~15 分钟 · 持续性外推（近实时）；② 15 分钟~4 小时 ·
+                    短临滚动修正（统计基线；站点装天空相机或接入卫星云图算法后，由该算法接管此区间）；
+                    ③ 4 小时以上 · 回归气候基线（与次日 NWP 日前预测衔接）。
+                  </Typography.Text>
+                </>
+              ),
+            },
+            {
+              key: 'tomorrow',
+              label: '明日 · 日前预测',
+              children: (
+                <>
+                  {pv && (
+                    <Space size={16} style={{ marginBottom: 4 }}>
+                      <Typography.Text type="secondary">
+                        日发电量 <b>{dayKwh?.toLocaleString()}</b> kWh
+                      </Typography.Text>
+                      <Typography.Text type="secondary">
+                        峰值 <b>{peak}</b> kW
+                      </Typography.Text>
+                      <Tag color="orange">{methodLabel(pv.model.name)}</Tag>
+                      {pv.provenance?.factor != null && (
+                        <Tag>校准系数 ×{pv.provenance.factor.toFixed(3)}</Tag>
+                      )}
+                    </Space>
+                  )}
+                  <Spin spinning={loading}>
+                    {forecastErr ? (
+                      <Alert type="warning" showIcon message={forecastErr} />
+                    ) : (
+                      <EnergyChart option={option} height={320} />
+                    )}
+                  </Spin>
+                  {pv?.notes && (
+                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                      {pv.notes}
                     </Typography.Text>
-                  ),
-                },
-              ]}
-            />
-          )}
-          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-            口径：skill 以「昨日延续」为基准（1=完美，0=与基准持平）；白天口径仅含日照时段。
-            物理法偏差为气象代理坐标与光伏数据源站点不一致所致的系统性偏低，属已知近似。
-          </Typography.Text>
-        </Card>
-
-        {siteId && <AccuracyPanel siteId={siteId} target="pv_power" />}
-      </Space>
+                  )}
+                </>
+              ),
+            },
+          ]}
+        />
+      </Card>
     </div>
   )
 }

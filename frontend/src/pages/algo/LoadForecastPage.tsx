@@ -3,7 +3,7 @@ import { Alert, Card, Space, Spin, Tag, Typography } from 'antd'
 import dayjs from 'dayjs'
 import type { EChartsOption } from 'echarts'
 import PageHeader from '../../components/PageHeader'
-import AccuracyPanel, { methodLabel } from '../../components/AccuracyPanel'
+import { methodLabel } from '../../components/AccuracyPanel'
 import { SiteSelect, useSites } from '../../components/SitePicker'
 import EnergyChart from '../../charts/EnergyChart'
 import { runForecast } from '../../api/client'
@@ -104,8 +104,6 @@ export default function LoadForecastPage() {
             </Typography.Text>
           )}
         </Card>
-
-        {siteId && <AccuracyPanel siteId={siteId} target="load_power" />}
       </Space>
     </div>
   )

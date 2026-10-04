@@ -8,6 +8,7 @@ import {
   MoneyCollectOutlined,
   ScheduleOutlined,
   ThunderboltOutlined,
+  ExperimentOutlined,
 } from '@ant-design/icons'
 import {
   BrowserRouter,
@@ -29,6 +30,7 @@ import LoadForecastPage from './pages/algo/LoadForecastPage'
 import PricePage from './pages/algo/PricePage'
 import DispatchPage from './pages/algo/DispatchPage'
 import StoragePage from './pages/algo/StoragePage'
+import EvalCenterPage from './pages/EvalCenterPage'
 
 const { Sider, Content } = Layout
 
@@ -47,6 +49,13 @@ const menuItems = [
   },
   { key: '/sizing', icon: <FundOutlined />, label: '投资' },
   { key: '/data', icon: <DatabaseOutlined />, label: '数据管理' },
+  {
+    type: 'group' as const,
+    label: '内部测评',
+    children: [
+      { key: '/eval', icon: <ExperimentOutlined />, label: '测评中心' },
+    ],
+  },
 ]
 
 const themeTokens = {
@@ -178,6 +187,7 @@ function AppLayout() {
               <Route path="/sizing" element={<SizingPage />} />
               <Route path="/sizing/:runId" element={<SizingDetailPage />} />
               <Route path="/data" element={<DataPage />} />
+              <Route path="/eval" element={<EvalCenterPage />} />
             </Routes>
           </div>
         </Content>
