@@ -1,0 +1,42 @@
+{
+  "model_file": "load_mes_attention.pt",
+  "training_data": "factory_load_mes_90d_extended.csv",
+  "model_name": "load_mes_multitask_attention",
+  "model_version": "v1",
+  "data_nature": "simulated_typical_two_shift_factory",
+  "history_days": 30,
+  "training_epochs": 30,
+  "seed": 42,
+  "has_workshop_target": true,
+  "validation_split": "last_20_percent_by_time",
+  "validation_mae_kw": 75.6998160680135,
+  "mes_mapping": {
+    "day_shift": 1,
+    "evening_shift": 2,
+    "high_energy": 3,
+    "maintenance": 4,
+    "night_base": 5,
+    "startup": 6,
+    "weekend_base": 7
+  },
+  "history_feature_names": [
+    "total_load_kw",
+    "temperature_c",
+    "humidity_pct",
+    "slot_sin",
+    "slot_cos",
+    "is_workday"
+  ],
+  "target_feature_names": [
+    "temperature_c",
+    "humidity_pct",
+    "slot_sin",
+    "slot_cos",
+    "is_workday"
+  ],
+  "limitations": [
+    "trained on simulated rather than enterprise field data",
+    "weather values are simulated and are not operational day-ahead forecasts",
+    "accuracy must not be reported as real-factory performance"
+  ]
+}

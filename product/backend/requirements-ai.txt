@@ -1,0 +1,5 @@
+# 在基础 requirements.txt 之上安装。未安装时统计预测和现有调度仍可运行。
+openai>=1.50,<3
+pypdf>=5,<7
+python-dotenv>=1,<2
+torch>=2.2,<3
