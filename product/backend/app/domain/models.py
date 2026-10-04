@@ -187,12 +187,43 @@ class ScheduleRequest(BaseModel):
 ForecastTarget = Literal["pv_power", "load_power", "price"]
 
 
+class AdvancedLoadInput(BaseModel):
+    """高级负荷模型输入；未来 MES/天气接口接通前可由仿真回放直接提供。"""
+
+    history_features: list[list[float]] = Field(min_length=1)
+    history_mes_labels: list[int] = Field(min_length=1)
+    target_features: list[list[float]] = Field(min_length=96, max_length=96)
+    target_mes_labels: list[int] = Field(min_length=96, max_length=96)
+
+    @model_validator(mode="after")
+    def validate_dimensions(self) -> "AdvancedLoadInput":
+        if len(self.history_features) != len(self.history_mes_labels):
+            raise ValueError("history_features and history_mes_labels lengths differ")
+        if any(not row for row in self.history_features + self.target_features):
+            raise ValueError("feature rows must not be empty")
+        history_dim = len(self.history_features[0])
+        target_dim = len(self.target_features[0])
+        if any(len(row) != history_dim for row in self.history_features):
+            raise ValueError("history feature dimensions are inconsistent")
+        if any(len(row) != target_dim for row in self.target_features):
+            raise ValueError("target feature dimensions are inconsistent")
+        return self
+
+
 class ForecastOptions(BaseModel):
     include_uncertainty: bool = True
     quantiles: list[float] = Field(default_factory=lambda: [0.1, 0.5, 0.9])
     pv_model: Literal["auto", "statistical", "physics"] = "auto"
+    load_model: Literal["statistical", "advanced"] = "statistical"
+    advanced_load_input: AdvancedLoadInput | None = None
     intraday: bool = False
     explain: bool = False  # true 时 provenance 附带气象原始点与回测明细
+
+    @model_validator(mode="after")
+    def validate_advanced_load_input(self) -> "ForecastOptions":
+        if self.load_model == "advanced" and self.advanced_load_input is None:
+            raise ValueError("advanced load_model requires advanced_load_input")
+        return self
 
 
 class ForecastRequest(BaseModel):

@@ -264,6 +264,13 @@ export interface ForecastRequest {
   options?: {
     include_uncertainty?: boolean
     pv_model?: 'auto' | 'statistical' | 'physics'
+    load_model?: 'statistical' | 'advanced'
+    advanced_load_input?: {
+      history_features: number[][]
+      history_mes_labels: number[]
+      target_features: number[][]
+      target_mes_labels: number[]
+    }
     intraday?: boolean
     explain?: boolean
   }

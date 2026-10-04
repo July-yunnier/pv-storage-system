@@ -3,7 +3,8 @@ from datetime import date, datetime, time, timedelta
 
 import pytest
 
-from app.domain.forecast.load import predict_load_profile
+from app.domain.forecast.load import predict_load_intraday, predict_load_profile
+from app.domain.forecast.load_advanced import OnlineResidualKalman
 from app.domain.forecast.price import forecast_price_tou
 from app.domain.forecast.pv import predict_pv_diurnal
 from app.domain.models import TariffCreate, TariffRead
@@ -118,6 +119,29 @@ def test_load_floor_zero() -> None:
 def test_load_insufficient_history_raises() -> None:
     with pytest.raises(ValueError, match="至少 3 天"):
         predict_load_profile(make_history(2, lambda d, s: 100.0), TARGET, CN_TZ)
+
+
+def test_load_intraday_uses_today_residual_and_decays() -> None:
+    history = make_history(5, lambda d, s: 100.0, start=date(2026, 9, 15))
+    issued = datetime(2026, 9, 20, 2, 30, tzinfo=CN_TZ)
+    today_start = datetime.combine(TARGET, time.min, tzinfo=CN_TZ)
+    history.extend(
+        (today_start + timedelta(minutes=15 * slot), 110.0)
+        for slot in range(11)
+    )
+    result = predict_load_intraday(history, issued, CN_TZ, decay=0.9)
+    assert result.model.name == "load_intraday_kalman"
+    assert result.points[0].ts.hour == 2 and result.points[0].ts.minute == 45
+    assert result.points[0].value > 100.0
+    assert result.points[1].value < result.points[0].value
+
+
+def test_online_kalman_never_creates_negative_load() -> None:
+    kf = OnlineResidualKalman(decay=0.9)
+    kf.update(-100.0)
+    corrected = kf.correct_remaining([10.0, 10.0, 10.0], observed_slot=0)
+    assert corrected[0] == 10.0
+    assert corrected[1:] == [0.0, 0.0]
 
 
 def test_price_tou_policy() -> None:

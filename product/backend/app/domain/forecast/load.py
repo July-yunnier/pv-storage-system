@@ -12,6 +12,7 @@ from app.domain.forecast.result import (
     ForecastPoint,
     TargetForecast,
 )
+from app.domain.forecast.load_advanced import OnlineResidualKalman
 from app.domain.forecast.stats import (
     SLOT_MINUTES,
     SLOTS_PER_DAY,
@@ -79,4 +80,52 @@ def predict_load_profile(
         p90=p90,
         accuracy=accuracy,
         notes=f"同刻均值法，使用最近 {len(dates)} 天历史",
+    )
+
+
+def predict_load_intraday(
+    history: list[tuple[datetime, float]],
+    issued_local: datetime,
+    tz: tzinfo,
+    n_days: int = 12,
+    q: float = 1e-4,
+    r: float = 1e-2,
+    decay: float = 0.95,
+) -> TargetForecast:
+    """今日负荷滚动预测：同刻均值基线 + 已发生实测残差卡尔曼修正。"""
+    days = daily_series(history, tz)
+    today = issued_local.astimezone(tz).date()
+    dates = history_dates(days, today, n_days, "load_power")
+    baseline = [max(value, 0.0) for value in slot_means(days, dates)]
+    today_measured = days.get(today, {})
+    current_slot = (issued_local.hour * 60 + issued_local.minute) // SLOT_MINUTES
+
+    kf = OnlineResidualKalman(q=q, r=r, decay=decay)
+    observed_count = 0
+    for slot in range(0, min(current_slot + 1, SLOTS_PER_DAY)):
+        minute = slot * SLOT_MINUTES
+        if minute not in today_measured:
+            continue
+        kf.update(today_measured[minute] - baseline[slot])
+        observed_count += 1
+
+    corrected = kf.correct_remaining(baseline, min(current_slot, SLOTS_PER_DAY - 1))
+    day_start = datetime.combine(today, time.min, tzinfo=tz)
+    points = [
+        ForecastPoint(
+            ts=day_start + timedelta(minutes=SLOT_MINUTES * slot),
+            value=round(corrected[slot], 6),
+        )
+        for slot in range(current_slot + 1, SLOTS_PER_DAY)
+    ]
+    return TargetForecast(
+        target="load_power",
+        unit="kW",
+        model=ForecastModel(name="load_intraday_kalman", version="v1"),
+        points=points,
+        notes=(
+            f"日内负荷修正：最近 {len(dates)} 天同刻均值为基线，"
+            f"使用今日 {observed_count} 个已发生槽位更新残差状态，"
+            f"未来影响按 decay={decay} 衰减；仅覆盖今日剩余时段"
+        ),
     )

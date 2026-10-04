@@ -39,6 +39,7 @@ Thumbs.db
 # ---- 敏感信息（绝不入库）----
 .env
 .env.*
+!.env.ai.example
 *.key
 secrets.yaml
 credentials.json
@@ -47,4 +48,3 @@ credentials.json
 # config/site.yaml 由 site.example.yaml 复制而来，含实际项目参数。
 # 接真实项目后请保持忽略，避免客户信息进入版本历史。
 config/site.yaml
-
