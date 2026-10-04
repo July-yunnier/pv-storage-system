@@ -1,6 +1,5 @@
 # ---- 数据与模型：体积大，不进仓库 ----
-# ⚠️ 只匹配【根目录】下的 data/ 与 models/，必须带前导斜杠。
-#    写 "models/" 会连 src/models/（代码包）一起忽略掉。
+# 只匹配根目录下的本地 data/ 与 models/ 目录。
 /data/
 /models/
 *.hdf5

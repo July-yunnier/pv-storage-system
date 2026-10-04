@@ -1,218 +1,74 @@
 # 光储协同优化系统
 
-面向**工商业用户**的光伏 + 储能协同优化系统：融合光伏功率预测与电价预测，
-输出储能容量配置方案与日充放电调度策略。
+本仓库的正式可运行系统位于 [`product/`](product/)。根目录旧版 `src/` 原型已完成迁移和清理，后续开发、测试与比赛交付均以 `product/` 为准。
 
----
+## 正式源码位置
 
-## 仓库定位
-
-| 项目 | 说明 |
+| 能力 | 代码位置 |
 |---|---|
-| **服务对象** | 工商业用户（有本地负荷、有需量电费） |
-| **核心能力** | ①储能容量规划（配多大、几年回本）　②日调度策略（今天怎么充放） |
-| **电价机制** | 峰谷分时为主，现货市场可切换/叠加（Provider 可插拔） |
-| **部署形态** | Web 看板 + REST API + 方案报告导出 |
+| 后端入口与 API | `product/backend/app/main.py`、`product/backend/app/api/` |
+| 储能调度 | `product/backend/app/domain/dispatch.py` |
+| 储能容量规划 | `product/backend/app/domain/sizing/` |
+| 光伏、负荷、电价预测 | `product/backend/app/domain/forecast/` |
+| MES 增强负荷模型 | `product/backend/app/domain/forecast/load_advanced.py` |
+| 电价与政策解析 | `product/backend/app/domain/tariff.py`、`policy_tariff.py` |
+| 数据模型 | `product/backend/app/domain/models.py` |
+| 前端可视化 | `product/frontend/src/` |
+| 系统与接口文档 | `product/docs/` |
 
-设计文档见 [`docs/系统设计.md`](docs/系统设计.md)。
+更完整的功能说明见 [`product/README.md`](product/README.md)。
 
----
+## 快速验证
 
-## 实现进度
-
-| 模块 | 内容 | 状态 |
-|---|---|---|
-| `src/tariff/` | 电价 Provider（tou 已实现，spot / tou_plus_spot 预留接口） | ✅ 完成 |
-| `src/models/` | 站点档案、预测结果、调度结果 | ✅ 完成 |
-| `src/optimizer/dispatch.py` | 规则式日调度（需量感知 + **削峰优先**） | ✅ 完成 |
-| `src/optimizer/sizing.py` | 容量规划（扫描「容量 × 削峰目标」，按 NPV 选优） | ✅ 完成 |
-| `src/forecast/` | 预测引擎（光伏 / 负荷 / 电价） | ⏳ 待做 |
-| `src/api/` | FastAPI 接口层 | ⏳ 待做 |
-
-**现在就能跑**（三个脚本都不需要外部数据源）：
+### 后端
 
 ```bash
-python scripts/check_config.py     # 配置自检（电价时段空档检测）
-python scripts/demo_dispatch.py    # 日调度演示：三种策略对比
-python scripts/demo_sizing.py      # 容量规划演示：该配多大、几年回本
+cd product/backend
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m pytest -q
+python run.py
 ```
 
-**`demo_dispatch.py` 的三种策略对比**（同一站点、同一天）：
+接口文档：<http://127.0.0.1:8000/docs>
 
-| 方案 | 并网峰值 | 基本电费/月 | 电度电费/日 |
-|---|---|---|---|
-| ① 不配储能（基线） | 542.1 kW | 20,601 元 | 4,661.8 元 |
-| ② 储能·忽略需量 | **706.2 kW** | **26,836 元** | 4,464.8 元 |
-| ③ 储能·仅需量感知 | 542.1 kW | 20,601 元 | 4,376.7 元 |
-| ④ 储能·主动削峰 80% | **433.7 kW** | **16,481 元** | **4,332.6 元** |
-
-- **② 是反面教材**：谷时满功率充电把峰值推到比不配储能还高，省下的电度电费从基本电费里加倍还回去。
-- **③ 只是「不让情况恶化」**：充电被顶到基线峰值，削峰量为 0，需量电费一分没省。
-- **④ 才是真正把储能的双重价值（套利 + 需量）都拿到**。
-
-> `demo_sizing.py` 输出示例站点（江苏，1 MWp 光伏 + 1800 kW 负荷峰值）的推荐配置：
-> **550 kW / 1100 kWh（2 小时）**，投资 121 万，年收益 30.9 万（套利 19.97 万 + 需量 10.89 万），
-> **回收期 4.25 年，IRR 19.8%**。（合成数据 + 行业参考单价，仅验证链路）
-
-## 目录结构
-
-```
-光储系统/
-├── config/                     配置文件（换地点只改这里）
-│   ├── site.example.yaml       示例站点：江苏某产业园，1MWp 光伏
-│   └── tariff/                 省级电价模板
-│       └── jiangsu.yaml
-├── src/
-│   ├── models/                 数据模型（Site / ForecastResult / DispatchResult）
-│   ├── tariff/                 电价 Provider（tou / spot / tou_plus_spot）
-│   ├── forecast/               预测引擎（光伏 / 负荷 / 电价）
-│   ├── optimizer/              优化内核
-│   │   ├── dispatch.py         日调度（含削峰优先）  ✅
-│   │   └── sizing.py           容量规划  ✅
-│   └── api/                    FastAPI 接口层
-├── scripts/                    配置自检 + 端到端演示
-│   ├── check_config.py         配置自检
-│   ├── demo_dispatch.py        日调度演示
-│   ├── demo_sizing.py          容量规划演示
-│   ├── _synth.py               季节典型日场景（演示用合成数据）
-│   └── reference/              竞赛算法参考实现（SUNSET / 超短期统计法）
-├── tests/
-├── data/                       运行时数据（gitignore）
-├── models/                     模型权重（gitignore）
-└── docs/                       设计文档
-```
-
----
-
-## 快速开始
+高级负荷预测、政策 PDF 解析等可选能力另需安装：
 
 ```bash
-# 1. 建环境（复用已有的 skippd 环境即可）
-conda activate skippd
-pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
-
-# 2. 复制配置模板
-cp config/site.example.yaml config/site.yaml
-
-# 3. 启动 API
-uvicorn src.api.main:app --reload --port 8000
-# 接口文档自动生成： http://localhost:8000/docs
-
-# 4. 跑一次端到端 demo
-python scripts/demo.py
+python -m pip install -r requirements-ai.txt
 ```
 
----
+复制 `.env.ai.example` 为 `.env.ai`，并将 `LOAD_MODEL_PATH` 指向：
 
-## 核心设计约定
-
-### 1. 统一时间序列格式
-
-```json
-{
-  "points": [
-    {"ts": "2026-09-19T08:00:00+08:00", "value": 623.4}
-  ]
-}
+```text
+product/backend/data/training_artifacts/load_mes_attention.pt
 ```
 
-- 时间戳一律 **ISO 8601 带时区**
-- **单位写进字段名**（`capacity_kwp` / `power_kw` / `price_yuan_per_kwh`）
-- 缺失值用 `null`，**绝不用 0**——夜间功率 0 是有效值
+### 前端
 
-### 2. 精度必须带口径
-
-任何预测结果都要随附口径，没有口径的精度数字等于没有信息：
-
-```json
-{
-  "accuracy": {
-    "metric": "1 - RMSE/Cap",
-    "value": 0.9251,
-    "caliber": {
-      "normalization": "rated_capacity",
-      "cap_kw": 1000,
-      "includes_nighttime": false,
-      "spatial_scale": "single_site",
-      "baseline": "persistence"
-    }
-  }
-}
+```bash
+cd product/frontend
+npm install
+npm run build
+npm run dev
 ```
 
-### 3. 电价 Provider 可插拔
+## 训练与复现
 
-三种模式对下游完全透明：
+- 工厂负荷仿真数据生成：`product/backend/scripts/generate_factory_load_mes.py`
+- MES 增强负荷模型训练：`product/backend/scripts/train_advanced_load.py`
+- 已训练模型：`product/backend/data/training_artifacts/load_mes_attention.pt`
+- 模型元数据：`product/backend/data/training_artifacts/load_mes_attention.manifest.json`
 
-| 模式 | 电能量价格来源 | 是否需要电价预测 |
-|---|---|---|
-| `tou` | 省级目录电价表 | ❌ 不需要 |
-| `spot` | 市场出清价 | ✅ 需要（含 p10/p90） |
-| `tou_plus_spot` | 现货价替代电能量部分 | ✅ 需要 |
+训练数据为可解释的典型工厂仿真数据，不应表述为真实企业运行数据。
 
-> ⚠️ 中国的"叠加"**不是价格相加**。到户电价 = 电能量价格 + 输配电价 + 政府性基金，
-> 参与现货后**只有电能量部分被替代**，其余照旧。这个差异在 Provider 内部消化。
+## 参考算法
 
-### 4. 优化：先调度后规划
+不属于生产系统运行路径的天空图像和超短期算法参考实现保留在 [`scripts/reference/`](scripts/reference/)，便于比赛实验和技术溯源。
 
-```
-optimizer/dispatch.py  容量固定，决策每时段功率
-optimizer/sizing.py    决策变量含容量 + 削峰目标
-```
+## 安全要求
 
-顺序不能反：**调度跑通了，规划的收益模型才有可信的验证基础。**
-反过来说，规划也验证了调度——若两者对同一容量算出的收益不一致，
-说明有一方的收益口径写错了。
-
----
-
-## ⚠️ 提交纪律
-
-- **匿名要求**：仓库内**不得出现学校名称、指导教师姓名、班级信息**
-- 提交材料里的作者信息统一用抽取码
-- 第三方代码（官方 SKIPP'D 仓库等）要注明来源与许可
-- 大数据与模型权重**不上传 git**，走网盘
-
----
-
-## 依赖说明
-
-- Python 3.11（建议复用 `skippd` 环境）
-- 优化：**当前零依赖** —— 规则式调度 + 离散扫描，只用 `numpy`。
-  克隆下来直接能跑，不需要装求解器。升级到 LP 版本时才需要
-  `PuLP` 或 `scipy.optimize.linprog`。
-- 接口：`FastAPI` + `uvicorn`
-- 前端图表：**ECharts**（原生支持阶梯图 `step`、时段色块 `markArea`）
-
----
-
-## 相关资产位置
-
-本仓库只放**产品代码**。
-
-### 已并入仓库
-
-核心算法实现已复制进 `scripts/reference/`（详见该目录的 README）：
-
-| 文件 | 来源 | 说明 |
-|---|---|---|
-| `scripts/reference/sunset_nowcast_train.py` | 原 `~/全天空图像方案/scripts/05_train_sunset.py` | SUNSET nowcast 训练，10 折已跑通 |
-| `scripts/reference/ultra_short_term.py` | 原 `超短期方案/ultra_short_term.py` | 超短期第 4 小时统计法，1−RMSE/Cap = 0.9506 |
-
-### 未并入（本机参考资产）
-
-⚠️ 下面这些路径是**开发机上的位置**，队友克隆仓库后**不存在**。
-需要哪个就单独拷贝，或找项目负责人要。
-
-| 资产 | 本机位置 | 说明 |
-|---|---|---|
-| 老师的原始方案 | `~/Documents/揭榜/方案三/` | `fusion_model.py` + 模型权重 40 MB，参考用 |
-| SKIPP'D 完整复现工程 | `~/全天空图像方案/` | 含 10 折模型权重（546 MB）与完整文档 |
-| 三个数据集评估流程 | `../超短期方案/` `../国网方案/` `../gefcom方案/` | 各自的评估脚本与报告 |
-| 论文翻译 | `../翻译文献/` | 6 篇中文全文翻译（Word） |
-
-> ✅ **这些资产对系统开发不是必需的。**
-> 系统里的光伏预测走统计法（无权重）+ 公开气象 API，**两个深度学习模型都需要天空图像作输入，
-> 企业站点不会有全天空相机**，因此不在系统技术路线上。
-> 队友克隆仓库后，跑 `scripts/demo_dispatch.py` 就能看到完整链路，无需任何权重文件。
-> 详见 `scripts/reference/README.md` 的「模型权重」一节。
+- 不提交 `.env.ai`、API 密钥、客户信息或真实企业数据；
+- `.env.ai.example`只保存无敏感信息的配置模板；
+- 仓库中的模型由仿真数据训练，真实站点应用前需重新验证或微调。
