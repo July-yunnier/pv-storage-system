@@ -1,0 +1,22 @@
+{
+  "release_version": "pv-models-2026-10-05",
+  "seed": 42,
+  "models": {
+    "ampdnet_state_grid_1_epoch2.pt": {
+      "sha256": "a7338a82157049b6be632fb20cc367347855863001c4446d19bf452f4d82ce04",
+      "bytes": 1101647
+    },
+    "fusion_model.pth": {
+      "sha256": "52f73e1a2725a2eb9289c3d956204aaaa1d5b8a1121fab4b797ef04491ba18e2",
+      "bytes": 11833579
+    },
+    "fusion_model30-15.pth": {
+      "sha256": "6eb4447da100520a1132fe44a73c0f4e8d934b8464ca85779e15309adfd545d6",
+      "bytes": 30518251
+    }
+  },
+  "ampdnet_status": "trained for 2 epochs on state_grid_1; best validation MSE 0.009299701389674243; test evaluation not completed",
+  "fusion_status": "existing local checkpoints; compatibility with fixed protocol not verified",
+  "source_data": "local sources documented in experiment report; raw data is not included",
+  "capacity_note": "state_grid_1 reference Cap=50000 kW from source filename; available Cap requires confirmation"
+}

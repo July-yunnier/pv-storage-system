@@ -178,6 +178,7 @@ def _forecast_target(
     if intraday and target == "pv_power":
         # 日内滚动修正：今日已发生实测 + 今日剩余时段；历史包含今日已发生部分
         history_today = _history(db, site, target, start_date + timedelta(days=1), N_DAYS)
+        history_today = [(ts, value) for ts, value in history_today if ts <= issued_at]
         try:
             return predict_pv_intraday(
                 history_today, issued_at.astimezone(tz), site.pv.capacity_kwp, tz, N_DAYS
@@ -187,6 +188,7 @@ def _forecast_target(
 
     if intraday and target == "load_power":
         history_today = _history(db, site, target, start_date + timedelta(days=1), N_DAYS)
+        history_today = [(ts, value) for ts, value in history_today if ts <= issued_at]
         try:
             return predict_load_intraday(
                 history_today, issued_at.astimezone(tz), tz, N_DAYS

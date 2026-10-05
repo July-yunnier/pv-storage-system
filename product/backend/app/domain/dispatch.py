@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
+import math
 
 from app.domain.models import (
     BenefitBreakdown,
@@ -35,6 +36,21 @@ class RuleDispatchEngine:
             raise ValueError("pv_power and load_power series must have the same length")
         if len(inputs.price_points) != len(inputs.pv_points):
             raise ValueError("price and measurement series must have the same length")
+        if inputs.resolution_minutes <= 0:
+            raise ValueError("resolution_minutes must be positive")
+        if not math.isfinite(inputs.initial_soc) or not storage.soc_min <= inputs.initial_soc <= storage.soc_max:
+            raise ValueError("initial_soc must be within storage SOC limits")
+
+        aligned = list(zip(inputs.pv_points, inputs.load_points, inputs.price_points))
+        for index, (pv, load, price) in enumerate(aligned):
+            if pv.ts != load.ts or pv.ts != price.ts:
+                raise ValueError("pv, load and price timestamps must align")
+            if pv.value is None or load.value is None:
+                raise ValueError(f"存在缺失点，无法生成调度: {pv.ts.isoformat()}")
+            if not all(math.isfinite(v) for v in (pv.value, load.value, price.price)):
+                raise ValueError("dispatch inputs must be finite")
+            if index and pv.ts - aligned[index - 1][0].ts != timedelta(minutes=inputs.resolution_minutes):
+                raise ValueError("dispatch timestamps must be continuous and ordered")
 
         dt_hours = inputs.resolution_minutes / 60
         soc_energy = inputs.initial_soc * storage.capacity_kwh
@@ -52,7 +68,40 @@ class RuleDispatchEngine:
         surplus_charge_energy = 0.0
         max_discharge_energy = storage.cycles_per_day_max * usable_capacity
 
-        for pv, load, price in zip(inputs.pv_points, inputs.load_points, inputs.price_points):
+        net_loads = [load.value - pv.value for pv, load, _ in aligned]
+
+        def future_reserve(index: int, current_price: float) -> tuple[float, float]:
+            """Backward energy ledger: protect demand shaving and dearer peaks.
+
+            Expected recharging can reduce the stored-energy reserve, but never
+            restores the daily discharge-cycle budget. This uses the supplied
+            load/PV forecast; it is a rule policy rather than a global optimum.
+            """
+            needed_dc = 0.0
+            mandatory_ac = 0.0
+            for j in range(len(aligned) - 1, index, -1):
+                future_net = net_loads[j]
+                future_price = aligned[j][2]
+                shave = max(future_net - demand_limit_kw, 0.0) if demand_limit_kw is not None else 0.0
+                mandatory_ac += min(storage.pcs_kw, shave) * dt_hours
+                if future_net < 0:
+                    recharge = min(storage.pcs_kw, -future_net)
+                    needed_dc = max(needed_dc - recharge * dt_hours * storage.charge_eff, 0.0)
+                elif future_price.tier == "valley" and shave == 0:
+                    recharge = storage.pcs_kw
+                    if demand_limit_kw is not None:
+                        recharge = min(recharge, max(demand_limit_kw - future_net, 0.0))
+                    needed_dc = max(needed_dc - recharge * dt_hours * storage.charge_eff, 0.0)
+                else:
+                    priority_kw = shave
+                    if future_price.tier in {"peak", "sharp"} and future_price.price > current_price:
+                        priority_kw = max(priority_kw, future_net)
+                    needed_dc += min(storage.pcs_kw, max(priority_kw, 0.0)) * dt_hours / storage.discharge_eff
+                    needed_dc = min(needed_dc, usable_capacity)
+            return needed_dc, mandatory_ac
+
+        violations = 0
+        for index, (pv, load, price) in enumerate(aligned):
             if pv.ts != load.ts or pv.ts != price.ts:
                 raise ValueError("pv, load and price timestamps must align")
             if pv.value is None or load.value is None:
@@ -79,7 +128,13 @@ class RuleDispatchEngine:
                     surplus_kw,
                     headroom_kwh / storage.charge_eff / dt_hours,
                 )
-                curtailment_kw = max(surplus_kw - charge_kw, 0.0)
+            elif demand_limit_kw is not None and net_load > demand_limit_kw:
+                # Demand shaving has precedence over valley charging/arbitrage.
+                discharge_kw = min(
+                    storage.pcs_kw, net_load - demand_limit_kw,
+                    available_kwh * storage.discharge_eff / dt_hours,
+                    max(max_discharge_energy - discharged_energy, 0.0) / dt_hours,
+                )
             elif tier == "valley":
                 charge_kw = min(
                     storage.pcs_kw,
@@ -88,11 +143,12 @@ class RuleDispatchEngine:
                 if demand_limit_kw is not None:
                     charge_kw = min(charge_kw, max(demand_limit_kw - net_load, 0.0))
             elif tier in {"peak", "sharp"} and net_load > 0:
+                reserve_dc, reserve_cycles_ac = future_reserve(index, price.price)
                 discharge_kw = min(
                     storage.pcs_kw,
                     net_load,
-                    available_kwh * storage.discharge_eff / dt_hours,
-                    max(max_discharge_energy - discharged_energy, 0.0) / dt_hours,
+                    max(available_kwh - reserve_dc, 0.0) * storage.discharge_eff / dt_hours,
+                    max(max_discharge_energy - discharged_energy - reserve_cycles_ac, 0.0) / dt_hours,
                 )
 
             if charge_kw > 0 and discharge_kw > 0:
@@ -106,6 +162,8 @@ class RuleDispatchEngine:
             soc_end = soc_energy / storage.capacity_kwh
 
             grid_import = max(net_load + charge_kw - discharge_kw, 0.0)
+            if demand_limit_kw is not None and grid_import > demand_limit_kw + 1e-6:
+                violations += 1
             grid_export = max(-(net_load + charge_kw - discharge_kw), 0.0)
             if not storage.allow_grid_export:
                 curtailment_kw += grid_export
@@ -159,6 +217,8 @@ class RuleDispatchEngine:
         ]
         if demand_limit_kw is not None:
             constraints.append(f"demand_limit_kw={demand_limit_kw}")
+            constraints.append(f"demand_limit_unmet_slots={violations}")
+        constraints.append("reserve_for_future_demand_and_higher_price_peaks")
         return ScheduleResponse(
             site_id=inputs.site.site_id,
             date=inputs.target_date,

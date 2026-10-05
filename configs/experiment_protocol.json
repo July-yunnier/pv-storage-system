@@ -1,0 +1,20 @@
+{
+  "protocol_version": "pv-v1",
+  "seed": 42,
+  "horizons_minutes": [15, 60, 240],
+  "test_split": "last 30 percent of calendar days, chronological",
+  "train_fraction": 0.6,
+  "validation_fraction": 0.1,
+  "select_weights_on": "validation RMSE only",
+  "threshold_each_metric": 0.96,
+  "capacity": "documented nominal/available capacity, never observed maximum",
+  "sky": {"resolution": [128, 128], "source_resolution": [64, 64], "frames": 30, "cadence_minutes": 1, "history_power_minutes": 30, "normalization": {"mean": [0.485, 0.456, 0.406], "std": [0.229, 0.224, 0.225]}},
+  "state_grid": {"cadence_minutes": 15, "history_steps": 64, "input_features": ["power", "tsi", "dni", "ghi"], "feature_normalization": "training-only mean/std; power divided by documented Cap"},
+  "nwp": {"history_minutes": 240, "future_minutes": 240, "requires": "archived issued_at/available_at/valid_at; available_at <= prediction issue", "status": "not yet provided"},
+  "test_tuning": false,
+  "price_forecasting": "out of scope",
+  "one_variable_per_comparison": true,
+  "weather_groups": ["sunny", "partly_cloudy", "overcast"],
+  "missing_weather": "unknown; never manufacture categories",
+  "protocol_status": "provisional fixed defaults; changes require new protocol version and re-running comparison set"
+}

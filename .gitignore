@@ -4,8 +4,13 @@
 /models/
 *.hdf5
 *.npy
+# Keep explicitly released checkpoints below; raw/intermediate weights stay ignored.
 *.pt
 *.pth
+!product/backend/data/training_artifacts/*.pt
+!product/backend/data/training_artifacts/*.pth
+!product/backend/data/model_releases/*.pt
+!product/backend/data/model_releases/*.pth
 *.pkl
 *.joblib
 
@@ -47,3 +52,14 @@ credentials.json
 # config/site.yaml 由 site.example.yaml 复制而来，含实际项目参数。
 # 接真实项目后请保持忽略，避免客户信息进入版本历史。
 config/site.yaml
+
+# Local experiment outputs and caches; release metadata is committed separately.
+/data/
+/runs/
+research/official-ampdnet/__pycache__/
+research/official-ampdnet/data/
+research/local_models/
+research/*.ipynb
+research/*.py
+research/*.txt
+research/search_fusionsf.json

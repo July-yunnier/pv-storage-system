@@ -160,13 +160,20 @@ def predict_pv_intraday(
     天空相机/卫星云图算法的价值正是在 15min~4h 区间超越该基线（预知云团），
     接口见 pv_model 插拔位与 docs/13-algorithm-contracts.md。
     """
+    if issued_local.tzinfo is None:
+        raise ValueError("issued_local must include timezone")
+    if cap_kw <= 0 or tau_minutes <= 0 or w_dev < 1:
+        raise ValueError("cap_kw, tau_minutes and w_dev must be positive")
+    issued_local = issued_local.astimezone(tz)
+    # A database can contain later observations. They cannot enter this forecast.
+    history = [(ts, value) for ts, value in history if ts <= issued_local]
     days = daily_series(history, tz)
     today = issued_local.date()
     base_dates = history_dates(days, today, n_days, "pv_power")
     base = slot_means(days, base_dates)
     today_measured = days.get(today, {})
 
-    current_slot = issued_local.hour * 60 // SLOT_MINUTES
+    current_slot = (issued_local.hour * 60 + issued_local.minute) // SLOT_MINUTES
     recent = [
         (slot, today_measured[slot * SLOT_MINUTES])
         for slot in range(max(0, current_slot - w_dev + 1), current_slot + 1)
@@ -180,7 +187,9 @@ def predict_pv_intraday(
     baseline: list[float] = []
     corrections: list[float] = []
     for slot in range(current_slot + 1, SLOTS_PER_DAY):
-        horizon_minutes = (slot - current_slot) * SLOT_MINUTES
+        horizon_minutes = slot * SLOT_MINUTES - (
+            issued_local.hour * 60 + issued_local.minute + issued_local.second / 60
+        )
         weight = alpha * math.exp(-horizon_minutes / tau_minutes)
         baseline.append(round(base[slot], 6))
         corrections.append(round(weight * deviation, 6))

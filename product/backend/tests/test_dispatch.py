@@ -200,3 +200,52 @@ def test_pv_surplus_charging_ignores_demand_limit(dispatch_inputs: DispatchInput
     assert all(point.action == "charge" for point in surplus_points)
     assert all(point.power_kw == pytest.approx(100) for point in surplus_points)
     assert all(point.grid_import_kw == 0 for point in surplus_points)
+
+
+def test_flat_and_valley_shave_actively(dispatch_inputs):
+    inputs = _with_demand_limit(_with_load(dispatch_inputs, 400), 600)
+    inputs.load_points[0].value = 800
+    inputs.price_points[0].tier = "flat"
+    result = RuleDispatchEngine().run(inputs)
+    assert result.schedule[0].action == "discharge"
+    assert result.schedule[0].power_kw == pytest.approx(200)
+    assert result.schedule[0].grid_import_kw == pytest.approx(600)
+
+
+def test_peak_arbitrage_preserves_later_demand_energy(dispatch_inputs):
+    inputs = _with_demand_limit(_with_load(dispatch_inputs, 400), 600)
+    # Only two periods, enough energy for the later demand spike if preserved.
+    inputs = replace(inputs, pv_points=inputs.pv_points[:2], load_points=inputs.load_points[:2], price_points=inputs.price_points[:2], initial_soc=.2)
+    inputs.price_points[0].tier = "peak"
+    inputs.price_points[1].tier = "flat"
+    inputs.load_points[1].value = 800
+    result = RuleDispatchEngine().run(inputs)
+    assert result.schedule[1].power_kw == pytest.approx(200)
+    assert result.schedule[1].grid_import_kw == pytest.approx(600)
+
+
+def test_later_sharp_has_priority(dispatch_inputs):
+    inputs = _with_load(dispatch_inputs, 400)
+    inputs = replace(inputs, pv_points=inputs.pv_points[:2], load_points=inputs.load_points[:2], price_points=inputs.price_points[:2], initial_soc=.2)
+    inputs.price_points[0].tier = "peak"
+    inputs.price_points[0].price = 1.
+    inputs.price_points[1].tier = "sharp"
+    inputs.price_points[1].price = 2.
+    result = RuleDispatchEngine().run(inputs)
+    assert result.schedule[0].action == "idle"
+    assert result.schedule[1].action == "discharge"
+
+
+def test_infeasible_demand_is_reported(dispatch_inputs):
+    inputs = _with_demand_limit(_with_load(dispatch_inputs, 800), 100)
+    result = RuleDispatchEngine().run(inputs)
+    assert "demand_limit_unmet_slots=96" in result.constraints_applied
+
+
+def test_surplus_is_not_double_counted_as_curtailment(dispatch_inputs):
+    inputs = _with_load(dispatch_inputs, 0)
+    inputs = replace(inputs, initial_soc=.95)
+    for point in inputs.pv_points:
+        point.value = 800
+    result = RuleDispatchEngine().run(inputs)
+    assert result.schedule[0].pv_curtailment_kw == pytest.approx(800)
