@@ -234,7 +234,9 @@ export default function EvalCenterPage() {
                   <Space direction="vertical" size={16} style={{ width: '100%' }}>
                     {siteId && <AccuracyPanel siteId={siteId} target="load_power" />}
                     <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                      负荷回放矩阵待 LSTM 等学习类算法接入后开放，对比口径与光伏一致。
+                      学习类负荷模型（MES 排产 + 多任务注意力）已接入预测接口，需显式提供目标日
+                      MES/天气特征；日内滚动已启用残差卡尔曼修正。负荷回放矩阵待回放链路支持
+                      特征合成后开放，对比口径与光伏一致。
                     </Typography.Text>
                   </Space>
                 ),

@@ -13,7 +13,8 @@ from datetime import date, datetime, timedelta, timezone
 
 from app.api import errors
 from app.domain.forecast.blend import blend_pv_forecast
-from app.domain.forecast.load import predict_load_profile
+from app.domain.forecast.load import predict_load_intraday, predict_load_profile
+from app.domain.forecast.load_advanced import AdvancedLoadInputs, predict_from_artifact
 from app.domain.forecast.price import forecast_price_tou
 from app.domain.forecast.pv import (
     predict_pv_diurnal,
@@ -117,8 +118,8 @@ def _pv_day_forecast(
                         provider_name,
                         fetched_at,
                     )
-                except errors.AppError:
-                    pass  # 气象不可用 → 回退统计法
+                except (errors.AppError, ValueError):
+                    pass  # 气象不可用或融合数据不足 → 回退统计法
             return predict_pv_diurnal(history, day, pv.capacity_kwp, tz, N_DAYS)
         except ValueError as exc:
             raise errors.data_quality_error(str(exc)) from exc
@@ -159,6 +160,8 @@ def _forecast_target(
     days: int,
     include_uncertainty: bool,
     pv_model: str,
+    load_model: str,
+    advanced_load_input,
     intraday: bool,
     issued_at: datetime,
     explain: bool = False,
@@ -182,6 +185,15 @@ def _forecast_target(
         except ValueError as exc:
             raise errors.data_quality_error(str(exc)) from exc
 
+    if intraday and target == "load_power":
+        history_today = _history(db, site, target, start_date + timedelta(days=1), N_DAYS)
+        try:
+            return predict_load_intraday(
+                history_today, issued_at.astimezone(tz), tz, N_DAYS
+            )
+        except ValueError as exc:
+            raise errors.data_quality_error(str(exc)) from exc
+
     merged: TargetForecast | None = None
     for offset in range(days):
         day = start_date + timedelta(days=offset)
@@ -190,9 +202,24 @@ def _forecast_target(
                 forecast = _pv_day_forecast(
                     db, site, day, history, pv_model, explain=explain
                 )
+            elif load_model == "advanced":
+                if days != 1:
+                    raise ValueError("advanced load model currently supports a 24-hour horizon")
+                if advanced_load_input is None:
+                    raise ValueError("advanced load model requires target-day MES/weather features")
+                forecast = predict_from_artifact(
+                    AdvancedLoadInputs(
+                        history_features=advanced_load_input.history_features,
+                        history_mes_labels=advanced_load_input.history_mes_labels,
+                        target_features=advanced_load_input.target_features,
+                        target_mes_labels=advanced_load_input.target_mes_labels,
+                    ),
+                    day,
+                    tz,
+                )
             else:
                 forecast = predict_load_profile(history, day, tz, N_DAYS)
-        except ValueError as exc:
+        except (ValueError, RuntimeError) as exc:
             raise errors.data_quality_error(str(exc)) from exc
         if merged is None:
             merged = forecast
@@ -238,6 +265,8 @@ def run_forecast(db: Database, payload: ForecastRequest) -> ForecastResponse:
             days,
             payload.options.include_uncertainty,
             payload.options.pv_model,
+            payload.options.load_model,
+            payload.options.advanced_load_input,
             payload.options.intraday,
             issued_at,
             payload.options.explain,

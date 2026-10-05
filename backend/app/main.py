@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import uuid
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -10,6 +11,7 @@ from fastapi.responses import JSONResponse
 from app.api.errors import AppError
 from app.api.routes_forecast import router as forecast_router
 from app.api.routes_live import router as live_router
+from app.api.routes_policy_tariffs import router as policy_tariffs_router
 from app.api.routes_rolling import router as rolling_router
 from app.api.routes_measurements import quality_router as data_quality_router
 from app.api.routes_measurements import router as measurements_router
@@ -31,6 +33,18 @@ from app.application import (
     observability_service,
     rolling_service,
 )
+
+
+def _load_local_ai_env() -> None:
+    """可选加载 backend/.env.ai；显式系统环境变量优先。"""
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        return
+    load_dotenv(Path(__file__).resolve().parents[1] / ".env.ai", override=False)
+
+
+_load_local_ai_env()
 
 
 def _request_id(request: Request) -> str:
@@ -101,6 +115,7 @@ def create_app(database_path: str | None = None) -> FastAPI:
     app.include_router(measurements_router, prefix="/api/v1")
     app.include_router(data_quality_router, prefix="/api/v1")
     app.include_router(tariffs_router, prefix="/api/v1")
+    app.include_router(policy_tariffs_router, prefix="/api/v1")
     app.include_router(storage_router, prefix="/api/v1")
     app.include_router(dispatch_runs_router, prefix="/api/v1")
     app.include_router(forecast_router, prefix="/api/v1")
