@@ -152,4 +152,5 @@ def blend_pv_forecast(
             f"融合预测：pvlib 物理链 × 实测校准系数 {factor:.3f}"
             f"（最近 {len(dates)} 天回测）；物理负责天气变化，校准负责站点偏差"
         ),
+        components={"physics_raw": [round(v, 6) for v in physics_values]},
     )

@@ -1,4 +1,5 @@
 import type {
+  AccuracyResponse,
   CreateScheduleRequest,
   CsvUploadResult,
   CurvesResponse,
@@ -6,8 +7,11 @@ import type {
   DispatchRunDetail,
   ForecastRequest,
   ForecastResponse,
+  ForecastTarget,
   LiveSimulateResponse,
   LiveStatus,
+  ReplayRunDetail,
+  ReplayRunSummary,
   RollingState,
   DispatchRunSummary,
   QualityReport,
@@ -224,4 +228,40 @@ export function getReport(reportId: string): Promise<ReportJob> {
 
 export function getOverview(siteId: string): Promise<SiteOverview> {
   return request<SiteOverview>(`/sites/${encodeURIComponent(siteId)}/overview`)
+}
+
+// ---------- 观测体系 ----------
+
+export function getAccuracy(
+  siteId: string,
+  target?: ForecastTarget,
+  days = 30,
+): Promise<AccuracyResponse> {
+  const params = new URLSearchParams({ days: String(days) })
+  if (target) params.set('target', target)
+  return request<AccuracyResponse>(
+    `/sites/${encodeURIComponent(siteId)}/accuracy?${params.toString()}`,
+  )
+}
+
+// ---------- 回放实验 ----------
+
+export async function listReplayRuns(siteId: string): Promise<ReplayRunSummary[]> {
+  const data = await request<ReplayRunSummary[] | { items?: ReplayRunSummary[] }>(
+    `/sites/${encodeURIComponent(siteId)}/replay-runs`,
+  )
+  if (Array.isArray(data)) return data
+  return data.items ?? []
+}
+
+export function getReplayRun(runId: string): Promise<ReplayRunDetail> {
+  return request<ReplayRunDetail>(`/replay-runs/${encodeURIComponent(runId)}`)
+}
+
+export function runReplay(siteId: string, testDays = 30): Promise<ReplayRunSummary> {
+  return request<ReplayRunSummary>(`/sites/${encodeURIComponent(siteId)}/replay`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ test_days: testDays }),
+  })
 }

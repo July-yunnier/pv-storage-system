@@ -80,6 +80,8 @@ class TargetForecast(BaseModel):
     accuracy: ForecastAccuracy | None = None
     provenance: ForecastProvenance | None = None
     notes: str = ""
+    # 计算过程分量，与 points 等长对齐（如 baseline/correction/physics_raw），供前端拆解展示
+    components: dict[str, list[float]] | None = None
 
 
 class ForecastResponse(BaseModel):

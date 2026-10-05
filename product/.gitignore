@@ -22,6 +22,8 @@ data/local/
 reports/generated/
 *.db
 *.sqlite
+backend/data/replay/
+dataset_guowang/
 
 # IDE and OS
 .idea/

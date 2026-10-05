@@ -3,6 +3,12 @@ import {
   DashboardOutlined,
   FundOutlined,
   DatabaseOutlined,
+  SunOutlined,
+  LineChartOutlined,
+  MoneyCollectOutlined,
+  ScheduleOutlined,
+  ThunderboltOutlined,
+  ExperimentOutlined,
 } from '@ant-design/icons'
 import {
   BrowserRouter,
@@ -19,13 +25,37 @@ import DispatchDetailPage from './pages/DispatchDetailPage'
 import SizingPage from './pages/SizingPage'
 import SizingDetailPage from './pages/SizingDetailPage'
 import DataPage from './pages/DataPage'
+import PvForecastPage from './pages/algo/PvForecastPage'
+import LoadForecastPage from './pages/algo/LoadForecastPage'
+import PricePage from './pages/algo/PricePage'
+import DispatchPage from './pages/algo/DispatchPage'
+import StoragePage from './pages/algo/StoragePage'
+import EvalCenterPage from './pages/EvalCenterPage'
 
 const { Sider, Content } = Layout
 
 const menuItems = [
-  { key: '/', icon: <DashboardOutlined />, label: '运营' },
+  { key: '/', icon: <DashboardOutlined />, label: '总览' },
+  {
+    type: 'group' as const,
+    label: '算法观测',
+    children: [
+      { key: '/algo/pv', icon: <SunOutlined />, label: '光伏预测' },
+      { key: '/algo/load', icon: <LineChartOutlined />, label: '负荷预测' },
+      { key: '/algo/price', icon: <MoneyCollectOutlined />, label: '电价中心' },
+      { key: '/algo/dispatch', icon: <ScheduleOutlined />, label: '调度计划' },
+      { key: '/algo/storage', icon: <ThunderboltOutlined />, label: '储能状态' },
+    ],
+  },
   { key: '/sizing', icon: <FundOutlined />, label: '投资' },
   { key: '/data', icon: <DatabaseOutlined />, label: '数据管理' },
+  {
+    type: 'group' as const,
+    label: '内部测评',
+    children: [
+      { key: '/eval', icon: <ExperimentOutlined />, label: '测评中心' },
+    ],
+  },
 ]
 
 const themeTokens = {
@@ -72,8 +102,11 @@ const themeTokens = {
 function AppLayout() {
   const navigate = useNavigate()
   const location = useLocation()
+  const flatItems = menuItems.flatMap((item) =>
+    'children' in item && item.children ? item.children : [item],
+  )
   const selectedKey =
-    menuItems.find(
+    flatItems.find(
       (item) =>
         item.key !== '/' && location.pathname.startsWith(item.key),
     )?.key ?? '/'
@@ -133,6 +166,7 @@ function AppLayout() {
         <Menu
           mode="inline"
           selectedKeys={[selectedKey]}
+          defaultOpenKeys={['algo']}
           items={menuItems}
           onClick={({ key }) => navigate(key)}
         />
@@ -145,9 +179,15 @@ function AppLayout() {
               <Route path="/curves" element={<CurvesPage />} />
               <Route path="/dispatch" element={<Navigate to="/" replace />} />
               <Route path="/dispatch/:runId" element={<DispatchDetailPage />} />
+              <Route path="/algo/pv" element={<PvForecastPage />} />
+              <Route path="/algo/load" element={<LoadForecastPage />} />
+              <Route path="/algo/price" element={<PricePage />} />
+              <Route path="/algo/dispatch" element={<DispatchPage />} />
+              <Route path="/algo/storage" element={<StoragePage />} />
               <Route path="/sizing" element={<SizingPage />} />
               <Route path="/sizing/:runId" element={<SizingDetailPage />} />
               <Route path="/data" element={<DataPage />} />
+              <Route path="/eval" element={<EvalCenterPage />} />
             </Routes>
           </div>
         </Content>

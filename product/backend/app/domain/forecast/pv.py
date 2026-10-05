@@ -7,6 +7,7 @@ MVP 日前场景下目标日整体在 issued_at 之后，"当前偏差"不可用
 from __future__ import annotations
 
 from datetime import date, datetime, time, timedelta, tzinfo
+import math
 from statistics import mean
 
 from app.domain.forecast.result import (
@@ -143,12 +144,21 @@ def predict_pv_intraday(
     cap_kw: float,
     tz: tzinfo,
     n_days: int = 12,
-    alpha: float = 0.25,
+    alpha: float = 0.8,
+    tau_minutes: float = 90.0,
     w_dev: int = 2,
 ) -> TargetForecast:
-    """日内滚动修正：用今日已发生实测的偏差，修正今日剩余时段的同刻均值基线。
+    """日内滚动修正（persistence-decay 分尺度模型）：用今日已发生实测的偏差，
+    按预见期指数衰减地修正今日剩余时段的同刻均值基线。
 
-    兄弟仓库超短期算法的正确定位：pred(t) = clip(同刻均值 + alpha × 当前偏差, 0, Cap)。
+    pred(t+h) = clip(同刻均值(t+h) + alpha × 当前偏差 × exp(-h/tau), 0, Cap)
+
+    分尺度语义（无云图输入时的标准统计基线）：
+    - 0~15min：权重≈alpha（0.8），接近纯持续性外推
+    - 15min~4h：权重指数衰减（tau=90min，4h 时≈0.06）
+    - 4h+：回到气候态基线（同刻均值）
+    天空相机/卫星云图算法的价值正是在 15min~4h 区间超越该基线（预知云团），
+    接口见 pv_model 插拔位与 docs/13-algorithm-contracts.md。
     """
     days = daily_series(history, tz)
     today = issued_local.date()
@@ -167,8 +177,14 @@ def predict_pv_intraday(
         deviation = mean([value - base[slot] for slot, value in recent])
 
     values: list[float] = []
+    baseline: list[float] = []
+    corrections: list[float] = []
     for slot in range(current_slot + 1, SLOTS_PER_DAY):
-        values.append(min(max(base[slot] + alpha * deviation, 0.0), cap_kw))
+        horizon_minutes = (slot - current_slot) * SLOT_MINUTES
+        weight = alpha * math.exp(-horizon_minutes / tau_minutes)
+        baseline.append(round(base[slot], 6))
+        corrections.append(round(weight * deviation, 6))
+        values.append(min(max(base[slot] + weight * deviation, 0.0), cap_kw))
 
     day_start = datetime.combine(today, time.min, tzinfo=tz)
     points = [
@@ -181,12 +197,14 @@ def predict_pv_intraday(
     return TargetForecast(
         target="pv_power",
         unit="kW",
-        model=ForecastModel(name="pv_intraday_deviation", version="v1"),
+        model=ForecastModel(name="pv_intraday_deviation", version="v2"),
         points=points,
         accuracy=None,
         notes=(
-            f"日内滚动修正：基线=最近 {len(base_dates)} 天同刻均值，"
-            f"偏差={deviation:.2f} kW（最近 {len(recent)} 个实测槽位）按 alpha={alpha} 延续；"
-            "仅覆盖今日剩余时段"
+            f"日内滚动修正（分尺度 persistence-decay）：基线=最近 {len(base_dates)} 天同刻均值，"
+            f"偏差={deviation:.2f} kW（最近 {len(recent)} 个实测槽位）；"
+            f"0~15min 权重≈{alpha}，15min~4h 按 tau={tau_minutes:.0f}min 指数衰减，4h+ 回基线；"
+            "仅覆盖今日剩余时段，无云图输入时为统计基线"
         ),
+        components={"baseline": baseline, "correction": corrections},
     )

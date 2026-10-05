@@ -10,7 +10,8 @@
 4. `04-domain-model.md`、`05-api-contract.md`：理解数据和接口契约
 5. `06-technical-architecture.md`、`07-optimization-model.md`：理解实现方式
 6. `08-ui-spec.md`、`09-test-acceptance.md`：理解交互和验收
-7. `10-open-decisions.md`、`11-development-plan.md`：查看待定项和执行顺序
+7. `13-algorithm-contracts.md`：算法分工界面（做算法的同学必读）
+8. `10-open-decisions.md`、`11-development-plan.md`：查看待定项和执行顺序
 
 ## 2. 文档责任
 
