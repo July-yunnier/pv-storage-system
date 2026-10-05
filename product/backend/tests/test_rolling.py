@@ -5,12 +5,27 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 from fastapi.testclient import TestClient
+import pytest
+
+from app.application import live_service, rolling_service
 
 from tests.conftest import day_points
 
 CN_TZ = timezone(timedelta(hours=8))
-NOW_LOCAL = datetime.now(CN_TZ)
+NOW_LOCAL = datetime.now(CN_TZ).replace(hour=12, minute=0, second=0, microsecond=0)
 TODAY = NOW_LOCAL.date().isoformat()
+
+
+@pytest.fixture(autouse=True)
+def midday_clock(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A revision needs remaining slots; wall-clock 23:45 has none.
+    class FixedDatetime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return NOW_LOCAL.astimezone(tz) if tz is not None else NOW_LOCAL.replace(tzinfo=None)
+
+    monkeypatch.setattr(live_service, "datetime", FixedDatetime)
+    monkeypatch.setattr(rolling_service, "datetime", FixedDatetime)
 
 
 def _seed_history(client: TestClient) -> None:
@@ -58,6 +73,14 @@ def test_rolling_force_creates_revision(site_client: TestClient) -> None:
 
     simulated = site_client.post("/api/v1/sites/S-API/simulate-live")
     assert simulated.status_code == 200, simulated.text
+
+    # This revision test supplies a valid operating SOC; simulator drift may
+    # cross the site's configured limits, a separate recovery scenario.
+    soc = site_client.post(
+        "/api/v1/sites/S-API/measurements",
+        json={"data_type": "storage_soc", "points": [{"ts": NOW_LOCAL.isoformat(), "value": 0.5}]},
+    )
+    assert soc.status_code == 200, soc.text
 
     forced = site_client.post("/api/v1/sites/S-API/rolling/run")
     assert forced.status_code == 200, forced.text

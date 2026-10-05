@@ -63,6 +63,13 @@ npm run dev
 
 训练数据为可解释的典型工厂仿真数据，不应表述为真实企业运行数据。
 
+光伏预测真实数据优化实验：
+
+- [中文优化报告](reports/optimization_v2/optimization_report.md)：八个电站及天空图像消融，固定时序切分，双指标96%判定。
+- [训练与验证选型](experiments/optimize.py)、[模型加载接口](experiments/predict_optimized.py)。
+- [精选权重](product/backend/data/model_releases/optimization_v2/)：十组离线模型及SHA256清单，尚未自动启用在线服务。
+- [固定依赖版本](reports/optimization_v2/requirements-lock.txt)及[完整算法对比](reports/optimization_v2/candidate_matrix.csv)。
+
 ## 参考算法
 
 不属于生产系统运行路径的天空图像和超短期算法参考实现保留在 [`scripts/reference/`](scripts/reference/)，便于比赛实验和技术溯源。
@@ -71,4 +78,4 @@ npm run dev
 
 - 不提交 `.env.ai`、API 密钥、客户信息或真实企业数据；
 - `.env.ai.example`只保存无敏感信息的配置模板；
-- 仓库中的模型由仿真数据训练，真实站点应用前需重新验证或微调。
+- 工厂负荷模型由仿真数据训练；光伏优化权重来自报告所列真实数据。应用到新站点前均需重新验证或微调。

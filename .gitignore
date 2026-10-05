@@ -13,6 +13,7 @@
 !product/backend/data/model_releases/*.pth
 *.pkl
 *.joblib
+!product/backend/data/model_releases/optimization_v2/*.joblib
 
 # ---- Python ----
 __pycache__/

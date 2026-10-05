@@ -1,0 +1,322 @@
+{
+  "dataset_manifest": {
+    "dataset": "SKIPPD",
+    "cap_kw": 30.1,
+    "capacity_basis": "SKIPPD paper section 3.2: rated 30.1 kW-DC; available AC capacity unprovided",
+    "capacity_status": "nominal DC reference; contest available capacity still to verify",
+    "lat": 37.427,
+    "lon": -122.174,
+    "timezone": "America/Los_Angeles",
+    "sources": [
+      {
+        "path": "/Users/july/Downloads/2017_2019_images_pv_processed.hdf5",
+        "sha256": "52b68a705c56d1e7b6c99f3ac6ec3b42c1901453dd15364a7f58043a75343ef5"
+      },
+      {
+        "path": "/Users/july/Downloads/times_trainval.npy",
+        "sha256": "57df8528a32be6686966b2b5c3caf553478af112bb3ebda22335c93eb2483d58"
+      },
+      {
+        "path": "/Users/july/Downloads/times_test.npy",
+        "sha256": "d63555e441b6bbcf4a6c4e8361eaa476a485869f8eb67af4ffb6e485fdacf00e"
+      }
+    ],
+    "rows": 362022,
+    "negative_meter_offsets_clipped": 0,
+    "duplicate_minutes_removed": 1353,
+    "duplicate_policy": "earliest image per minute",
+    "time_semantics": "images floor to minute, forward-average PV available at minute end (+1min)",
+    "image_source": "/Users/july/Downloads/2017_2019_images_pv_processed.hdf5",
+    "source_resolution": [
+      64,
+      64
+    ],
+    "start": "2017-03-09T06:48:00-08:00",
+    "end": "2019-10-26T18:00:00-07:00",
+    "split": {
+      "train_end": "2018-09-22T00:00:00-07:00",
+      "val_end": "2019-05-23T00:00:00-07:00",
+      "test_end": "2019-10-26T18:01:00-07:00",
+      "method": "chronological_calendar_days_60_10_30",
+      "history_minutes": 30,
+      "max_horizon_minutes": 240,
+      "test_fraction_requested": 0.3
+    },
+    "nighttime": "absent in source HDF5",
+    "forecast_nwp": "not provided"
+  },
+  "split": {
+    "train_end": "2018-09-22T00:00:00-07:00",
+    "val_end": "2019-05-23T00:00:00-07:00",
+    "test_end": "2019-10-26T18:01:00-07:00",
+    "method": "chronological_calendar_days_60_10_30",
+    "history_minutes": 30,
+    "max_horizon_minutes": 240,
+    "test_fraction_requested": 0.3
+  },
+  "seed": 42,
+  "images": false,
+  "features": [
+    [
+      "power_lag_0min",
+      "power_lag_1min",
+      "power_lag_2min",
+      "power_lag_3min",
+      "power_lag_5min",
+      "power_lag_10min",
+      "power_lag_15min",
+      "power_lag_20min",
+      "power_lag_29min",
+      "power_3min_mean",
+      "power_3min_std",
+      "power_3min_min",
+      "power_3min_max",
+      "power_5min_mean",
+      "power_5min_std",
+      "power_5min_min",
+      "power_5min_max",
+      "power_10min_mean",
+      "power_10min_std",
+      "power_10min_min",
+      "power_10min_max",
+      "power_15min_mean",
+      "power_15min_std",
+      "power_15min_min",
+      "power_15min_max",
+      "power_30min_mean",
+      "power_30min_std",
+      "power_30min_min",
+      "power_30min_max",
+      "power_delta",
+      "power_slope",
+      "clock_sin",
+      "clock_cos",
+      "year_sin",
+      "year_cos",
+      "historical_slot_mean",
+      "clear_now",
+      "clear_index_now",
+      "clear_index_5_mean",
+      "clear_index_5_std",
+      "clear_index_15_mean",
+      "clear_index_15_std",
+      "clear_index_30_mean",
+      "clear_index_30_std",
+      "solar_elevation",
+      "solar_azimuth_sin",
+      "target_clock_sin",
+      "target_clock_cos",
+      "target_historical_mean",
+      "horizon_fraction",
+      "target_clear_power",
+      "clear_change"
+    ],
+    [
+      "power_lag_0min",
+      "power_lag_1min",
+      "power_lag_2min",
+      "power_lag_3min",
+      "power_lag_5min",
+      "power_lag_10min",
+      "power_lag_15min",
+      "power_lag_20min",
+      "power_lag_29min",
+      "power_3min_mean",
+      "power_3min_std",
+      "power_3min_min",
+      "power_3min_max",
+      "power_5min_mean",
+      "power_5min_std",
+      "power_5min_min",
+      "power_5min_max",
+      "power_10min_mean",
+      "power_10min_std",
+      "power_10min_min",
+      "power_10min_max",
+      "power_15min_mean",
+      "power_15min_std",
+      "power_15min_min",
+      "power_15min_max",
+      "power_30min_mean",
+      "power_30min_std",
+      "power_30min_min",
+      "power_30min_max",
+      "power_delta",
+      "power_slope",
+      "clock_sin",
+      "clock_cos",
+      "year_sin",
+      "year_cos",
+      "historical_slot_mean",
+      "clear_now",
+      "clear_index_now",
+      "clear_index_5_mean",
+      "clear_index_5_std",
+      "clear_index_15_mean",
+      "clear_index_15_std",
+      "clear_index_30_mean",
+      "clear_index_30_std",
+      "solar_elevation",
+      "solar_azimuth_sin",
+      "target_clock_sin",
+      "target_clock_cos",
+      "target_historical_mean",
+      "horizon_fraction",
+      "target_clear_power",
+      "clear_change"
+    ],
+    [
+      "power_lag_0min",
+      "power_lag_1min",
+      "power_lag_2min",
+      "power_lag_3min",
+      "power_lag_5min",
+      "power_lag_10min",
+      "power_lag_15min",
+      "power_lag_20min",
+      "power_lag_29min",
+      "power_3min_mean",
+      "power_3min_std",
+      "power_3min_min",
+      "power_3min_max",
+      "power_5min_mean",
+      "power_5min_std",
+      "power_5min_min",
+      "power_5min_max",
+      "power_10min_mean",
+      "power_10min_std",
+      "power_10min_min",
+      "power_10min_max",
+      "power_15min_mean",
+      "power_15min_std",
+      "power_15min_min",
+      "power_15min_max",
+      "power_30min_mean",
+      "power_30min_std",
+      "power_30min_min",
+      "power_30min_max",
+      "power_delta",
+      "power_slope",
+      "clock_sin",
+      "clock_cos",
+      "year_sin",
+      "year_cos",
+      "historical_slot_mean",
+      "clear_now",
+      "clear_index_now",
+      "clear_index_5_mean",
+      "clear_index_5_std",
+      "clear_index_15_mean",
+      "clear_index_15_std",
+      "clear_index_30_mean",
+      "clear_index_30_std",
+      "solar_elevation",
+      "solar_azimuth_sin",
+      "target_clock_sin",
+      "target_clock_cos",
+      "target_historical_mean",
+      "horizon_fraction",
+      "target_clear_power",
+      "clear_change"
+    ]
+  ],
+  "indices": {
+    "train": 125013,
+    "val": 17385,
+    "test": 74410
+  },
+  "validation_tuning_cases": 10966,
+  "validation_calibration_cases": 6419,
+  "validation_calibration_start": "2018-10-29T00:00:00-07:00",
+  "selection": "tuning validation only; mean normalized MSE across horizons",
+  "protocol": "frozen pv-v1 cases, features only through issue; v2 method search",
+  "baseline": "smart_persistence",
+  "candidate_specs": [
+    [
+      "ridge",
+      {
+        "alpha": 20.0
+      },
+      false
+    ],
+    [
+      "hist_gradient_boosting",
+      {
+        "max_iter": 180,
+        "max_leaf_nodes": 15,
+        "learning_rate": 0.06,
+        "l2_regularization": 2.0
+      },
+      false
+    ],
+    [
+      "extra_trees",
+      {
+        "n_estimators": 100,
+        "max_depth": 18,
+        "min_samples_leaf": 20,
+        "max_features": 0.8
+      },
+      false
+    ],
+    [
+      "lightgbm_small",
+      {
+        "n_estimators": 350,
+        "num_leaves": 15,
+        "min_child_samples": 80,
+        "learning_rate": 0.04,
+        "reg_lambda": 5.0
+      },
+      false
+    ],
+    [
+      "lightgbm_medium",
+      {
+        "n_estimators": 500,
+        "num_leaves": 31,
+        "min_child_samples": 60,
+        "learning_rate": 0.035,
+        "reg_lambda": 5.0
+      },
+      false
+    ],
+    [
+      "lightgbm_residual",
+      {
+        "n_estimators": 500,
+        "num_leaves": 31,
+        "min_child_samples": 60,
+        "learning_rate": 0.035,
+        "reg_lambda": 5.0
+      },
+      true
+    ],
+    [
+      "lightgbm_l1",
+      {
+        "n_estimators": 500,
+        "num_leaves": 31,
+        "min_child_samples": 60,
+        "learning_rate": 0.035,
+        "reg_lambda": 5.0,
+        "objective": "regression_l1"
+      },
+      false
+    ]
+  ],
+  "software": {
+    "numpy": "2.3.5",
+    "pandas": "2.2.3",
+    "sklearn": "1.9.1"
+  },
+  "code": {
+    "repository": "https://github.com/July-yunnier/pv-storage-system",
+    "local_source": "/Users/july/Documents/Codex/git-upload-I9Ifob",
+    "source_commit": "983121128ba3cb0566c71c136c0fedf0255ba37f",
+    "copied_tracked_files": 154,
+    "upstream_commit": "95c3bef96f6cc90e5d252c7ea2d3fd9e74f17544",
+    "working_base": "upstream_commit",
+    "working_source_sha256": "33a584f88394664f8a97f745c372d2ec292f324466e34c6f590e1d6c49cb70da"
+  }
+}

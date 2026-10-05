@@ -1,0 +1,400 @@
+{
+  "threshold": 0.96,
+  "cap_kw": 110000.0,
+  "units": "kW",
+  "by_horizon": {
+    "15": {
+      "n": 21041,
+      "mae_kw": 4134.0655601036415,
+      "rmse_kw": 9028.442805097542,
+      "one_minus_mae_over_cap": 0.9624175858172396,
+      "one_minus_rmse_over_cap": 0.917923247226386,
+      "pass_mae": true,
+      "pass_rmse": false,
+      "pass_both": false,
+      "monthly": {
+        "2020-05": {
+          "n": 544,
+          "mae_kw": 3964.0659178798405,
+          "rmse_kw": 8610.973202901627,
+          "one_minus_mae_over_cap": 0.9639630371101833,
+          "one_minus_rmse_over_cap": 0.9217184254281671,
+          "pass_mae": true,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-06": {
+          "n": 2880,
+          "mae_kw": 4753.055429784338,
+          "rmse_kw": 10052.452385441371,
+          "one_minus_mae_over_cap": 0.9567904051837788,
+          "one_minus_rmse_over_cap": 0.9086140692232603,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-07": {
+          "n": 2976,
+          "mae_kw": 3969.3941093032367,
+          "rmse_kw": 8497.153887267892,
+          "one_minus_mae_over_cap": 0.9639145990063342,
+          "one_minus_rmse_over_cap": 0.9227531464793828,
+          "pass_mae": true,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-08": {
+          "n": 2976,
+          "mae_kw": 5520.482703828282,
+          "rmse_kw": 10507.29754060103,
+          "one_minus_mae_over_cap": 0.949813793601561,
+          "one_minus_rmse_over_cap": 0.9044791132672634,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-09": {
+          "n": 2880,
+          "mae_kw": 4726.016340738414,
+          "rmse_kw": 11206.034186786246,
+          "one_minus_mae_over_cap": 0.9570362150841962,
+          "one_minus_rmse_over_cap": 0.8981269619383069,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-10": {
+          "n": 2976,
+          "mae_kw": 3625.550612683714,
+          "rmse_kw": 8072.903068421104,
+          "one_minus_mae_over_cap": 0.9670404489756026,
+          "one_minus_rmse_over_cap": 0.9266099721052627,
+          "pass_mae": true,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-11": {
+          "n": 2880,
+          "mae_kw": 3375.3240517553045,
+          "rmse_kw": 7258.075153898694,
+          "one_minus_mae_over_cap": 0.9693152358931336,
+          "one_minus_rmse_over_cap": 0.934017498600921,
+          "pass_mae": true,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-12": {
+          "n": 2929,
+          "mae_kw": 2996.3296699990224,
+          "rmse_kw": 6738.21101293002,
+          "one_minus_mae_over_cap": 0.9727606393636452,
+          "one_minus_rmse_over_cap": 0.9387435362460907,
+          "pass_mae": true,
+          "pass_rmse": false,
+          "pass_both": false
+        }
+      },
+      "monthly_mean_mae_accuracy": 0.9625792967773044,
+      "monthly_mean_rmse_accuracy": 0.9193828404110819,
+      "monthly_pass_both_rate": 0.0,
+      "pass_monthly_mean_both": false,
+      "weather": {
+        "unknown": {
+          "n": 21041,
+          "mae_kw": 4134.0655601036415,
+          "rmse_kw": 9028.442805097542,
+          "one_minus_mae_over_cap": 0.9624175858172396,
+          "one_minus_rmse_over_cap": 0.917923247226386,
+          "pass_mae": true,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "sunny": {
+          "n": 0,
+          "status": "no_verified_weather_labels"
+        },
+        "partly_cloudy": {
+          "n": 0,
+          "status": "no_verified_weather_labels"
+        },
+        "overcast": {
+          "n": 0,
+          "status": "no_verified_weather_labels"
+        }
+      },
+      "daylight": {
+        "n": 11400,
+        "mae_kw": 7606.708898626466,
+        "rmse_kw": 12263.753086751176,
+        "one_minus_mae_over_cap": 0.9308481009215775,
+        "one_minus_rmse_over_cap": 0.8885113355749893,
+        "pass_mae": false,
+        "pass_rmse": false,
+        "pass_both": false
+      }
+    },
+    "60": {
+      "n": 21041,
+      "mae_kw": 6763.364666622405,
+      "rmse_kw": 13052.4029787788,
+      "one_minus_mae_over_cap": 0.9385148666670691,
+      "one_minus_rmse_over_cap": 0.8813417911020109,
+      "pass_mae": false,
+      "pass_rmse": false,
+      "pass_both": false,
+      "monthly": {
+        "2020-05": {
+          "n": 541,
+          "mae_kw": 6821.640246259021,
+          "rmse_kw": 12792.90796684945,
+          "one_minus_mae_over_cap": 0.9379850886703726,
+          "one_minus_rmse_over_cap": 0.883700836665005,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-06": {
+          "n": 2880,
+          "mae_kw": 7474.125789018007,
+          "rmse_kw": 13776.141399944177,
+          "one_minus_mae_over_cap": 0.9320534019180181,
+          "one_minus_rmse_over_cap": 0.8747623509095984,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-07": {
+          "n": 2976,
+          "mae_kw": 6427.844967917545,
+          "rmse_kw": 11994.802293506234,
+          "one_minus_mae_over_cap": 0.9415650457462041,
+          "one_minus_rmse_over_cap": 0.890956342786307,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-08": {
+          "n": 2976,
+          "mae_kw": 9233.748677898902,
+          "rmse_kw": 15494.718795488625,
+          "one_minus_mae_over_cap": 0.9160568302009191,
+          "one_minus_rmse_over_cap": 0.8591389200410124,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-09": {
+          "n": 2880,
+          "mae_kw": 7352.5719383549695,
+          "rmse_kw": 14597.51377514249,
+          "one_minus_mae_over_cap": 0.9331584369240458,
+          "one_minus_rmse_over_cap": 0.8672953293168865,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-10": {
+          "n": 2976,
+          "mae_kw": 6262.163316096612,
+          "rmse_kw": 12436.041381743831,
+          "one_minus_mae_over_cap": 0.9430712425809399,
+          "one_minus_rmse_over_cap": 0.8869450783477834,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-11": {
+          "n": 2880,
+          "mae_kw": 5605.767676716918,
+          "rmse_kw": 11483.81722259422,
+          "one_minus_mae_over_cap": 0.9490384756662098,
+          "one_minus_rmse_over_cap": 0.8956016616127798,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-12": {
+          "n": 2932,
+          "mae_kw": 4954.5864579617055,
+          "rmse_kw": 10974.346249680813,
+          "one_minus_mae_over_cap": 0.9549583049276209,
+          "one_minus_rmse_over_cap": 0.9002332159119926,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        }
+      },
+      "monthly_mean_mae_accuracy": 0.9384858533292912,
+      "monthly_mean_rmse_accuracy": 0.8823292169489206,
+      "monthly_pass_both_rate": 0.0,
+      "pass_monthly_mean_both": false,
+      "weather": {
+        "unknown": {
+          "n": 21041,
+          "mae_kw": 6763.364666622405,
+          "rmse_kw": 13052.4029787788,
+          "one_minus_mae_over_cap": 0.9385148666670691,
+          "one_minus_rmse_over_cap": 0.8813417911020109,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "sunny": {
+          "n": 0,
+          "status": "no_verified_weather_labels"
+        },
+        "partly_cloudy": {
+          "n": 0,
+          "status": "no_verified_weather_labels"
+        },
+        "overcast": {
+          "n": 0,
+          "status": "no_verified_weather_labels"
+        }
+      },
+      "daylight": {
+        "n": 11397,
+        "mae_kw": 12299.71060544188,
+        "rmse_kw": 17695.523979519312,
+        "one_minus_mae_over_cap": 0.8881844490414375,
+        "one_minus_rmse_over_cap": 0.839131600186188,
+        "pass_mae": false,
+        "pass_rmse": false,
+        "pass_both": false
+      }
+    },
+    "240": {
+      "n": 21041,
+      "mae_kw": 17854.303853857473,
+      "rmse_kw": 29456.796131429102,
+      "one_minus_mae_over_cap": 0.8376881467831139,
+      "one_minus_rmse_over_cap": 0.7322109442597354,
+      "pass_mae": false,
+      "pass_rmse": false,
+      "pass_both": false,
+      "monthly": {
+        "2020-05": {
+          "n": 529,
+          "mae_kw": 19512.20719816474,
+          "rmse_kw": 30776.624958786368,
+          "one_minus_mae_over_cap": 0.8226162981985023,
+          "one_minus_rmse_over_cap": 0.7202125003746693,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-06": {
+          "n": 2880,
+          "mae_kw": 17183.381856871165,
+          "rmse_kw": 27345.68871540594,
+          "one_minus_mae_over_cap": 0.8437874376648076,
+          "one_minus_rmse_over_cap": 0.751402829859946,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-07": {
+          "n": 2976,
+          "mae_kw": 15162.904075224915,
+          "rmse_kw": 25106.504185731083,
+          "one_minus_mae_over_cap": 0.8621554174979553,
+          "one_minus_rmse_over_cap": 0.7717590528569902,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-08": {
+          "n": 2976,
+          "mae_kw": 25179.207853200816,
+          "rmse_kw": 36457.19541014994,
+          "one_minus_mae_over_cap": 0.7710981104254471,
+          "one_minus_rmse_over_cap": 0.6685709508168187,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-09": {
+          "n": 2880,
+          "mae_kw": 18823.674725568817,
+          "rmse_kw": 30792.418235328987,
+          "one_minus_mae_over_cap": 0.8288756843130107,
+          "one_minus_rmse_over_cap": 0.7200689251333728,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-10": {
+          "n": 2976,
+          "mae_kw": 16936.008982888234,
+          "rmse_kw": 28608.074332320382,
+          "one_minus_mae_over_cap": 0.8460362819737434,
+          "one_minus_rmse_over_cap": 0.7399265969789056,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-11": {
+          "n": 2880,
+          "mae_kw": 16153.628500439698,
+          "rmse_kw": 28593.96130275457,
+          "one_minus_mae_over_cap": 0.8531488318141845,
+          "one_minus_rmse_over_cap": 0.7400548972476857,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "2020-12": {
+          "n": 2944,
+          "mae_kw": 15172.550580985771,
+          "rmse_kw": 27646.50174805249,
+          "one_minus_mae_over_cap": 0.8620677219910384,
+          "one_minus_rmse_over_cap": 0.7486681659267955,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        }
+      },
+      "monthly_mean_mae_accuracy": 0.8362232229848361,
+      "monthly_mean_rmse_accuracy": 0.7325829898993981,
+      "monthly_pass_both_rate": 0.0,
+      "pass_monthly_mean_both": false,
+      "weather": {
+        "unknown": {
+          "n": 21041,
+          "mae_kw": 17854.303853857473,
+          "rmse_kw": 29456.796131429102,
+          "one_minus_mae_over_cap": 0.8376881467831139,
+          "one_minus_rmse_over_cap": 0.7322109442597354,
+          "pass_mae": false,
+          "pass_rmse": false,
+          "pass_both": false
+        },
+        "sunny": {
+          "n": 0,
+          "status": "no_verified_weather_labels"
+        },
+        "partly_cloudy": {
+          "n": 0,
+          "status": "no_verified_weather_labels"
+        },
+        "overcast": {
+          "n": 0,
+          "status": "no_verified_weather_labels"
+        }
+      },
+      "daylight": {
+        "n": 11388,
+        "mae_kw": 27766.257717719258,
+        "rmse_kw": 37272.77160615086,
+        "one_minus_mae_over_cap": 0.7475794752934612,
+        "one_minus_rmse_over_cap": 0.6611566217622649,
+        "pass_mae": false,
+        "pass_rmse": false,
+        "pass_both": false
+      }
+    }
+  },
+  "nighttime": "all available cases plus daylight subset",
+  "weather_definition": "source labels where available; unknown is not inferred from errors",
+  "pass_all_horizons_both": false
+}

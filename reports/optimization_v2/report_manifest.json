@@ -1,0 +1,73 @@
+{
+  "seed": 42,
+  "horizons": [
+    15,
+    60,
+    240
+  ],
+  "threshold": 0.96,
+  "completed_datasets": 10,
+  "checkpoints": [
+    {
+      "dataset": "skippd",
+      "checkpoint": "skippd.joblib",
+      "size_mb": 61.79243469,
+      "sha256": "3df1476abc0a8878a955e6b59dc2c561407987f6821f60aed069dd147f884a56"
+    },
+    {
+      "dataset": "skippd_images",
+      "checkpoint": "skippd_images.joblib",
+      "size_mb": 63.80892372,
+      "sha256": "0c9315cc434249a6fde73eaaa2b4e0969f74dd1ee392a5d2413312cfe675fddb"
+    },
+    {
+      "dataset": "state_grid_1",
+      "checkpoint": "state_grid_1.joblib",
+      "size_mb": 19.79450607,
+      "sha256": "22c65db50b85aeca087e67b2435c11f37ce5919260ed3aab91f051dbbae80ce9"
+    },
+    {
+      "dataset": "state_grid_2",
+      "checkpoint": "state_grid_2.joblib",
+      "size_mb": 24.22509193,
+      "sha256": "7de34dcb23ae3f8419df7351bfc0d62f14e368939e691b119ecd19b8323744a3"
+    },
+    {
+      "dataset": "state_grid_3",
+      "checkpoint": "state_grid_3.joblib",
+      "size_mb": 16.8795042,
+      "sha256": "5e4e4729afb638818146979f2c47219268da1cdf61f34d7efdecab7b37061a08"
+    },
+    {
+      "dataset": "state_grid_4",
+      "checkpoint": "state_grid_4.joblib",
+      "size_mb": 19.66783047,
+      "sha256": "371b40d4a8874adf5693c620580c7ec481b477ab1ce526e2bc7d36d30f9687f5"
+    },
+    {
+      "dataset": "state_grid_5",
+      "checkpoint": "state_grid_5.joblib",
+      "size_mb": 19.32051754,
+      "sha256": "0cf36ec57bf1dfc9774e9ffa2d7728f79c4a182c2504e17950460807e04492cf"
+    },
+    {
+      "dataset": "state_grid_6",
+      "checkpoint": "state_grid_6.joblib",
+      "size_mb": 18.47832489,
+      "sha256": "354094a253d923f9ac5661d25b867564861e5efddc6d8a46f583deb330007365"
+    },
+    {
+      "dataset": "state_grid_7",
+      "checkpoint": "state_grid_7.joblib",
+      "size_mb": 18.34228992,
+      "sha256": "516b77fca770b61219111429ff252e31fd93a2786d5811c25be95bb866785f29"
+    },
+    {
+      "dataset": "state_grid_8",
+      "checkpoint": "state_grid_8.joblib",
+      "size_mb": 19.27470016,
+      "sha256": "462235a1ce1ea94defb9a18a28a784144a8726019fd6f8590397a3d262f3b1fb"
+    }
+  ],
+  "report_sha256": "f6776a5e3fb9c9eb72f1d80370c6fc80c96cc5159f158c7ddc2333c18e47be65"
+}

@@ -1,0 +1,151 @@
+[
+  {
+    "model": "ridge",
+    "params": {
+      "alpha": 20.0
+    },
+    "residual": false,
+    "validation_rmse_over_cap": [
+      0.029065601527690887,
+      0.057142309844493866,
+      0.09326421469449997
+    ],
+    "validation_mae_over_cap": [
+      0.013699235394597054,
+      0.033404383808374405,
+      0.05813347548246384
+    ],
+    "elapsed_seconds": 0.29977420900104335
+  },
+  {
+    "model": "hist_gradient_boosting",
+    "params": {
+      "max_iter": 180,
+      "max_leaf_nodes": 15,
+      "learning_rate": 0.06,
+      "l2_regularization": 2.0
+    },
+    "residual": false,
+    "validation_rmse_over_cap": [
+      0.027506889775395393,
+      0.048100877553224564,
+      0.0778297483921051
+    ],
+    "validation_mae_over_cap": [
+      0.011048496700823307,
+      0.02293650433421135,
+      0.040255963802337646
+    ],
+    "elapsed_seconds": 4.387694459001068
+  },
+  {
+    "model": "extra_trees",
+    "params": {
+      "n_estimators": 100,
+      "max_depth": 18,
+      "min_samples_leaf": 20,
+      "max_features": 0.8
+    },
+    "residual": false,
+    "validation_rmse_over_cap": [
+      0.027170700952410698,
+      0.04723268002271652,
+      0.0773620679974556
+    ],
+    "validation_mae_over_cap": [
+      0.010475413873791695,
+      0.02210725098848343,
+      0.040676917880773544
+    ],
+    "elapsed_seconds": 10.813873624996631
+  },
+  {
+    "model": "lightgbm_small",
+    "params": {
+      "n_estimators": 350,
+      "num_leaves": 15,
+      "min_child_samples": 80,
+      "learning_rate": 0.04,
+      "reg_lambda": 5.0
+    },
+    "residual": false,
+    "validation_rmse_over_cap": [
+      0.027570251375436783,
+      0.04801804944872856,
+      0.07915474474430084
+    ],
+    "validation_mae_over_cap": [
+      0.010942807421088219,
+      0.022907063364982605,
+      0.040384985506534576
+    ],
+    "elapsed_seconds": 14.290112124996085
+  },
+  {
+    "model": "lightgbm_medium",
+    "params": {
+      "n_estimators": 500,
+      "num_leaves": 31,
+      "min_child_samples": 60,
+      "learning_rate": 0.035,
+      "reg_lambda": 5.0
+    },
+    "residual": false,
+    "validation_rmse_over_cap": [
+      0.027509178966283798,
+      0.048906199634075165,
+      0.08060096204280853
+    ],
+    "validation_mae_over_cap": [
+      0.01081907283514738,
+      0.023492032662034035,
+      0.04023740813136101
+    ],
+    "elapsed_seconds": 20.76858312499826
+  },
+  {
+    "model": "lightgbm_residual",
+    "params": {
+      "n_estimators": 500,
+      "num_leaves": 31,
+      "min_child_samples": 60,
+      "learning_rate": 0.035,
+      "reg_lambda": 5.0
+    },
+    "residual": true,
+    "validation_rmse_over_cap": [
+      0.02740931697189808,
+      0.04840093106031418,
+      0.08108693361282349
+    ],
+    "validation_mae_over_cap": [
+      0.010585429146885872,
+      0.02346087247133255,
+      0.040933478623628616
+    ],
+    "elapsed_seconds": 27.28123954199691
+  },
+  {
+    "model": "lightgbm_l1",
+    "params": {
+      "n_estimators": 500,
+      "num_leaves": 31,
+      "min_child_samples": 60,
+      "learning_rate": 0.035,
+      "reg_lambda": 5.0,
+      "objective": "regression_l1"
+    },
+    "residual": false,
+    "validation_rmse_over_cap": [
+      0.027367860078811646,
+      0.047832973301410675,
+      0.07888578623533249
+    ],
+    "validation_mae_over_cap": [
+      0.010096804238855839,
+      0.020111167803406715,
+      0.035539064556360245
+    ],
+    "elapsed_seconds": 34.737810333994275
+  }
+]
