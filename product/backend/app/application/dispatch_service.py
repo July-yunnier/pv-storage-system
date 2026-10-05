@@ -9,6 +9,7 @@ from uuid import uuid4
 from app.api import errors
 from app.application import forecast_service
 from app.domain.dispatch import DispatchInputs, RuleDispatchEngine
+from app.domain.explain import explain_schedule
 from app.domain.forecast.result import ForecastPoint
 from app.domain.models import MeasurementRead, PricePoint, ScheduleRequest, ScheduleResponse
 from app.domain.tariff import TouProvider
@@ -132,7 +133,13 @@ def run_schedule(db: Database, payload: ScheduleRequest) -> ScheduleResponse:
 
     run_id = f"R{uuid4().hex[:8].upper()}"
     digest = _input_digest(payload, pv_points, load_points, price_points)
-    result = result.model_copy(update={"run_id": run_id, "data_source": source})
+    result = result.model_copy(
+        update={
+            "run_id": run_id,
+            "data_source": source,
+            "explanation": explain_schedule(result.schedule),
+        }
+    )
     db.insert_dispatch_run(
         run_id=run_id,
         site_id=payload.site_id,

@@ -68,8 +68,6 @@ const MODEL_LABEL: Record<string, string> = {
   pvlib_blend: '融合',
   pv_intraday_deviation: '日内修正',
   load_diurnal_mean: '同刻均值',
-  load_mes_multitask_attention: 'MES多任务注意力',
-  load_intraday_kalman: '日内卡尔曼修正',
   tou_policy: '分时电价',
 }
 

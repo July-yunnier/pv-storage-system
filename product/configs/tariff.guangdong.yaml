@@ -1,0 +1,20 @@
+# 广东珠三角工商业 TOU 电价示例（1-10kV 一般工商业，单一制口径）。
+# 注意：示例占位，仅供仿真与比赛实验；上线前需替换为省发改委正式文件。
+# 结构特点：午间平段 + 双高峰，支持储能"两充两放"。
+tariff_id: T-GUANGDONG-DEMO
+name: 广东省珠三角工商业分时电价（示例）
+mode: tou
+transmission_and_fund: 0.21
+tiers:
+  - name: sharp
+    price: 1.25
+    hours: ["11:00-12:00", "15:00-17:00"]
+  - name: peak
+    price: 1.05
+    hours: ["10:00-11:00", "14:00-15:00", "17:00-19:00"]
+  - name: flat
+    price: 0.65
+    hours: ["08:00-10:00", "12:00-14:00", "19:00-00:00"]
+  - name: valley
+    price: 0.28
+    hours: ["00:00-08:00"]

@@ -95,6 +95,23 @@ body {
   color: var(--ps-accent);
 }
 
+/* 菜单分组标题：小号灰字 + 宽字距，与产品导航拉开层级 */
+.ps-sider .ant-menu-item-group-title {
+  font-size: 11px;
+  color: var(--ps-gray-400);
+  letter-spacing: 1.5px;
+  padding: 16px 12px 6px !important;
+}
+
+/* 卡片悬浮微浮起 */
+.ant-card {
+  transition: box-shadow 0.2s ease;
+}
+
+.ant-card:hover {
+  box-shadow: 0 4px 14px rgba(35, 40, 35, 0.08);
+}
+
 /* 卡片：白底细边微阴影 */
 .ant-card {
   border: 1px solid var(--ps-border) !important;

@@ -1,11 +1,18 @@
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 
 from fastapi.testclient import TestClient
 
 from tests.conftest import CN_TZ, day_points
 
-HISTORY_START = datetime(2026, 9, 14, tzinfo=CN_TZ)  # 4 天历史：09-14 ~ 09-17
-TARGET_DATE = "2026-09-18"
+
+def _today() -> datetime:
+    return datetime.combine(datetime.now(CN_TZ).date(), time.min, tzinfo=CN_TZ)
+
+
+# 历史窗口随当前日期滚动：mock 气象只覆盖今天前后，写死日期会随时间漂移失效
+HISTORY_START = _today() - timedelta(days=4)  # 4 天历史：今天-4 ~ 今天-1
+TARGET_DATE = _today().date().isoformat()
+ISSUED_AT = (_today() - timedelta(days=1)).strftime("%Y-%m-%dT18:00:00+08:00")
 
 
 def seed_history(client: TestClient, days: int = 4) -> None:
@@ -30,7 +37,7 @@ def post_forecast(client: TestClient, **overrides) -> object:
         "targets": ["pv_power", "load_power", "price"],
         "horizon_hours": 24,
         "resolution_minutes": 15,
-        "issued_at": "2026-09-17T18:00:00+08:00",
+        "issued_at": ISSUED_AT,
         # 统计法路径的契约测试固定 pv_model，避免 auto 路由到 blend/physics
         "options": {"pv_model": "statistical"},
     }
@@ -45,12 +52,12 @@ def test_forecast_three_targets_contract(site_client: TestClient) -> None:
     body = response.json()
     assert body["site_id"] == "S-API"
     assert body["resolution_minutes"] == 15
-    assert body["issued_at"].startswith("2026-09-17T18:00:00")
+    assert body["issued_at"].startswith(ISSUED_AT[:16])
     assert [r["target"] for r in body["results"]] == ["pv_power", "load_power", "price"]
 
     for result in body["results"]:
         assert len(result["points"]) == 96
-        assert result["points"][0]["ts"] == "2026-09-18T00:00:00+08:00"
+        assert result["points"][0]["ts"] == f"{TARGET_DATE}T00:00:00+08:00"
         assert result["model"]["name"]
         assert result["notes"]
     pv, load, price = body["results"]
@@ -71,8 +78,9 @@ def test_forecast_horizon_48_hours(site_client: TestClient) -> None:
     assert response.status_code == 200, response.text
     points = response.json()["results"][0]["points"]
     assert len(points) == 192
-    assert points[0]["ts"] == "2026-09-18T00:00:00+08:00"
-    assert points[-1]["ts"] == "2026-09-19T23:45:00+08:00"
+    assert points[0]["ts"] == f"{TARGET_DATE}T00:00:00+08:00"
+    day_after = (_today() + timedelta(days=1)).date().isoformat()
+    assert points[-1]["ts"] == f"{day_after}T23:45:00+08:00"
 
 
 def test_forecast_insufficient_history_422(site_client: TestClient) -> None:
@@ -140,7 +148,7 @@ def test_schedule_measurements_source_default(site_client: TestClient) -> None:
     seed_history(site_client, days=1)
     # measurements 源需要当天数据
     for data_type, value in [("pv_power", 500), ("load_power", 600)]:
-        day = datetime(2026, 9, 18, tzinfo=CN_TZ)
+        day = _today()
         site_client.post(
             "/api/v1/sites/S-API/measurements",
             json={

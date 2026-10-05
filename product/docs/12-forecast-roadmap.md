@@ -30,7 +30,7 @@
 2. **pvlib 转换链**：GHI/DNI/DHI → 组件面辐射（POA，Hay-Davies 转置）→ 功率（装机 × (1−系统损耗)），物理转换不自研，使用 pvlib ✅ 已完成（domain/forecast/pv_physics.py）
 3. **统计法残差修正**：站点积累实测后，用实测偏差校准辐射模型输出（两层融合） ✅ 已完成（domain/forecast/blend.py，pv_model=auto 默认走融合）
 4. **日内滚动修正**：启用 alpha 偏差延续，用当日已发生实测修正当日剩余时段（兄弟项目算法的正确位置） ✅ 已完成（predict_pv_intraday，options.intraday=true）
-5. **仿真层升级**：L1 pvlib 晴空模型 + 云况情景（替换正弦玩具）/ L2 实测回放 / L3 辐射驱动；Sizing 年化从"典型日×365"升级为 TMY 8760 逐时（后续） — L1 ✅ 已完成（seed_demo.py 云况情景）；Sizing TMY 待做
+5. **仿真层升级**：L1 pvlib 晴空模型 + 云况情景（替换正弦玩具）/ L2 实测回放 / L3 辐射驱动；Sizing 年化从"典型日×365"升级为 TMY 8760 逐时（后续） — L1 ✅（seed_demo.py 云况情景）；**L2 ✅ 已完成**：国网 site1 两年数据（2019-01-01~2020-12-31，70,176 点，自带辐照/温度列）经容量缩放 + 日期平移导入 S-DONGGUAN-DEMO 为"最近两年历史"（`import_guowang.py --shift-to`），live 实时推进由回放指针驱动（`replay_config` 表，窗口循环），今日即真实曲线重播；Sizing TMY 待做
 
 明确不做：
 - 自己分析卫星云图（FY-4A 等）：原始数据为 HDF 图像、免费渠道仅最近 24h、反演为专业团队级工程量；消费成品辐射产品即可

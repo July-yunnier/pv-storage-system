@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.domain.forecast.blend import blend_pv_forecast
@@ -138,7 +139,7 @@ class TestBlend:
 
 class TestIntraday:
     def test_intraday_deviation_correction(self) -> None:
-        """今日上午实测偏低 → 剩余时段预测应低于基线。"""
+        """persistence-decay 分尺度行为：首槽接近持续性，越远越回基线。"""
         history: list[tuple[datetime, float]] = []
         for offset in range(5, 0, -1):  # 5 天基线：中午 800
             day = TODAY - timedelta(days=offset)
@@ -157,9 +158,17 @@ class TestIntraday:
 
         result = predict_pv_intraday(history, issued, cap_kw=1000, tz=CN_TZ)
         assert result.model.name == "pv_intraday_deviation"
-        # 偏差 = 400 - 800 = -400，alpha=0.25 → 修正 -100；中午基线 800 → 预测 700
+        # 偏差 = 400 - 800 = -400；首槽（h=15min）权重≈0.68 → 修正 ≈ -271
+        first_point = result.points[0]
+        assert first_point.ts.hour == 10 and first_point.ts.minute == 15
+        assert first_point.value == pytest.approx(529.13, abs=0.01)
+        # 中午（h=2h）权重≈0.21 → 修正 ≈ -84，比首槽更接近基线 800
         noon_point = next(p for p in result.points if p.ts.hour == 12 and p.ts.minute == 0)
-        assert noon_point.value == 700.0
+        assert noon_point.value == pytest.approx(715.65, abs=0.01)
+        # 4h+ 后基本回基线（14:00 基线 800，h=4h 权重≈0.06 → ≥ 775）
+        late_point = next(p for p in result.points if p.ts.hour == 14 and p.ts.minute == 0)
+        assert late_point.value > 775.0
+        assert first_point.value < noon_point.value < late_point.value
         # 只覆盖今日剩余时段
         assert all(p.ts > issued for p in result.points)
         assert all(p.ts.date() == TODAY for p in result.points)
