@@ -20,6 +20,7 @@ class WeatherPoint(BaseModel):
     dni_wm2: float = Field(ge=0)
     dhi_wm2: float = Field(ge=0)
     temperature_c: float | None = None
+    humidity_pct: float | None = None
     wind_speed_ms: float | None = None
 
 

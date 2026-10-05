@@ -15,7 +15,7 @@ from app.infrastructure.db import _zone
 from app.infrastructure.weather.base import WeatherPoint
 
 ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
-HOURLY_VARS = "shortwave_radiation,direct_normal_irradiance,diffuse_radiation,temperature_2m,wind_speed_10m"
+HOURLY_VARS = "shortwave_radiation,direct_normal_irradiance,diffuse_radiation,temperature_2m,relative_humidity_2m,wind_speed_10m"
 
 
 class OpenMeteoArchiveProvider:
@@ -65,6 +65,7 @@ class OpenMeteoArchiveProvider:
                 dni_wm2=hourly["direct_normal_irradiance"][i] or 0.0,
                 dhi_wm2=hourly["diffuse_radiation"][i] or 0.0,
                 temperature_c=(hourly.get("temperature_2m") or [None] * len(times))[i],
+                humidity_pct=(hourly.get("relative_humidity_2m") or [None] * len(times))[i],
                 wind_speed_ms=(hourly.get("wind_speed_10m") or [None] * len(times))[i],
             )
             for i, raw in enumerate(times)

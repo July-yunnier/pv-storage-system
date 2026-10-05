@@ -6,6 +6,8 @@ from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from app.domain.shift_calendar import ShiftCalendar
+
 
 class SiteLocation(BaseModel):
     lat: float = Field(ge=-90, le=90)
@@ -26,6 +28,8 @@ class LoadConfig(BaseModel):
     annual_kwh: float | None = Field(default=None, ge=0)
     peak_kw: float | None = Field(default=None, ge=0)
     profile_type: str | None = None
+    # 班次/排产日历：高级负荷模型的 MES 标签来源；None = 默认两班制
+    mes_calendar: ShiftCalendar | None = None
 
 
 class StorageConfig(BaseModel):
@@ -215,15 +219,10 @@ class ForecastOptions(BaseModel):
     quantiles: list[float] = Field(default_factory=lambda: [0.1, 0.5, 0.9])
     pv_model: Literal["auto", "statistical", "physics"] = "auto"
     load_model: Literal["statistical", "advanced"] = "statistical"
+    # 高级模型输入：None = 服务端自动构造（历史负荷+气象+班次日历）；显式传入用于实验/回放
     advanced_load_input: AdvancedLoadInput | None = None
     intraday: bool = False
     explain: bool = False  # true 时 provenance 附带气象原始点与回测明细
-
-    @model_validator(mode="after")
-    def validate_advanced_load_input(self) -> "ForecastOptions":
-        if self.load_model == "advanced" and self.advanced_load_input is None:
-            raise ValueError("advanced load_model requires advanced_load_input")
-        return self
 
 
 class ForecastRequest(BaseModel):

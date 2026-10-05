@@ -63,6 +63,7 @@ class MockWeatherProvider:
                     dni_wm2=dni,
                     dhi_wm2=dhi,
                     temperature_c=25.0,
+                    humidity_pct=60.0,
                     wind_speed_ms=2.0,
                 )
             )

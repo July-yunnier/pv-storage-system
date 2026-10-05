@@ -276,6 +276,7 @@ export interface ForecastRequest {
   options?: {
     include_uncertainty?: boolean
     pv_model?: 'auto' | 'statistical' | 'physics'
+    load_model?: 'statistical' | 'advanced'
     intraday?: boolean
     explain?: boolean
   }

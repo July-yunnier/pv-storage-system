@@ -234,9 +234,11 @@ export default function EvalCenterPage() {
                   <Space direction="vertical" size={16} style={{ width: '100%' }}>
                     {siteId && <AccuracyPanel siteId={siteId} target="load_power" />}
                     <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                      学习类负荷模型（MES 排产 + 多任务注意力）已接入预测接口，需显式提供目标日
-                      MES/天气特征；日内滚动已启用残差卡尔曼修正。负荷回放矩阵待回放链路支持
-                      特征合成后开放，对比口径与光伏一致。
+                      学习类负荷模型（MES 排产 + 多任务注意力）已接入主链路：服务端自动构造
+                      30 天负荷历史 + 气象温湿度 + 班次日历特征，负荷预测页可切换模型对比。
+                      日内滚动启用残差卡尔曼修正。负荷回放矩阵待回放链路接入该模型后开放，
+                      对比口径与光伏一致。注意：模型在仿真两班制数据上训练，精度不得作为
+                      真实工厂表现对外宣称。
                     </Typography.Text>
                   </Space>
                 ),

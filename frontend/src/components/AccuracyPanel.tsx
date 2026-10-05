@@ -9,6 +9,8 @@ const METHOD_LABEL: Record<string, string> = {
   pvlib_blend: '融合',
   pv_intraday_deviation: '日内修正',
   load_diurnal_mean: '同刻均值',
+  load_intraday_kalman: '日内卡尔曼',
+  load_mes_multitask_attention: 'MES 注意力',
   day_persistence: '昨日延续',
   slot_mean: '同刻均值',
   slot_mean_bias: '同刻均值+偏差修正',

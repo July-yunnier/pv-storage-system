@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Alert, Card, Space, Spin, Tag, Typography } from 'antd'
+import { Alert, Card, Segmented, Space, Spin, Tag, Typography } from 'antd'
 import dayjs from 'dayjs'
 import type { EChartsOption } from 'echarts'
 import PageHeader from '../../components/PageHeader'
@@ -8,6 +8,8 @@ import { SiteSelect, useSites } from '../../components/SitePicker'
 import EnergyChart from '../../charts/EnergyChart'
 import { runForecast } from '../../api/client'
 import type { ForecastResponse } from '../../api/types'
+
+type LoadModelChoice = 'statistical' | 'advanced'
 
 function buildLoadOption(forecast: ForecastResponse): EChartsOption {
   const target = forecast.results.find((r) => r.target === 'load_power')
@@ -37,6 +39,7 @@ export default function LoadForecastPage() {
   const [forecast, setForecast] = useState<ForecastResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [model, setModel] = useState<LoadModelChoice>('statistical')
 
   useEffect(() => {
     if (!siteId) return
@@ -47,6 +50,10 @@ export default function LoadForecastPage() {
       targets: ['load_power'],
       horizon_hours: 24,
       resolution_minutes: 15,
+      options:
+        model === 'advanced'
+          ? { load_model: 'advanced', include_uncertainty: false }
+          : undefined,
     })
       .then(setForecast)
       .catch((e) => {
@@ -54,7 +61,7 @@ export default function LoadForecastPage() {
         setError(e instanceof Error ? e.message : '预测失败')
       })
       .finally(() => setLoading(false))
-  }, [siteId])
+  }, [siteId, model])
 
   const option = useMemo(
     () => (forecast ? buildLoadOption(forecast) : {}),
@@ -70,8 +77,20 @@ export default function LoadForecastPage() {
     <div>
       <PageHeader
         title="负荷预测"
-        description="同刻均值 × 工作日/周末日历模式；节假日与异常天气是已知短板，属后续算法工作包"
-        extra={<SiteSelect sites={sites} value={siteId} onChange={setSiteId} />}
+        description="统计基线为同刻均值；MES 注意力模型融合 30 天负荷历史、气象温湿度预报与班次日历排产标签"
+        extra={
+          <Space size={12}>
+            <Segmented<LoadModelChoice>
+              value={model}
+              onChange={setModel}
+              options={[
+                { label: '统计基线', value: 'statistical' },
+                { label: 'MES 注意力模型', value: 'advanced' },
+              ]}
+            />
+            <SiteSelect sites={sites} value={siteId} onChange={setSiteId} />
+          </Space>
+        }
       />
       <Space direction="vertical" size={16} style={{ width: '100%' }}>
         <Card
@@ -93,7 +112,16 @@ export default function LoadForecastPage() {
         >
           <Spin spinning={loading}>
             {error ? (
-              <Alert type="warning" showIcon message={error} />
+              <Alert
+                type="warning"
+                showIcon
+                message={error}
+                description={
+                  model === 'advanced'
+                    ? '高级模型需要部署 AI 依赖（requirements-ai.txt）与训练工件；可切回统计基线。'
+                    : undefined
+                }
+              />
             ) : (
               <EnergyChart option={option} height={300} />
             )}

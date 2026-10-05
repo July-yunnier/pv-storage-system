@@ -4,7 +4,12 @@
 - auto（默认）：历史 ≥3 天 → blend 融合（气象失败回退统计法）；否则 physics 物理链
 - statistical：同刻均值基线（需 ≥3 天历史）
 - physics：纯 pvlib 物理链（无需历史，冷启动可用）
-- intraday=True：日内滚动修正（仅光伏，覆盖今日剩余时段）
+- intraday=True：日内滚动修正（光伏/负荷，覆盖今日剩余时段）
+
+负荷模型选择：
+- statistical（默认）：同刻均值基线
+- advanced：MES 排产+多任务注意力模型；advanced_load_input 缺省时服务端自动构造
+  特征（30 天负荷历史 + 气象温湿度 + 班次日历），显式传入则用于实验/回放
 """
 
 from __future__ import annotations
@@ -12,6 +17,7 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta, timezone
 
 from app.api import errors
+from app.application.load_features import build_advanced_load_inputs
 from app.domain.forecast.blend import blend_pv_forecast
 from app.domain.forecast.load import predict_load_intraday, predict_load_profile
 from app.domain.forecast.load_advanced import AdvancedLoadInputs, predict_from_artifact
@@ -206,7 +212,8 @@ def _forecast_target(
                 if days != 1:
                     raise ValueError("advanced load model currently supports a 24-hour horizon")
                 if advanced_load_input is None:
-                    raise ValueError("advanced load model requires target-day MES/weather features")
+                    # 未显式给特征：服务端自动构造（历史负荷+气象温湿度+班次日历）
+                    advanced_load_input = build_advanced_load_inputs(db, site, day)
                 forecast = predict_from_artifact(
                     AdvancedLoadInputs(
                         history_features=advanced_load_input.history_features,

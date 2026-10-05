@@ -101,6 +101,30 @@
 与 A 同形，`target="load_power"`，`caliber.normalization="mean_power"`。
 日历特征（工作日/周末/节假日）是必须项；当前基线为同刻均值 × 工作日模式。
 
+### 4.1 学习类模型（已接入，`load_model=advanced`）
+
+- 模型：MES 排产 + 多任务注意力（`load_mes_multitask_attention`），工件
+  `backend/data/training_artifacts/load_mes_attention.pt` + 同名 `.manifest.json`，
+  经 `LOAD_MODEL_PATH` 环境变量或 `backend/.env.ai` 配置；依赖 `requirements-ai.txt`
+  （torch 延迟加载，未安装时统计链路与调度不受影响，advanced 路径报
+  `DATA_QUALITY_ERROR`/`PROVIDER_ERROR` 优雅降级）。
+- 特征契约（列序即 manifest `history_feature_names`/`target_feature_names`，
+  标准化由工件内参数完成，调用方喂原始物理量）：
+  - history（`history_days`×96 槽，默认 30 天）：`[total_load_kw, temperature_c,
+    humidity_pct, slot_sin, slot_cos, is_workday]` + 每槽 MES 标签
+  - target（96 槽）：`[temperature_c, humidity_pct, slot_sin, slot_cos, is_workday]`
+    + 每槽 MES 标签
+- 服务端自动构造（`application/load_features.py`）：负荷取 measurements
+  （measured/estimated，缺口用同刻均值补）；温湿度取气象 provider 窗口
+  （历史=再分析/模型分析值，目标日=预报，小时锚点线性插值到 15 分钟）；
+  MES 标签来自班次日历（`domain/shift_calendar.py`，站点
+  `load.mes_calendar` 可覆盖，默认两班制；标签 id 与 manifest `mes_mapping` 一致）。
+- 调用方也可显式传 `advanced_load_input`（实验/回放后门）。
+- 日内滚动：`predict_load_intraday`（同刻均值基线 + 实测残差卡尔曼修正）。
+- **口径红线**：工件在仿真两班制数据上训练（manifest `limitations`），
+  精度数字不得作为真实工厂表现对外宣称；真实数据到位后用
+  `fine_tune_for_factory` 微调落地。
+
 ## 5. 契约 C：电价
 
 TOU 查表：输入站点电价配置（`configs/tariff.*.yaml`），输出 96 点 CNY/kWh。
