@@ -34,7 +34,7 @@
 
 ## 当前开发状态
 
-后端闭环已完成，当前处于 I6（容量规划 + 经济性 + PDF 报告）迭代：
+后端闭环 + 前端看板已完成，当前处于算法增强阶段（学习类负荷模型、观测/回放体系已上线）：
 
 - FastAPI 服务骨架、统一错误结构（含 request_id）和健康检查
 - SQLite 列式存储（站点/价目/测量，时间戳统一 UTC 规范化）
@@ -43,26 +43,41 @@
 - 数据质量报告 `GET /api/v1/sites/{site_id}/data-quality`（完整度、缺失区间合并）
 - TOU 电价 Provider、价目查询、站点日价格点 `GET /api/v1/sites/{site_id}/tariff-points`
 - 规则式日调度和 SOC 计算（需量感知：站点可配 `demand_limit_kw` 限制谷段电网充电功率）
-- 调度运行落库追溯 `GET /api/v1/sites/{site_id}/dispatch-runs[/{run_id}]`（含 input_digest，可复现性校验）
+- 调度运行落库追溯 `GET /api/v1/sites/{site_id}/dispatch-runs[/{run_id}]`（含 input_digest 与分时段人话计划说明，可复现性校验）
 - 曲线聚合 `GET /api/v1/sites/{site_id}/curves`（多日 15 分钟网格，pv/load/net_load/price/tier 单一对齐数据源）
-- 超短期预测 `POST /api/v1/forecast`（pv 三模型可选：`auto`（默认，有历史→融合/无历史→物理）/`statistical`（同刻均值基线）/`physics`（pvlib 物理链）；回测精度口径 + p10/p90；`intraday` 日内滚动修正；load 同刻均值；TOU 价格政策给定）
-- 气象 Provider `GET /api/v1/sites/{site_id}/weather`（Open-Meteo 逐小时 GHI/DNI/DHI 辐射预报，Provider 可插拔，`WEATHER_PROVIDER=mock` 离线开发）
+- 超短期预测 `POST /api/v1/forecast`（pv 三模型可选：`auto`（默认，有历史→融合/无历史→物理）/`statistical`（同刻均值基线）/`physics`（pvlib 物理链）；负荷双模型可选：`statistical` 同刻均值 / `advanced` MES 排产+多任务注意力（可选 AI 依赖，服务端自动构造特征）；`intraday` 日内滚动修正（光伏偏差衰减 / 负荷残差卡尔曼）；回测精度口径 + p10/p90；TOU 价格政策给定）
+- 观测体系：预测自动封存、实测到位自动对账 `GET /api/v1/sites/{site_id}/observability/*`
+- 回放实验 `POST /api/v1/sites/{site_id}/replay`：预测方法 × 调度策略矩阵，SOC 跨日连续，导出 JSON/CSV（`scripts/run_replay.py`）
+- 政策电价解析 `POST /api/v1/policy-tariffs/parse-text|parse-pdf|confirm`：LLM 产候选 + 严格校验 + 人工确认入库（可选 AI 依赖）
+- 气象 Provider `GET /api/v1/sites/{site_id}/weather`（Open-Meteo 逐小时 GHI/DNI/DHI + 温湿度，Provider 可插拔，`WEATHER_PROVIDER=mock` 离线开发）
 - 光伏物理链 `domain/forecast/pv_physics.py`（pvlib：太阳位置 → Hay-Davies 转置 → Faiman 温度 → PVWatts 直流，逐小时插值 15 分钟）与融合校准 `blend.py`（物理 × 实测校准系数）
 - 调度支持 `source=auto/measurements/forecast`（auto 按当天数据完整性自动选择，dispatch_runs 记录实际 data_source；光伏预测可走物理链冷启动）
 - 容量规划 `POST /api/v1/storage/sizing`（同一调度引擎跑代表日折算全年，NPV/IRR/回本 + 价差/电池单价敏感性，全量 assumptions；`GET /sites/{id}/sizing-runs[/{run_id}]` 追溯）
 - Sizing PDF 报告 `POST/GET /api/v1/reports[/{id}[/download]]`（reportlab，中文 CID 字体）
-- pytest 测试套件
+- 前端（React + Vite + AntD + ECharts）：总览 / 算法观测（光伏、负荷、电价、调度、储能）/ 投资 / 数据管理 / 测评中心
+- pytest 测试套件（170+ 用例）
 
 本地运行：
 
 ```powershell
 Set-Location backend
-python -m pytest -q        # 运行全部测试
-python scripts/seed_demo.py  # 写入示例电价、站点和 3 天合成数据（幂等，可重复执行）
+python -m pytest -q            # 运行全部测试
+python scripts/seed_dongguan.py  # 东莞示例站点 + 广东示例电价（幂等）
+python scripts/import_guowang.py # 灌入国网公开光伏两年回放 + 两班制仿真负荷（日期平移到最近）
 python run.py
 ```
 
-种子脚本会创建江苏示例 TOU 电价 `T-JIANGSU-DEMO`、南京示例站点 `S-NANJING-DEMO` 以及最近 3 天 15 分钟粒度的光伏/负荷合成数据（写入 `backend/data/storage.db`），脚本末尾会打印一条可直接调用的 `/api/v1/storage/schedule` 示例请求。
+前端（另开终端）：`Set-Location frontend; npm install; npm run dev`，默认 <http://localhost:5173>。
+
+演示站点为东莞示例电子产业园 `S-DONGGUAN-DEMO`（广东珠三角 TOU 示例电价
+`configs/tariff.guangdong.yaml`，午间平段+双高峰，支持两充两放）；光伏为国网公开
+50MW 场站实测标幺化回放（`dataset_guowang/`，需另行获取），负荷为两班制仿真
+（`source=simulator`，不得对外宣称为真实工厂负荷）。`scripts/seed_demo.py`
+（南京/江苏 + 3 天合成数据）为早期冒烟演示保留，新环境请用上面的东莞链路。
+
+AI 增强（可选）：`pip install -r requirements-ai.txt` 后，负荷 MES 注意力模型经
+`.env.ai`（参照 `.env.ai.example`）配置 `LOAD_MODEL_PATH` 启用；政策电价 LLM 解析
+（`/api/v1/policy-tariffs/*`）默认指向本地 Ollama，未配置时接口优雅报错、不影响主链路。
 
 启动后访问 <http://127.0.0.1:8000/docs> 查看 OpenAPI 文档。
 
