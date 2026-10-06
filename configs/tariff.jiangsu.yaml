@@ -1,0 +1,19 @@
+# 江苏工商业 TOU 电价示例。
+# 注意：示例占位，上线前需替换为省发改委正式文件。
+tariff_id: T-JIANGSU-DEMO
+name: 江苏省工商业分时电价（示例）
+mode: tou
+transmission_and_fund: 0.21
+tiers:
+  - name: sharp
+    price: 1.25
+    hours: ["17:00-19:00"]
+  - name: peak
+    price: 0.95
+    hours: ["13:00-17:00", "19:00-20:00"]
+  - name: flat
+    price: 0.65
+    hours: ["07:00-13:00", "20:00-23:00"]
+  - name: valley
+    price: 0.35
+    hours: ["23:00-07:00"]

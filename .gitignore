@@ -1,49 +1,32 @@
-# ---- 数据与模型：体积大，不进仓库 ----
-# 只匹配根目录下的本地 data/ 与 models/ 目录。
-/data/
-/models/
-*.hdf5
-*.npy
-*.pt
-*.pth
-*.pkl
-*.joblib
-
-# ---- Python ----
+# Python
 __pycache__/
 *.py[cod]
-*$py.class
 .venv/
 venv/
-env/
-*.egg-info/
-.pytest_cache/
-.mypy_cache/
-.coverage
-htmlcov/
 
-# ---- Jupyter ----
-.ipynb_checkpoints/
-*.ipynb_checkpoints
+# Node
+node_modules/
+dist/
+.vite/
 
-# ---- 日志与临时文件 ----
-*.log
-/tmp/
-.cache/
-
-# ---- 系统 ----
-.DS_Store
-Thumbs.db
-
-# ---- 敏感信息（绝不入库）----
+# Environment and secrets
 .env
 .env.*
+!.env.example
 !.env.ai.example
+*.pem
 *.key
-secrets.yaml
-credentials.json
 
-# ---- 本地站点配置 ----
-# config/site.yaml 由 site.example.yaml 复制而来，含实际项目参数。
-# 接真实项目后请保持忽略，避免客户信息进入版本历史。
-config/site.yaml
+# Local data and generated output
+data/local/
+reports/generated/
+*.db
+*.sqlite
+backend/data/replay/
+dataset_guowang/
+
+# IDE and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
