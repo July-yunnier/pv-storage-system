@@ -182,9 +182,40 @@ class ScheduleRequest(BaseModel):
     strategy: Literal["rule_v1"] = "rule_v1"
     resolution_minutes: int = Field(default=15, gt=0)
     source: Literal["auto", "measurements", "forecast"] = "auto"
+    price_model: Literal["tou", "ml"] = "tou"
+    predicted_prices: list[PricePoint] | None = None
+    predicted_loads: list[MeasurementPoint] | None = None
+    predicted_pv: list[MeasurementPoint] | None = None
+    power_unit: Literal["kW"] = "kW"
+    price_unit: Literal["CNY/kWh"] = "CNY/kWh"
+    # Optional forecast-aware dispatch controls. Omitting them preserves the
+    # legacy tariff-rule behaviour and uses the site's demand limit when set.
+    reserve_soc: float | None = Field(default=None, ge=0, le=1)
+    peak_shaving_target_kw: float | None = Field(default=None, gt=0)
+    lookahead_hours: int = Field(default=4, gt=0, le=24)
 
 
 ForecastTarget = Literal["pv_power", "load_power", "price"]
+
+
+class MachineLearningForecastRequest(BaseModel):
+    """Native-frequency rolling forecast. Values available at origin only."""
+
+    task: Literal["load", "price"]
+    model: str = Field(min_length=1, pattern=r"^[A-Za-z0-9]+$")
+    horizon_hours: Literal[1, 4] = 1
+    resolution_minutes: Literal[60] = 60
+    unit: str
+    forecast_origin: datetime
+    history: list[MeasurementPoint] = Field(min_length=169)
+    historical_exogenous: dict[str, list[float]] = Field(default_factory=dict)
+
+    @field_validator("forecast_origin")
+    @classmethod
+    def require_origin_timezone(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("forecast_origin must include a timezone")
+        return value
 
 
 class AdvancedLoadInput(BaseModel):

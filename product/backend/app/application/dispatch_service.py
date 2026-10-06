@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import datetime, time, timedelta, timezone
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 from app.api import errors
 from app.application import forecast_service
@@ -28,6 +30,11 @@ def _input_digest(
         "strategy": payload.strategy,
         "resolution_minutes": payload.resolution_minutes,
         "source": payload.source,
+        "reserve_soc": payload.reserve_soc,
+        "peak_shaving_target_kw": payload.peak_shaving_target_kw,
+        "lookahead_hours": payload.lookahead_hours,
+        "price_model": payload.price_model,
+        "price_unit": payload.price_unit,
         "pv": [point.value for point in pv_points],
         "load": [point.value for point in load_points],
         "price": [point.price for point in price_points],
@@ -59,6 +66,8 @@ def run_schedule(db: Database, payload: ScheduleRequest) -> ScheduleResponse:
 
     expected_points = 24 * 60 // payload.resolution_minutes
     source = payload.source
+    if (payload.predicted_loads is not None or payload.predicted_pv is not None) and source != "forecast":
+        raise errors.validation_error("supplied AI power curves require source=forecast")
     if source in ("auto", "measurements"):
         pv_points = db.get_measurements_for_date(
             payload.site_id, "pv_power", payload.date, site.location.timezone
@@ -92,11 +101,11 @@ def run_schedule(db: Database, payload: ScheduleRequest) -> ScheduleResponse:
         try:
             pv_points = _forecast_as_measurements(
                 "pv_power",
-                forecast_service.forecast_series(db, site, "pv_power", payload.date),
+                payload.predicted_pv if payload.predicted_pv is not None else forecast_service.forecast_series(db, site, "pv_power", payload.date),
             )
             load_points = _forecast_as_measurements(
                 "load_power",
-                forecast_service.forecast_series(db, site, "load_power", payload.date),
+                payload.predicted_loads if payload.predicted_loads is not None else forecast_service.forecast_series(db, site, "load_power", payload.date),
             )
         except ValueError as exc:
             if payload.source == "auto":
@@ -105,17 +114,27 @@ def run_schedule(db: Database, payload: ScheduleRequest) -> ScheduleResponse:
                 ) from exc
             raise errors.data_quality_error(str(exc)) from exc
 
-    tariff_id = site.tariff_id or "T-DEFAULT"
-    tariff = db.get_tariff(tariff_id)
-    if tariff is None:
-        raise errors.validation_error(f"tariff not found: {tariff_id}")
     try:
-        provider = TouProvider(tariff)
-        price_points = provider.points(
-            pv_points[0].ts,
-            periods=len(pv_points),
-            resolution_minutes=payload.resolution_minutes,
-        )
+        if payload.price_model == "ml":
+            if source != "forecast" or payload.predicted_prices is None:
+                raise ValueError("ML price dispatch requires source=forecast and predicted_prices in CNY/kWh")
+            price_points = payload.predicted_prices
+        else:
+            tariff_id = site.tariff_id or "T-DEFAULT"
+            tariff = db.get_tariff(tariff_id)
+            if tariff is None:
+                raise ValueError(f"tariff not found: {tariff_id}")
+            provider = TouProvider(tariff)
+            price_points = provider.points(
+                pv_points[0].ts,
+                periods=len(pv_points),
+                resolution_minutes=payload.resolution_minutes,
+            )
+        start = datetime.combine(payload.date, time.min, ZoneInfo(site.location.timezone)).astimezone(timezone.utc)
+        expected = [start+timedelta(minutes=i*payload.resolution_minutes) for i in range(expected_points)]
+        for series in (pv_points, load_points, price_points):
+            if len(series) != expected_points or any(p.ts != ts for p, ts in zip(series, expected)):
+                raise ValueError("schedule curves must cover the target date on the aligned 96-point grid")
         result = RuleDispatchEngine().run(
             DispatchInputs(
                 site=site,
@@ -125,6 +144,15 @@ def run_schedule(db: Database, payload: ScheduleRequest) -> ScheduleResponse:
                 load_points=load_points,
                 price_points=price_points,
                 resolution_minutes=payload.resolution_minutes,
+                # Forecast-origin schedules can use their complete day-ahead
+                # curves for look-ahead shaving/reserve decisions. Measured
+                # schedules retain the legacy rule path for compatibility.
+                forecast_load_points=load_points if source == "forecast" else None,
+                forecast_price_points=price_points if source == "forecast" else None,
+                forecast_pv_points=pv_points if source == "forecast" else None,
+                reserve_soc=payload.reserve_soc,
+                peak_shaving_target_kw=payload.peak_shaving_target_kw,
+                lookahead_hours=payload.lookahead_hours,
             )
         )
     except ValueError as exc:

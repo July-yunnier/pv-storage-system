@@ -200,3 +200,89 @@ def test_pv_surplus_charging_ignores_demand_limit(dispatch_inputs: DispatchInput
     assert all(point.action == "charge" for point in surplus_points)
     assert all(point.power_kw == pytest.approx(100) for point in surplus_points)
     assert all(point.grid_import_kw == 0 for point in surplus_points)
+
+
+def test_forecast_mode_actively_shaves_above_target_in_flat_period(dispatch_inputs: DispatchInputs) -> None:
+    """Forecast mode may shave a demand spike even when the tariff tier is flat."""
+    flat_tariff = TariffRead(
+        **TariffCreate(
+            tariff_id="T-FLAT",
+            name="全平段测试电价",
+            tiers=[{"name": "flat", "price": 0.8, "hours": ["00:00-23:45", "23:45-00:00"]}],
+        ).model_dump(),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+    )
+    prices = TouProvider(flat_tariff).points(dispatch_inputs.pv_points[0].ts, 96)
+    forecasts = [
+        MeasurementRead(
+            data_type="load_power", ts=p.ts, value=1000 if i == 20 else 400,
+            unit="kW", source="forecast"
+        ) for i, p in enumerate(dispatch_inputs.load_points)
+    ]
+    inputs = replace(
+        dispatch_inputs,
+        price_points=prices,
+        load_points=[p.model_copy(update={"value": 1000 if i == 20 else 400}) for i, p in enumerate(dispatch_inputs.load_points)],
+        forecast_load_points=forecasts,
+        forecast_price_points=prices,
+        peak_shaving_target_kw=600,
+    )
+    result = RuleDispatchEngine().run(inputs)
+    spike = result.schedule[20]
+    assert spike.action == "discharge"
+    assert spike.power_kw == pytest.approx(400, abs=1e-6)
+    assert spike.grid_import_kw == pytest.approx(600, abs=1e-6)
+    assert "active_peak_shaving_triggered=true" in result.constraints_applied
+
+
+def test_forecast_mode_reserves_soc_for_future_peak(dispatch_inputs: DispatchInputs) -> None:
+    """A future predicted peak prevents an earlier period from draining reserve."""
+    forecasts = [
+        MeasurementRead(
+            data_type="load_power", ts=p.ts, value=1200 if i == 45 else 800,
+            unit="kW", source="forecast"
+        ) for i, p in enumerate(dispatch_inputs.load_points)
+    ]
+    inputs = replace(
+        dispatch_inputs,
+        initial_soc=0.80,
+        load_points=[p.model_copy(update={"value": 1200 if i == 45 else 800}) for i, p in enumerate(dispatch_inputs.load_points)],
+        forecast_load_points=forecasts,
+        forecast_price_points=dispatch_inputs.price_points,
+        reserve_soc=0.50,
+        peak_shaving_target_kw=1000,
+        lookahead_hours=4,
+    )
+    result = RuleDispatchEngine().run(inputs)
+    # Earlier peak is held at or above the configured reserve, and the later
+    # spike is still eligible for a discharge action.
+    assert result.schedule[40].soc_end >= 0.50 - 1e-6
+    assert any(p.action == "discharge" for p in result.schedule[45:50])
+    assert "reserve_soc=0.5" in result.constraints_applied
+
+
+def test_price_spread_must_cover_round_trip_losses(dispatch_inputs: DispatchInputs) -> None:
+    prices = [p.model_copy(update={"tier": None, "price": 1.0 if i == 0 else 1.01}) for i, p in enumerate(dispatch_inputs.price_points)]
+    inputs = replace(dispatch_inputs, forecast_price_points=prices, price_points=prices)
+    result = RuleDispatchEngine().run(inputs)
+    assert result.schedule[0].action != "charge"
+
+
+def test_future_measured_pv_cannot_change_current_decision(dispatch_inputs: DispatchInputs) -> None:
+    forecasts = [p.model_copy(update={"value": 1200 if i == 1 else 400}) for i, p in enumerate(dispatch_inputs.load_points)]
+    inputs = replace(dispatch_inputs, forecast_load_points=forecasts, peak_shaving_target_kw=600)
+    before = RuleDispatchEngine().run(inputs).schedule[0]
+    changed_pv = [p.model_copy(update={"value": 9999 if i > 0 else 0}) for i, p in enumerate(inputs.pv_points)]
+    after = RuleDispatchEngine().run(replace(inputs, pv_points=changed_pv)).schedule[0]
+    assert before.model_dump() == after.model_dump()
+
+
+def test_reserve_covers_multiple_later_spike_intervals(dispatch_inputs: DispatchInputs) -> None:
+    prices = [p.model_copy(update={"tier": "peak", "price": 1}) for p in dispatch_inputs.price_points]
+    load = [p.model_copy(update={"value": 1000 if 3 <= i <= 5 else 700}) for i, p in enumerate(dispatch_inputs.load_points)]
+    inputs = replace(dispatch_inputs, price_points=prices, load_points=load, forecast_load_points=load,
+                     peak_shaving_target_kw=600, initial_soc=.7)
+    result = RuleDispatchEngine().run(inputs)
+    reserve_energy = 3*400*.25/inputs.site.storage.discharge_eff
+    assert result.schedule[0].soc_end*1000 >= 100+reserve_energy-1e-3

@@ -156,7 +156,7 @@ def predict_pv_intraday(
     base = slot_means(days, base_dates)
     today_measured = days.get(today, {})
 
-    current_slot = issued_local.hour * 60 // SLOT_MINUTES
+    current_slot = (issued_local.hour * 60 + issued_local.minute) // SLOT_MINUTES
     recent = [
         (slot, today_measured[slot * SLOT_MINUTES])
         for slot in range(max(0, current_slot - w_dev + 1), current_slot + 1)

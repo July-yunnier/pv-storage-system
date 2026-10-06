@@ -80,6 +80,16 @@ CSV 至少需要 `ts,total_load_kw,mes_plan`；有真实 `workshop_load_kw` 才�
 
 ## 当前调度规则
 
+### 独立负荷与电价机器学习实验
+
+新增18种模型的独立GEFCom负荷/电价实验、原生小时级 `/api/v1/forecast/ml`、预测曲线驱动的主动削峰与未来高峰电量预留。国内政策TOU保留为兼容路径；市场电价不隐式转换为国内分时电价。
+
+当前新增的验证早停训练及独立消融只用于 GEFCom 预研究：不分天气组、不跨站拼接，电价不计算 Cap，光伏只读既有权重。运行 `scripts/run_audited_preexperiments.py` 后用 `scripts/report_audited_preexperiments.py` 生成报告。达到训练预算不等于收敛；旧20轮结果与同一测试段的历史暴露必须披露。参赛自查清单见 `docs/PREEXPERIMENT_SELF_CHECKLIST.md`。正式主实验尚未开展。
+
+训练、模型权重接入、单位要求、复现与验收命令见 [实验说明](docs/FORECAST_EXPERIMENTS.md)。设置 `FORECAST_ARTIFACT_ROOT` 后即可加载独立任务权重。原96点调度可显式传入 `predicted_loads` / `predicted_pv` / `predicted_prices`，必须满足当地目标日15分钟网格与kW/CNY每kWh单位。
+
+### 默认兼容模式
+
 - 谷段充电。
 - 光伏余电充电。
 - 峰段和尖峰放电。

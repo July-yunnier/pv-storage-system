@@ -164,6 +164,17 @@ class TestIntraday:
         assert all(p.ts > issued for p in result.points)
         assert all(p.ts.date() == TODAY for p in result.points)
 
+    def test_intraday_slot_includes_issued_minute(self) -> None:
+        history: list[tuple[datetime, float]] = []
+        for offset in range(3, 0, -1):
+            day = TODAY - timedelta(days=offset)
+            for slot in range(96):
+                ts = datetime.combine(day, datetime.min.time(), tzinfo=CN_TZ) + timedelta(minutes=15 * slot)
+                history.append((ts, 800.0 if 10 <= ts.hour <= 14 else 0.0))
+        issued = datetime.combine(TODAY, datetime.min.time(), tzinfo=CN_TZ).replace(hour=10, minute=15)
+        result = predict_pv_intraday(history, issued, cap_kw=1000, tz=CN_TZ)
+        assert result.points[0].ts.hour == 10 and result.points[0].ts.minute == 30
+
     def test_intraday_requires_history(self) -> None:
         import pytest
 

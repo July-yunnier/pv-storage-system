@@ -200,6 +200,11 @@ def maybe_rolling_adjust(db: Database, site_id: str, force: bool = False) -> Rol
     else:
         by_slot = {_slot_index(p.ts): p for p in base.schedule}
         initial_soc = by_slot.get(latest_slot, base.schedule[0]).soc_end
+    # Noisy telemetry can fall slightly outside operating bounds. Keep the
+    # physical measurement in the database; constrain the planning initial
+    # state explicitly and report the correction in the revision reason.
+    measured_initial_soc = initial_soc
+    initial_soc = min(max(initial_soc, site.storage.soc_min), site.storage.soc_max)
 
     if not pv_points or not load_points:
         return get_rolling_state(db, site_id)
@@ -229,6 +234,8 @@ def maybe_rolling_adjust(db: Database, site_id: str, force: bool = False) -> Rol
         if force
         else f"光伏偏差 {deviation:.0%}（槽位 {latest_slot}）"
     )
+    if initial_soc != measured_initial_soc:
+        reason += f"; SOC规划值从{measured_initial_soc:.4f}限制到{initial_soc:.4f}"
     revision_no = (revisions[-1]["revision"] if revisions else 0) + 1
     db.insert_rolling_plan(
         site_id=site_id,

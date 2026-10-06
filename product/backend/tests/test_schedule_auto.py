@@ -98,3 +98,23 @@ def test_explicit_forecast_unchanged(site_client: TestClient) -> None:
     response = post_schedule(site_client, "2026-09-17", source="forecast")
     assert response.status_code == 200, response.text
     assert response.json()["data_source"] == "forecast"
+
+
+def test_explicit_ai_curves_dispatch_without_training_history(site_client: TestClient) -> None:
+    day = datetime(2026, 9, 18, tzinfo=CN_TZ)
+    loads, pv = day_points(day, 600), day_points(day, 200)
+    prices = [{"ts": p["ts"], "price": .3 if i < 48 else .9,
+               "energy_price": .3 if i < 48 else .9, "tier": "flat"} for i, p in enumerate(loads)]
+    response = post_schedule(site_client, "2026-09-18", source="forecast", price_model="ml",
+                             predicted_loads=loads, predicted_pv=pv, predicted_prices=prices)
+    assert response.status_code == 200, response.text
+    assert len(response.json()["schedule"]) == 96
+    bad = [{**p, "ts": (day+timedelta(days=1, minutes=i*15)).isoformat()} for i, p in enumerate(loads)]
+    response = post_schedule(site_client, "2026-09-18", source="forecast", price_model="ml",
+                             predicted_loads=bad, predicted_pv=pv, predicted_prices=prices)
+    assert response.status_code == 422
+
+
+def test_ml_dispatch_rejects_foreign_currency(site_client: TestClient) -> None:
+    response = post_schedule(site_client, "2026-09-18", source="forecast", price_model="ml", price_unit="USD/MWh")
+    assert response.status_code == 422
