@@ -1,0 +1,3 @@
+.venv-forecast/
+.pytest_cache/
+data/forecast_experiments/
