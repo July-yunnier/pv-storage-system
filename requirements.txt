@@ -1,3 +1,0 @@
-# 正式后端依赖入口。可选 AI/OCR 依赖见 product/backend/requirements-ai.txt
-# 和 product/backend/requirements-ocr.txt。
--r product/backend/requirements.txt

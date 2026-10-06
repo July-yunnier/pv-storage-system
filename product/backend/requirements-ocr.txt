@@ -1,4 +1,0 @@
-# 扫描版政策 PDF 才需要安装。文本型 PDF 只需 requirements-ai.txt 中的 pypdf。
-paddleocr>=2.8,<4
-paddlepaddle>=2.6,<4
-pymupdf>=1.24,<2
