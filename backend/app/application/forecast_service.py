@@ -17,10 +17,11 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta, timezone
 
 from app.api import errors
-from app.application.load_features import build_advanced_load_inputs
+from app.application import algorithm_registry
+from app.application.load_features import build_advanced_load_inputs, predict_advanced
 from app.domain.forecast.blend import blend_pv_forecast
 from app.domain.forecast.load import predict_load_intraday, predict_load_profile
-from app.domain.forecast.load_advanced import AdvancedLoadInputs, predict_from_artifact
+from app.domain.forecast.load_advanced import AdvancedLoadInputs
 from app.domain.forecast.price import forecast_price_tou
 from app.domain.forecast.pv import (
     predict_pv_diurnal,
@@ -214,7 +215,7 @@ def _forecast_target(
                 if advanced_load_input is None:
                     # 未显式给特征：服务端自动构造（历史负荷+气象温湿度+班次日历）
                     advanced_load_input = build_advanced_load_inputs(db, site, day)
-                forecast = predict_from_artifact(
+                forecast = predict_advanced(
                     AdvancedLoadInputs(
                         history_features=advanced_load_input.history_features,
                         history_mes_labels=advanced_load_input.history_mes_labels,
@@ -255,6 +256,13 @@ def run_forecast(db: Database, payload: ForecastRequest) -> ForecastResponse:
 
     issued_at = payload.issued_at or datetime.now(timezone.utc)
     tz = _zone(site.location.timezone)
+    # 算法选择键统一由注册表校验（"auto" 是光伏服务策略键：有历史走融合，否则物理链）
+    try:
+        if payload.options.pv_model != "auto":
+            algorithm_registry.validate_product_choice("pv_power", payload.options.pv_model)
+        algorithm_registry.validate_product_choice("load_power", payload.options.load_model)
+    except ValueError as exc:
+        raise errors.validation_error(str(exc)) from exc
     # 日前预测：覆盖站点时区次日 00:00 起的完整天；intraday 模式覆盖今日剩余时段
     if payload.options.intraday:
         start_date = issued_at.astimezone(tz).date()

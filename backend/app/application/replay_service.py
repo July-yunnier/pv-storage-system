@@ -22,6 +22,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from app.api import errors
+from app.application.algorithm_registry import replay_methods
 from app.domain.dispatch import DispatchInputs, RuleDispatchEngine
 from app.domain.experiment.execute import ExecutionResult, execute_plan, no_storage_baseline
 from app.domain.experiment.metrics import forecast_metrics
@@ -34,7 +35,8 @@ from app.domain.tariff import TouProvider
 from app.infrastructure.db import Database, _zone
 from app.infrastructure.weather.base import WeatherPoint
 
-PV_METHODS = ["day_persistence", "slot_mean", "slot_mean_bias", "physics", "blend", "oracle"]
+# 回放方法矩阵由算法注册表派生（登记顺序即矩阵顺序），新增算法在注册表登记 replay=True 即入矩阵
+PV_METHODS = replay_methods("pv_power")
 STRATEGIES = ["d0_no_storage", "d1_fixed_curve", "d4_rule_predictive", "d5_rule_oracle"]
 N_DAYS = 12
 MIN_HISTORY = 3

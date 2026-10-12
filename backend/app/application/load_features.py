@@ -16,10 +16,12 @@ import os
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
 
-from app.domain.forecast.load_advanced import AdvancedLoadInputs
+from app.domain.forecast.load_advanced import AdvancedLoadInputs, predict_with_artifact
+from app.domain.forecast.result import TargetForecast
 from app.domain.models import SiteRead
 from app.domain.shift_calendar import ShiftCalendar
 from app.infrastructure.db import Database, _zone
+from app.infrastructure.model_store import default_load_model_path, load_bundle
 from app.infrastructure.weather.base import WeatherPoint
 from app.infrastructure.weather.factory import get_weather_provider
 
@@ -176,3 +178,13 @@ def build_advanced_load_inputs(
         target_features=target_features,
         target_mes_labels=cal.labels_for_day(target_date),
     )
+
+
+def predict_advanced(
+    inputs: AdvancedLoadInputs,
+    target_date: date,
+    tz,
+) -> TargetForecast:
+    """加载工件（带缓存）并跑高级负荷模型推理。工件缺失/不可读抛 ValueError 或 RuntimeError。"""
+    bundle = load_bundle(default_load_model_path())
+    return predict_with_artifact(bundle.state_dict, bundle.metadata, inputs, target_date, tz)
