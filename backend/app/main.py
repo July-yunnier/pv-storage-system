@@ -9,6 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.api.errors import AppError
+from app.api.routes_algorithms import router as algorithms_router
 from app.api.routes_forecast import router as forecast_router
 from app.api.routes_live import router as live_router
 from app.api.routes_policy_tariffs import router as policy_tariffs_router
@@ -112,6 +113,7 @@ def create_app(database_path: str | None = None) -> FastAPI:
         return {"status": "ok", "version": app.version}
 
     app.include_router(sites_router, prefix="/api/v1")
+    app.include_router(algorithms_router, prefix="/api/v1")
     app.include_router(measurements_router, prefix="/api/v1")
     app.include_router(data_quality_router, prefix="/api/v1")
     app.include_router(tariffs_router, prefix="/api/v1")

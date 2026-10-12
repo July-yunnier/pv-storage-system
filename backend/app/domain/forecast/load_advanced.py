@@ -9,10 +9,8 @@ from __future__ import annotations
 
 import copy
 import math
-import os
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta, tzinfo
-from pathlib import Path
 from typing import Any
 
 from app.domain.forecast.result import ForecastModel, ForecastPoint, TargetForecast
@@ -240,19 +238,19 @@ def _standardize(rows: list[list[float]], mean: list[float], std: list[float]) -
     ]
 
 
-def predict_from_artifact(
+def predict_with_artifact(
+    state_dict,
+    metadata: dict,
     inputs: AdvancedLoadInputs,
     target_date: date,
     tz: tzinfo,
-    model_path: str | None = None,
 ) -> TargetForecast:
-    """加载受控模型文件并输出非负、车间不超过总厂的 96 点总负荷预测。"""
+    """纯推理：对已加载的工件（state_dict + metadata）输出 96 点总负荷预测。
+
+    不做文件 I/O、不读环境变量；工件加载与缓存见 infrastructure/model_store.py。
+    输出非负、车间不超过总厂。
+    """
     require_torch()
-    path = Path(model_path or os.getenv("LOAD_MODEL_PATH", ""))
-    if not str(path) or not path.is_file():
-        raise ValueError("未配置有效的 LOAD_MODEL_PATH")
-    artifact = torch.load(path, map_location="cpu", weights_only=True)
-    metadata = artifact["metadata"]
     model = EliteEnergyTaskNet(
         history_feature_dim=int(metadata["history_feature_dim"]),
         target_feature_dim=int(metadata["target_feature_dim"]),
@@ -260,7 +258,7 @@ def predict_from_artifact(
         mes_embed_dim=int(metadata.get("mes_embed_dim", 8)),
         hidden_dim=int(metadata.get("hidden_dim", 128)),
     )
-    model.load_state_dict(artifact["state_dict"])
+    model.load_state_dict(state_dict)
     model.eval()
 
     history = _standardize(
@@ -310,3 +308,21 @@ def predict_from_artifact(
         points=points,
         notes="MES目标日排产+未来特征+历史负荷的多任务注意力模型；输出已反标准化并限制非负",
     )
+
+
+def predict_from_artifact(
+    inputs: AdvancedLoadInputs,
+    target_date: date,
+    tz: tzinfo,
+    model_path: str | None = None,
+) -> TargetForecast:
+    """兼容入口：经 model_store 加载（带缓存）后纯推理。新代码请改用
+    ``application.load_features.predict_advanced``。"""
+    from app.infrastructure.model_store import (  # 延迟导入：保持 domain 不硬依赖 infra
+        default_load_model_path,
+        load_bundle,
+    )
+
+    path = model_path or default_load_model_path()
+    bundle = load_bundle(path)
+    return predict_with_artifact(bundle.state_dict, bundle.metadata, inputs, target_date, tz)
