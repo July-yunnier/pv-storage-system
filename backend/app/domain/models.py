@@ -217,8 +217,11 @@ class AdvancedLoadInput(BaseModel):
 class ForecastOptions(BaseModel):
     include_uncertainty: bool = True
     quantiles: list[float] = Field(default_factory=lambda: [0.1, 0.5, 0.9])
-    pv_model: Literal["auto", "statistical", "physics"] = "auto"
-    load_model: Literal["statistical", "advanced"] = "statistical"
+    # 算法选择键的取值集合由算法注册表（app.application.algorithm_registry）定义，
+    # 这里刻意用宽 str：新算法在注册表登记即可用，不必改请求 schema；
+    # 非法取值在 forecast_service 入口统一 422。
+    pv_model: str = "auto"  # "auto" 为服务策略键（有历史走融合，否则物理链）
+    load_model: str = "statistical"
     # 高级模型输入：None = 服务端自动构造（历史负荷+气象+班次日历）；显式传入用于实验/回放
     advanced_load_input: AdvancedLoadInput | None = None
     intraday: bool = False

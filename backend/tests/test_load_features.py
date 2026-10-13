@@ -120,12 +120,12 @@ def test_api_advanced_auto_builds_inputs(site_client: TestClient, monkeypatch) -
     """不显式传 advanced_load_input：服务端自动构造特征后调模型。"""
     captured: dict = {}
 
-    def stub_predict(inputs, target_date, tz, model_path=None):
+    def stub_predict(inputs, target_date, tz):
         captured["history_len"] = len(inputs.history_features)
         captured["target_len"] = len(inputs.target_features)
         return _stub_forecast(target_date)
 
-    monkeypatch.setattr(forecast_service, "predict_from_artifact", stub_predict)
+    monkeypatch.setattr(forecast_service, "predict_advanced", stub_predict)
     for offset in range(5, 0, -1):
         day = TODAY - timedelta(days=offset)
         response = site_client.post(

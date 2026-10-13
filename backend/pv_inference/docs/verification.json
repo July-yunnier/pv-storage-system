@@ -1,0 +1,14 @@
+{
+  "completed_models": 10,
+  "folds_per_model": 5,
+  "effective_7030_all": true,
+  "frozen_models_unchanged": true,
+  "report_sha256": "489474fbce8fb7670fef7e224cf322b761ef970c7334c42ffc178ded9b626a1c",
+  "original_release_complies": false,
+  "research_weights_discarded": true,
+  "research_refits_replace_frozen_release": false,
+  "competition_text_verified": false,
+  "independent_saved_case_reconstruction": true,
+  "disjoint_outer_cv": true,
+  "final_test_excluded_from_cv": true
+}
