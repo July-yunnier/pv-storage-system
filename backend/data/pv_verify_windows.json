@@ -1,0 +1,274 @@
+{
+  "platform": "win32",
+  "python": "3.12.13",
+  "passed": true,
+  "models": [
+    {
+      "model_id": "skippd",
+      "passed": true,
+      "checked_cases": 4,
+      "hash_before_load_verified": true,
+      "model_sha256": "3df1476abc0a8878a955e6b59dc2c561407987f6821f60aed069dd147f884a56",
+      "max_abs_error_kw": 2.730521206473213e-06,
+      "tolerance_kw": 3.01e-05,
+      "load_seconds": 38.137904700000945,
+      "inference_seconds": [
+        10.159228399999847,
+        0.14777850000245962,
+        0.1424375999995391,
+        0.16092220000427915
+      ],
+      "peak_process_rss_mb": null,
+      "invalid_input_checks": [
+        "nonfinite",
+        "timestamps/gaps",
+        "future availability",
+        "feature schema",
+        "hash",
+        "package version"
+      ],
+      "bitmap_inference": null
+    },
+    {
+      "model_id": "skippd_images",
+      "passed": true,
+      "checked_cases": 4,
+      "hash_before_load_verified": true,
+      "model_sha256": "0c9315cc434249a6fde73eaaa2b4e0969f74dd1ee392a5d2413312cfe675fddb",
+      "max_abs_error_kw": 2.0824248494477615e-06,
+      "tolerance_kw": 3.01e-05,
+      "load_seconds": 3.4263674000030733,
+      "inference_seconds": [
+        0.1603497000032803,
+        0.13126639999973122,
+        0.14356479999696603,
+        0.1288998999953037
+      ],
+      "peak_process_rss_mb": null,
+      "invalid_input_checks": [
+        "nonfinite",
+        "timestamps/gaps",
+        "future availability",
+        "feature schema",
+        "hash",
+        "package version"
+      ],
+      "bitmap_inference": {
+        "frames": 30,
+        "resolution": [
+          64,
+          64
+        ],
+        "passed": true
+      }
+    },
+    {
+      "model_id": "state_grid_1",
+      "passed": true,
+      "checked_cases": 4,
+      "hash_before_load_verified": true,
+      "model_sha256": "22c65db50b85aeca087e67b2435c11f37ce5919260ed3aab91f051dbbae80ce9",
+      "max_abs_error_kw": 0.0010732960618042853,
+      "tolerance_kw": 0.049999999999999996,
+      "load_seconds": 1.6065228000006755,
+      "inference_seconds": [
+        0.09034619999874849,
+        0.10615429999597836,
+        0.09603639999841107,
+        0.09704659999988507
+      ],
+      "peak_process_rss_mb": null,
+      "invalid_input_checks": [
+        "nonfinite",
+        "timestamps/gaps",
+        "future availability",
+        "feature schema",
+        "hash",
+        "package version"
+      ],
+      "bitmap_inference": null
+    },
+    {
+      "model_id": "state_grid_2",
+      "passed": true,
+      "checked_cases": 4,
+      "hash_before_load_verified": true,
+      "model_sha256": "7de34dcb23ae3f8419df7351bfc0d62f14e368939e691b119ecd19b8323744a3",
+      "max_abs_error_kw": 0.004187255050055683,
+      "tolerance_kw": 0.13,
+      "load_seconds": 1.8053109999964363,
+      "inference_seconds": [
+        0.12290000000211876,
+        0.11195510000106879,
+        0.10557819999667117,
+        0.1065725999942515
+      ],
+      "peak_process_rss_mb": null,
+      "invalid_input_checks": [
+        "nonfinite",
+        "timestamps/gaps",
+        "future availability",
+        "feature schema",
+        "hash",
+        "package version"
+      ],
+      "bitmap_inference": null
+    },
+    {
+      "model_id": "state_grid_3",
+      "passed": true,
+      "checked_cases": 4,
+      "hash_before_load_verified": true,
+      "model_sha256": "5e4e4729afb638818146979f2c47219268da1cdf61f34d7efdecab7b37061a08",
+      "max_abs_error_kw": 0.0015466521326743532,
+      "tolerance_kw": 0.03,
+      "load_seconds": 1.4371911999987788,
+      "inference_seconds": [
+        0.10163730000203941,
+        0.10768589999497635,
+        0.09875910000118893,
+        0.11974080000072718
+      ],
+      "peak_process_rss_mb": null,
+      "invalid_input_checks": [
+        "nonfinite",
+        "timestamps/gaps",
+        "future availability",
+        "feature schema",
+        "hash",
+        "package version"
+      ],
+      "bitmap_inference": null
+    },
+    {
+      "model_id": "state_grid_4",
+      "passed": true,
+      "checked_cases": 4,
+      "hash_before_load_verified": true,
+      "model_sha256": "371b40d4a8874adf5693c620580c7ec481b477ab1ce526e2bc7d36d30f9687f5",
+      "max_abs_error_kw": 0.0032718324509914964,
+      "tolerance_kw": 0.13,
+      "load_seconds": 1.5370467000029748,
+      "inference_seconds": [
+        0.15585409999766853,
+        0.12404170000081649,
+        0.09863420000328915,
+        0.10459340000670636
+      ],
+      "peak_process_rss_mb": null,
+      "invalid_input_checks": [
+        "nonfinite",
+        "timestamps/gaps",
+        "future availability",
+        "feature schema",
+        "hash",
+        "package version"
+      ],
+      "bitmap_inference": null
+    },
+    {
+      "model_id": "state_grid_5",
+      "passed": true,
+      "checked_cases": 4,
+      "hash_before_load_verified": true,
+      "model_sha256": "0cf36ec57bf1dfc9774e9ffa2d7728f79c4a182c2504e17950460807e04492cf",
+      "max_abs_error_kw": 0.0023552104612463154,
+      "tolerance_kw": 0.11,
+      "load_seconds": 1.4743276000008336,
+      "inference_seconds": [
+        0.108974800001306,
+        0.10473240000283113,
+        0.10173940000095172,
+        0.10723929999949178
+      ],
+      "peak_process_rss_mb": null,
+      "invalid_input_checks": [
+        "nonfinite",
+        "timestamps/gaps",
+        "future availability",
+        "feature schema",
+        "hash",
+        "package version"
+      ],
+      "bitmap_inference": null
+    },
+    {
+      "model_id": "state_grid_6",
+      "passed": true,
+      "checked_cases": 4,
+      "hash_before_load_verified": true,
+      "model_sha256": "354094a253d923f9ac5661d25b867564861e5efddc6d8a46f583deb330007365",
+      "max_abs_error_kw": 0.0010075145401060581,
+      "tolerance_kw": 0.034999999999999996,
+      "load_seconds": 1.4947947999971802,
+      "inference_seconds": [
+        0.1309008999960497,
+        0.09188569999969332,
+        0.09551099999953294,
+        0.11247189999994589
+      ],
+      "peak_process_rss_mb": null,
+      "invalid_input_checks": [
+        "nonfinite",
+        "timestamps/gaps",
+        "future availability",
+        "feature schema",
+        "hash",
+        "package version"
+      ],
+      "bitmap_inference": null
+    },
+    {
+      "model_id": "state_grid_7",
+      "passed": true,
+      "checked_cases": 4,
+      "hash_before_load_verified": true,
+      "model_sha256": "516b77fca770b61219111429ff252e31fd93a2786d5811c25be95bb866785f29",
+      "max_abs_error_kw": 0.001274959162401501,
+      "tolerance_kw": 0.03,
+      "load_seconds": 1.4091645000007702,
+      "inference_seconds": [
+        0.10563040000124602,
+        0.10662220000085654,
+        0.09861960000125691,
+        0.10005570000066655
+      ],
+      "peak_process_rss_mb": null,
+      "invalid_input_checks": [
+        "nonfinite",
+        "timestamps/gaps",
+        "future availability",
+        "feature schema",
+        "hash",
+        "package version"
+      ],
+      "bitmap_inference": null
+    },
+    {
+      "model_id": "state_grid_8",
+      "passed": true,
+      "checked_cases": 4,
+      "hash_before_load_verified": true,
+      "model_sha256": "462235a1ce1ea94defb9a18a28a784144a8726019fd6f8590397a3d262f3b1fb",
+      "max_abs_error_kw": 0.00030052821966819465,
+      "tolerance_kw": 0.03,
+      "load_seconds": 1.6023482999953558,
+      "inference_seconds": [
+        0.10684620000392897,
+        0.10670620000018971,
+        0.10466509999969276,
+        0.10490750000462867
+      ],
+      "peak_process_rss_mb": null,
+      "invalid_input_checks": [
+        "nonfinite",
+        "timestamps/gaps",
+        "future availability",
+        "feature schema",
+        "hash",
+        "package version"
+      ],
+      "bitmap_inference": null
+    }
+  ]
+}
