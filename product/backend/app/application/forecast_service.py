@@ -119,7 +119,7 @@ def _pv_day_forecast(
                         fetched_at,
                     )
                 except (errors.AppError, ValueError):
-                    pass  # 气象不可用 → 回退统计法
+                    pass  # 气象不可用或融合数据不足 → 回退统计法
             return predict_pv_diurnal(history, day, pv.capacity_kwp, tz, N_DAYS)
         except ValueError as exc:
             raise errors.data_quality_error(str(exc)) from exc
@@ -178,14 +178,17 @@ def _forecast_target(
     if intraday and target == "pv_power":
         # 日内滚动修正：今日已发生实测 + 今日剩余时段；历史包含今日已发生部分
         history_today = _history(db, site, target, start_date + timedelta(days=1), N_DAYS)
+        history_today = [(ts, value) for ts, value in history_today if ts <= issued_at]
         try:
             return predict_pv_intraday(
                 history_today, issued_at.astimezone(tz), site.pv.capacity_kwp, tz, N_DAYS
             )
         except ValueError as exc:
             raise errors.data_quality_error(str(exc)) from exc
+
     if intraday and target == "load_power":
         history_today = _history(db, site, target, start_date + timedelta(days=1), N_DAYS)
+        history_today = [(ts, value) for ts, value in history_today if ts <= issued_at]
         try:
             return predict_load_intraday(
                 history_today, issued_at.astimezone(tz), tz, N_DAYS
@@ -240,6 +243,9 @@ def run_forecast(db: Database, payload: ForecastRequest) -> ForecastResponse:
         raise errors.not_found(f"site not found: {payload.site_id}")
     if payload.resolution_minutes != 15:
         raise errors.validation_error("MVP only supports 15-minute resolution")
+    if payload.options.pv_model == "ampdnet":
+        from app.application.ampdnet_service import run_ampdnet_forecast
+        return run_ampdnet_forecast(db, site, payload)
     if payload.horizon_hours > MAX_HORIZON_HOURS or payload.horizon_hours % 24 != 0:
         raise errors.validation_error(
             f"horizon_hours must be a positive multiple of 24 and at most {MAX_HORIZON_HOURS}"
@@ -253,7 +259,7 @@ def run_forecast(db: Database, payload: ForecastRequest) -> ForecastResponse:
         days = 1
     else:
         start_date = issued_at.astimezone(tz).date() + timedelta(days=1)
-        days = payload.horizon_hours // 24
+        days = int(payload.horizon_hours // 24)
 
     results = [
         _forecast_target(
@@ -272,9 +278,35 @@ def run_forecast(db: Database, payload: ForecastRequest) -> ForecastResponse:
         )
         for target in payload.targets
     ]
+    _archive_forecasts(db, site, results, issued_at, tz)
     return ForecastResponse(
         site_id=site.site_id,
         issued_at=issued_at,
         resolution_minutes=payload.resolution_minutes,
         results=results,
     )
+
+
+def _archive_forecasts(
+    db: Database,
+    site: SiteRead,
+    results: list[TargetForecast],
+    issued_at: datetime,
+    tz,
+) -> None:
+    """观测体系：每次发出的预测原样封存，供实测到位后对账。封存失败不阻断主流程。"""
+    for result in results:
+        if not result.points:
+            continue
+        try:
+            db.insert_forecast_archive(
+                site_id=site.site_id,
+                target=result.target,
+                method=result.model.name,
+                target_date=result.points[0].ts.astimezone(tz).date(),
+                issued_at=issued_at,
+                points=[{"ts": p.ts.isoformat(), "value": p.value} for p in result.points],
+                provenance=result.provenance.model_dump(mode="json") if result.provenance else None,
+            )
+        except Exception:  # noqa: BLE001 - 观测写库不应影响预测主链路
+            continue

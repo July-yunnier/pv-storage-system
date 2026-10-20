@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+import math
 from typing import Literal
 from uuid import uuid4
 
@@ -182,40 +183,9 @@ class ScheduleRequest(BaseModel):
     strategy: Literal["rule_v1"] = "rule_v1"
     resolution_minutes: int = Field(default=15, gt=0)
     source: Literal["auto", "measurements", "forecast"] = "auto"
-    price_model: Literal["tou", "ml"] = "tou"
-    predicted_prices: list[PricePoint] | None = None
-    predicted_loads: list[MeasurementPoint] | None = None
-    predicted_pv: list[MeasurementPoint] | None = None
-    power_unit: Literal["kW"] = "kW"
-    price_unit: Literal["CNY/kWh"] = "CNY/kWh"
-    # Optional forecast-aware dispatch controls. Omitting them preserves the
-    # legacy tariff-rule behaviour and uses the site's demand limit when set.
-    reserve_soc: float | None = Field(default=None, ge=0, le=1)
-    peak_shaving_target_kw: float | None = Field(default=None, gt=0)
-    lookahead_hours: int = Field(default=4, gt=0, le=24)
 
 
 ForecastTarget = Literal["pv_power", "load_power", "price"]
-
-
-class MachineLearningForecastRequest(BaseModel):
-    """Native-frequency rolling forecast. Values available at origin only."""
-
-    task: Literal["load", "price"]
-    model: str = Field(min_length=1, pattern=r"^[A-Za-z0-9]+$")
-    horizon_hours: Literal[1, 4] = 1
-    resolution_minutes: Literal[60] = 60
-    unit: str
-    forecast_origin: datetime
-    history: list[MeasurementPoint] = Field(min_length=169)
-    historical_exogenous: dict[str, list[float]] = Field(default_factory=dict)
-
-    @field_validator("forecast_origin")
-    @classmethod
-    def require_origin_timezone(cls, value: datetime) -> datetime:
-        if value.tzinfo is None or value.utcoffset() is None:
-            raise ValueError("forecast_origin must include a timezone")
-        return value
 
 
 class AdvancedLoadInput(BaseModel):
@@ -241,10 +211,35 @@ class AdvancedLoadInput(BaseModel):
         return self
 
 
+class AmpdnetObservation(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    ts: datetime
+    tsi: float
+    dni: float
+    ghi: float
+    temperature_c: float
+
+    @model_validator(mode="after")
+    def validate_observation(self) -> "AmpdnetObservation":
+        if self.ts.tzinfo is None or self.ts.utcoffset() is None:
+            raise ValueError("AMPDNet observation timestamps must include timezone")
+        if not all(math.isfinite(x) for x in (self.temperature_c, self.tsi, self.dni, self.ghi)):
+            raise ValueError("AMPDNet features must be finite")
+        return self
+
+
+class AmpdnetInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    station: Literal["Solar1", "Solar2", "Solar6", "Solar7", "Solar8"]
+    task: Literal["15min", "1h", "4h"]
+    observations: list[AmpdnetObservation] = Field(min_length=48, max_length=192)
+
+
 class ForecastOptions(BaseModel):
     include_uncertainty: bool = True
     quantiles: list[float] = Field(default_factory=lambda: [0.1, 0.5, 0.9])
-    pv_model: Literal["auto", "statistical", "physics"] = "auto"
+    pv_model: Literal["auto", "statistical", "physics", "ampdnet"] = "auto"
+    ampdnet_input: AmpdnetInput | None = None
     load_model: Literal["statistical", "advanced"] = "statistical"
     advanced_load_input: AdvancedLoadInput | None = None
     intraday: bool = False
@@ -254,13 +249,15 @@ class ForecastOptions(BaseModel):
     def validate_advanced_load_input(self) -> "ForecastOptions":
         if self.load_model == "advanced" and self.advanced_load_input is None:
             raise ValueError("advanced load_model requires advanced_load_input")
+        if self.pv_model == "ampdnet" and self.ampdnet_input is None:
+            raise ValueError("ampdnet requires station, task and timestamped TSI/DNI/GHI/temperature observations")
         return self
 
 
 class ForecastRequest(BaseModel):
     site_id: str
     targets: list[ForecastTarget] = Field(min_length=1)
-    horizon_hours: int = Field(default=24, gt=0)
+    horizon_hours: float = Field(default=24, gt=0)
     resolution_minutes: int = Field(default=15, gt=0)
     issued_at: datetime | None = None
     options: ForecastOptions = Field(default_factory=ForecastOptions)
@@ -348,6 +345,20 @@ class DispatchPoint(BaseModel):
     grid_import_kw: float = Field(ge=0)
     grid_export_kw: float = Field(ge=0)
     pv_curtailment_kw: float = Field(ge=0)
+    # 充电来源拆分（charge 时）：光伏余电直充 vs 电网购电充电；默认 0 兼容旧记录
+    charge_from_pv_kw: float = Field(default=0, ge=0)
+    charge_from_grid_kw: float = Field(default=0, ge=0)
+
+
+class PlanSegment(BaseModel):
+    """计划说明的一段：连续相同动作的时段 + 人话解释。"""
+
+    start: str  # HH:mm
+    end: str  # HH:mm（段终点，闭区间的下一槽）
+    action: Literal["charge_pv", "charge_grid", "discharge"]
+    tier: TierName | None
+    avg_power_kw: float
+    text: str
 
 
 class BenefitBreakdown(BaseModel):
@@ -377,6 +388,8 @@ class ScheduleResponse(BaseModel):
     benefit_breakdown: BenefitBreakdown | None = None
     run_id: str | None = None
     data_source: Literal["measurements", "forecast"] = "measurements"
+    # 计划说明（分时段人话解释）；None = 旧记录，读取路径会补算
+    explanation: list[PlanSegment] | None = None
 
 
 class DispatchRunSummary(BaseModel):

@@ -1,0 +1,100 @@
+{
+  "station": "Solar8",
+  "task": "4h",
+  "tag": "4h_Solar8_processed_3_full_tr0.6_val0.2_s42",
+  "model": "AMPDNet_full",
+  "training_epochs_completed": 20,
+  "selected_epoch": 7,
+  "seed": 42,
+  "validation_mae_norm": 0.10249894857406616,
+  "selection": {
+    "stations": [
+      "Solar1",
+      "Solar2",
+      "Solar6",
+      "Solar7",
+      "Solar8"
+    ],
+    "tasks": [
+      "15min",
+      "1h",
+      "4h"
+    ],
+    "ablation": "full",
+    "season": "all",
+    "train_ratio": 0.6,
+    "val_ratio": 0.2,
+    "test_ratio": 0.2,
+    "seed": 42,
+    "epochs_completed": 20,
+    "checkpoint_selection": "lowest validation MAE within each preselected run; no test ranking",
+    "release_scope": "historical daylight-compressed protocol; opt-in experimental inference; not energy-v3 unified main result",
+    "comparison_tolerance_norm": {
+      "atol": 0.001,
+      "rtol": 0.0001
+    },
+    "comparison_tolerance_kw_fraction_nominal_cap": 0.001,
+    "tolerance_note": "CPU/GPU float32 inference is numerically close but not bitwise identical for long horizons. All reported max deltas are retained; acceptance is norm atol=1e-3/rtol=1e-4 and absolute error <=0.1% nominal Cap. This tolerance validates deployment numerical equivalence, not metric reproduction or training correctness."
+  },
+  "input_size": 192,
+  "output_size": 16,
+  "features": [
+    "TSI",
+    "DNI",
+    "GHI",
+    "Temp"
+  ],
+  "feature_units": [
+    "W/m2",
+    "W/m2",
+    "W/m2",
+    "degC"
+  ],
+  "input_min": [
+    0.0,
+    0.0,
+    0.0,
+    -7.0
+  ],
+  "input_max": [
+    1199.8199462890625,
+    1043.8499755859375,
+    155.97999572753906,
+    47.630001068115234
+  ],
+  "output_min_mw": 0.0,
+  "output_max_mw": 29.40999984741211,
+  "scaler_fit_prefix_rows": 22890,
+  "scaler_reconstruction": "exact delivered train-prefix min/max, float32 pandas arithmetic; original multi-step boundary overlap disclosed",
+  "cap_kw": 30000,
+  "capacity_basis": "filename nominal MW * 1000, available AC/DC status unverified",
+  "timezone": "Asia/Shanghai",
+  "history_sampling": "06:00..18:45 every 15min; next retained point is next-day06:00",
+  "online_output_policy": "only same-day daylight target timestamps; reject cross-night target path; not an overnight or day-ahead forecast",
+  "checkpoint_file": "evidence/4h_Solar8_processed_3_full_tr0.6_val0.2_s42.pth",
+  "checkpoint_sha256": "d814ee1c3912b5a3ce41f6a0212e2a7c93cb0a137de646ab38af07c935815bfb",
+  "artifact_file": "4h_Solar8_processed_3_full_tr0.6_val0.2_s42.torchscript.pt",
+  "artifact_sha256": "7a777d1235e0092a54f794c8b0f2dd1eb9750da18004f636ba135596b9a99166",
+  "processed_data_sha256": "d903fb8ae6691e1e3ba3cd91f07b92eb091d82e5fa53987f7870f971f9c9549f",
+  "upstream": {
+    "url": "https://github.com/USTC-AI4EEE/AMPDNet",
+    "commit": "751bf2931cf1d369a6b998710daf6162aab8b6ab",
+    "paper": "Liu et al. 2026, Adaptive multi-scale perception-based decoupled network for efficient and accurate photovoltaic forecasting, Solar Energy 312, 114563",
+    "license": "not verified; pinned checkout has no LICENSE; no new redistribution license granted"
+  },
+  "limitations": [
+    "historical 60/20/20 daylight-compressed training, not unified 60/10/30",
+    "multi-step target boundary overlaps in original training",
+    "Solar2 100MW filtering and Solar8 interpolated labels retained in training; not repaired by inference",
+    "20 epochs completed does not establish convergence",
+    "cross-site transfer not verified"
+  ],
+  "verification": {
+    "n_test_windows": 7561,
+    "n_predictions": 120976,
+    "cpu_vs_delivered_max_abs_norm": 4.585832357406616e-05,
+    "cpu_vs_delivered_max_abs_kw": 1.3486146926879883,
+    "torchscript_vs_eager_max_abs_norm": 0.0,
+    "tolerance_kw": 30.0
+  }
+}
