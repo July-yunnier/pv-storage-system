@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Callable
 
 from app.infrastructure.model_store import load_model_unavailable_reason
 
@@ -41,6 +42,8 @@ class ForecastAlgorithm:
     requires_weather: bool = False
     requires_torch: bool = False
     requires_artifact: bool = False
+    # 自定义可用性探测（返回 None=可用，否则原因）；优先级高于 requires_* 默认探测
+    probe: Callable[[], str | None] | None = None
 
 
 _CATALOG: tuple[ForecastAlgorithm, ...] = (
@@ -105,8 +108,30 @@ _CATALOG: tuple[ForecastAlgorithm, ...] = (
     ForecastAlgorithm(
         name="tou_policy", target=PRICE, kind="policy",
         summary="TOU 政策电价查表（确定量，无不确定性）；现货价格预测另立算法线",
+        product_key="tou",
+    ),
+    ForecastAlgorithm(
+        name="price_diurnal_quantile", target=PRICE, kind="statistical",
+        summary="近 14 天同时刻中位数画像（右偏分布下中位数为 MAE 最优中心）；"
+                "现货历史 ≥3 天可用，auto 链的中间档",
+        product_key="statistical", requires_history_days=3,
+    ),
+    ForecastAlgorithm(
+        name="price_lgbm_quantile", target=PRICE, kind="ml",
+        summary="LightGBM 分位数（GEFCom2014-P 样本外比昨日延续误差低 29.1%）；"
+                "需站点训练工件（PRICE_MODEL_DIR/{site_id}），auto 链的首选档；"
+                "离线对照另有 naive_daily/naive_weekly/LEAR/MQ-CNN（scripts/run_price_benchmark.py）",
+        product_key="lgbm", probe=lambda: _lightgbm_unavailable(),
     ),
 )
+
+
+def _lightgbm_unavailable() -> str | None:
+    try:
+        import lightgbm  # noqa: F401
+        return None
+    except ImportError:
+        return "lightgbm 未安装（工件路径不可用，auto 链回退统计画像）"
 
 
 def catalog(target: str | None = None) -> list[ForecastAlgorithm]:
@@ -142,6 +167,8 @@ def replay_methods(target: str) -> list[str]:
 
 def unavailable_reason(entry: ForecastAlgorithm) -> str | None:
     """可用性探测：返回 None 表示当前环境可用，否则返回原因。"""
+    if entry.probe is not None:
+        return entry.probe()
     if entry.requires_torch or entry.requires_artifact:
         return load_model_unavailable_reason()
     return None

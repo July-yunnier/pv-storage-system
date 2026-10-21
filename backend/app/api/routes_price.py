@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 
 from app.api import errors
 from app.api.dependencies import get_db
-from app.application import price_service
+from app.application import algorithm_registry, price_service
 from app.domain.forecast import price_calendar as cal
 from app.domain.models import SiteRead, SpotPriceRead, SpotPriceUpload
 from app.infrastructure.db import Database, _zone
@@ -95,7 +95,8 @@ def _tier_map(site: SiteRead, db: Database) -> tuple[TouProvider | None, dict[in
 def get_price_forecast(
     site_id: str,
     days: int = Query(default=1, ge=1, le=7, description="预测天数（1-7）"),
-    model: Literal["auto", "lgbm", "statistical", "tou"] = Query(default="auto"),
+    # 取值集合由算法注册表定义（GET /api/v1/algorithms），"auto" 为服务端降级链策略键
+    model: str = Query(default="auto", description="auto 或注册表 price 条目 product_key"),
     uncertainty: bool = Query(default=True, description="是否返回 P10/P90 区间"),
     resolution_minutes: int = Query(default=15, description="输出粒度，仅支持 15/30/60"),
     db: Database = Depends(get_db),
@@ -106,15 +107,18 @@ def get_price_forecast(
     tz = _zone(site.location.timezone)
     issued_at = datetime.now(tz)
     start_date = issued_at.date() + timedelta(days=1)
-    model_key = "statistical" if model in ("statistical",) else model
-
+    if model != "auto":
+        try:
+            algorithm_registry.validate_product_choice("price", model)
+        except ValueError as exc:
+            raise errors.validation_error(str(exc)) from exc
     target, series, data_note = price_service.forecast_price(
         db,
         site,
         start_date,
         days,
         tz,
-        model=model_key,
+        model=model,
         include_uncertainty=uncertainty,
         resolution_minutes=resolution_minutes,
     )
