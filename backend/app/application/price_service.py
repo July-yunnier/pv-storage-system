@@ -361,7 +361,8 @@ def forecast_price(
         try:
             forecaster = LgbmQuantileForecaster.load(artifact)
             forecast = _recursive_day_ahead(forecaster, series, issue_idx, days)
-        except (RuntimeError, ValueError, KeyError, FileNotFoundError) as exc:
+        except (RuntimeError, ValueError, KeyError, FileNotFoundError, ImportError) as exc:
+            # ImportError：机器上没装 lightgbm 但工件存在。不能 500，退回统计画像。
             if model == "lgbm":
                 raise errors.data_quality_error(f"price model failed: {exc}") from exc
             notes.append(f"LightGBM 工件不可用，回退统计画像（{exc}）")
