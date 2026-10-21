@@ -23,7 +23,7 @@ from app.domain.forecast.pv import (
 )
 from app.domain.forecast.result import ForecastPoint, ForecastResponse, TargetForecast
 from app.domain.forecast.stats import MIN_HISTORY_DAYS, daily_series
-from app.domain.models import ForecastRequest, SiteRead
+from app.domain.models import ForecastOptions, ForecastRequest, SiteRead
 from app.infrastructure.db import Database, _zone
 from app.infrastructure.weather.factory import get_weather_provider
 
@@ -165,6 +165,7 @@ def _forecast_target(
     intraday: bool,
     issued_at: datetime,
     explain: bool = False,
+    price_options: ForecastOptions | None = None,
 ) -> TargetForecast:
     tz = _zone(site.location.timezone)
     if target == "price":
@@ -172,7 +173,41 @@ def _forecast_target(
         tariff = db.get_tariff(tariff_id)
         if tariff is None:
             raise errors.validation_error(f"tariff not found: {tariff_id}")
-        return forecast_price_tou(tariff, start_date, days, tz)
+        options = price_options or ForecastOptions()
+        if options.price_model == "tou" or (options.price_model == "auto" and tariff.mode == "tou"):
+            try:
+                result = forecast_price_tou(tariff, start_date, days, tz)
+            except ValueError as exc:
+                raise errors.validation_error(str(exc)) from exc
+            if not include_uncertainty:
+                result.p10 = result.p90 = None
+            return result
+        if intraday:
+            raise errors.validation_error("Learned price model currently supports day-ahead forecasts; intraday is unavailable")
+        rows = db.get_recent_price_measurements(site.site_id, issued_at)
+        if any(row.unit != "CNY/kWh" for row in rows):
+            raise errors.data_quality_error("price measurements must use CNY/kWh")
+        history = [(row.ts, row.value) for row in rows
+                   if row.value is not None and row.quality in ("measured", "estimated")]
+        try:
+            if options.price_model == "deepar":
+                from app.domain.forecast.price_deepar import predict_price_deepar
+                predictor = predict_price_deepar
+                extra_options = {"num_samples": options.price_num_samples, "seed": options.price_seed}
+            else:
+                from app.domain.forecast.price_mqrnn import predict_price_mqrnn
+                predictor = predict_price_mqrnn
+                extra_options = {}
+            return predictor(
+                history, datetime.combine(start_date, datetime.min.time(), tzinfo=tz), days * 96,
+                issued_at, timezone_name=site.location.timezone,
+                series_id=options.price_series_id or site.site_id,
+                transmission_and_fund=tariff.transmission_and_fund,
+                include_uncertainty=include_uncertainty,
+                **extra_options,
+            )
+        except (ValueError, RuntimeError, KeyError, OSError) as exc:
+            raise errors.data_quality_error(str(exc)) from exc
 
     history = _history(db, site, target, start_date, N_DAYS)
     if intraday and target == "pv_power":
@@ -275,6 +310,7 @@ def run_forecast(db: Database, payload: ForecastRequest) -> ForecastResponse:
             payload.options.intraday,
             issued_at,
             payload.options.explain,
+            payload.options,
         )
         for target in payload.targets
     ]

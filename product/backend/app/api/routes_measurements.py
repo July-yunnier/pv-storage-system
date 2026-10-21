@@ -35,6 +35,7 @@ async def upload_measurements_csv(
     site_id: str,
     file: UploadFile = File(...),
     data_type: str = Form(...),
+    resolution_minutes: int = Form(15, gt=0),
     db: Database = Depends(get_db),
 ) -> dict:
     if data_type not in get_args(MeasurementType):
@@ -49,7 +50,7 @@ async def upload_measurements_csv(
     except UnicodeDecodeError as exc:
         raise errors.validation_error("csv file must be UTF-8 encoded") from exc
     try:
-        result = ingest_csv(db, site_id, data_type, content)  # type: ignore[arg-type]
+        result = ingest_csv(db, site_id, data_type, content, resolution_minutes=resolution_minutes)  # type: ignore[arg-type]
     except KeyError as exc:
         raise errors.not_found(str(exc)) from exc
     except ValueError as exc:

@@ -71,6 +71,8 @@ const MODEL_LABEL: Record<string, string> = {
   load_mes_multitask_attention: 'MES多任务注意力',
   load_intraday_kalman: '日内卡尔曼修正',
   tou_policy: '分时电价',
+  price_mqrnn: 'MQ-RNN电价预测',
+  price_deepar: 'DeepAR旧基线',
 }
 
 interface Block {

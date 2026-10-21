@@ -302,7 +302,7 @@ class Database:
                 value = point.value
                 if upload.data_type == "storage_soc" and value is not None and not 0 <= value <= 1:
                     raise ValueError("storage_soc value must be between 0 and 1")
-                if upload.data_type != "storage_soc" and value is not None and value < 0:
+                if upload.data_type not in ("storage_soc", "price") and value is not None and value < 0:
                     raise ValueError("power measurement cannot be negative")
                 conn.execute(
                     """
@@ -328,6 +328,20 @@ class Database:
                     ),
                 )
         return len(upload.points)
+
+    def get_recent_price_measurements(self, site_id: str, before: datetime, limit: int = 32000) -> list[MeasurementRead]:
+        """严格发布时点之前的价格，保留缺失点以便模型拒绝断档序列。"""
+        with self.connection() as conn:
+            rows = conn.execute(
+                "SELECT ts_utc, value, unit, quality, source FROM measurements "
+                "WHERE site_id = ? AND data_type = 'price' AND ts_utc < ? "
+                "ORDER BY ts_utc DESC LIMIT ?",
+                (site_id, _to_utc(before).isoformat(), limit),
+            ).fetchall()
+        return [MeasurementRead(data_type="price", ts=_parse_dt(row["ts_utc"]),
+                                value=row["value"], unit=row["unit"], quality=row["quality"],
+                                source=row["source"]) for row in reversed(rows)]
+
 
     def get_measurements_for_date(
         self, site_id: str, data_type: str, target_date: date, timezone_name: str

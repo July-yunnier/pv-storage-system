@@ -3,6 +3,7 @@ import {
   DashboardOutlined,
   FundOutlined,
   DatabaseOutlined,
+  MoneyCollectOutlined,
 } from '@ant-design/icons'
 import {
   BrowserRouter,
@@ -19,6 +20,7 @@ import DispatchDetailPage from './pages/DispatchDetailPage'
 import SizingPage from './pages/SizingPage'
 import SizingDetailPage from './pages/SizingDetailPage'
 import DataPage from './pages/DataPage'
+import PricePage from './pages/algo/PricePage'
 
 const { Sider, Content } = Layout
 
@@ -26,6 +28,7 @@ const menuItems = [
   { key: '/', icon: <DashboardOutlined />, label: '运营' },
   { key: '/sizing', icon: <FundOutlined />, label: '投资' },
   { key: '/data', icon: <DatabaseOutlined />, label: '数据管理' },
+  { key: '/algo/price', icon: <MoneyCollectOutlined />, label: '电价中心' },
 ]
 
 const themeTokens = {
@@ -148,6 +151,7 @@ function AppLayout() {
               <Route path="/sizing" element={<SizingPage />} />
               <Route path="/sizing/:runId" element={<SizingDetailPage />} />
               <Route path="/data" element={<DataPage />} />
+              <Route path="/algo/price" element={<PricePage />} />
             </Routes>
           </div>
         </Content>

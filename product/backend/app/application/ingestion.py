@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import io
+import math
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -43,9 +44,11 @@ def _validate_value(data_type: MeasurementType, point: MeasurementPoint) -> None
     value = point.value
     if value is None:
         return
+    if data_type == "price" and not math.isfinite(value):
+        raise ValueError("price measurements must be finite")
     if data_type == "storage_soc" and not 0 <= value <= 1:
         raise ValueError("storage_soc value must be between 0 and 1")
-    if data_type != "storage_soc" and value < 0:
+    if data_type not in ("storage_soc", "price") and value < 0:
         raise ValueError("power measurement cannot be negative")
 
 
@@ -69,7 +72,7 @@ def ingest_csv(
     data_type: MeasurementType,
     content: str,
     *,
-    unit: str = "kW",
+    unit: str | None = None,
     resolution_minutes: int = 15,
     source: str = "csv",
 ) -> IngestionResult:
@@ -113,7 +116,7 @@ def ingest_csv(
     points.sort(key=lambda point: point.ts)
     upload = MeasurementUpload(
         data_type=data_type,
-        unit=unit,
+        unit=unit or ("CNY/kWh" if data_type == "price" else "kW"),
         resolution_minutes=resolution_minutes,
         source=source,
         points=points,

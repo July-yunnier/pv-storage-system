@@ -105,3 +105,7 @@ app/
 └── infrastructure/   # SQLite 数据库
 tests/                # 单元测试和 API 流程测试
 ```
+
+## MQ-RNN 电价预测
+
+训练、配置和API见 [MQ-RNN电价说明](../docs/15-price-mqrnn.md)。前端“电价中心”支持日前24/48/72小时曲线；固定TOU直接展开，现货使用匹配的本站训练权重。

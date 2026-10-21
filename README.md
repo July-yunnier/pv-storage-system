@@ -195,3 +195,9 @@ optimizer/sizing.py    决策变量含容量
 > 企业站点不会有全天空相机**，因此不在系统技术路线上。
 > 队友克隆仓库后，跑 `scripts/demo_dispatch.py` 就能看到完整链路，无需任何权重文件。
 > 详见 `scripts/reference/README.md` 的「模型权重」一节。
+
+## MQ-RNN 电价模型（2026-10-21）
+
+`product/` 中已接入 arXiv:1711.11053v2 的 MQ-RNN 独立适配：LSTM、全局/局部MLP、直接多步分位数和 forking-sequences 训练。前端“电价中心”提供模型选择与 p10/p50/p90 曲线。
+
+实现、训练命令、江苏/广东TOU配置、GEFCom独立评估及本站上线条件见 [模型说明](product/docs/15-price-mqrnn.md)。固定TOU确定性展开；现货模型需真实本站电能量价格训练，不能把外部小时模型精度当成本站效果。储能规则调度仍使用TOU。

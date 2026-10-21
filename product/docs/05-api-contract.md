@@ -140,3 +140,12 @@
 - 上传数据请求建议支持 `Idempotency-Key`。
 - Provider、预测模型和优化器都必须返回名称与版本。
 - 调度结果必须保存输入摘要，保证结果可追溯。
+
+## 11. MQ-RNN 电价扩展（2026-10-21）
+
+`POST /forecast` 新增 `options.price_model=auto|tou|mqrnn|deepar`，
+`price_series_id`（默认 site_id）。保留的采样参数仅用于显式旧 DeepAR 基线。`auto` 对 TOU 展开政策价、对现货使用 MQ-RNN；
+预测支持日前 24/48/72 小时，缺少模型或价格上下文返回 422。
+价格测量新增 `data_type=price`、`unit=CNY/kWh`，允许负数，仅含电能量部分。
+CSV 上传新增可选表单 `resolution_minutes`（默认 15，小时价格可指定 60）。
+完整请求及返回口径见 [MQ-RNN 电价适配](15-price-mqrnn.md)。

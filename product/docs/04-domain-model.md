@@ -121,3 +121,10 @@ pending → running → succeeded
 ```
 
 失败状态必须保存可读错误原因和可定位的内部错误标识。
+
+## 9. MQ-RNN 电价扩展（2026-10-21）
+
+测量类型新增 `price`，表示电能量部分，单位严格为 CNY/kWh，允许负电价。
+原生频率为 15 或 60 分钟。`ForecastOptions` 新增 `price_model`、
+`price_series_id`。`price_num_samples`、`price_seed` 仅供旧 DeepAR 基线使用。预测结果中的价格已加一次
+`transmission_and_fund`，与入库目标口径有明确区别。详见 [MQ-RNN 电价适配](15-price-mqrnn.md)。

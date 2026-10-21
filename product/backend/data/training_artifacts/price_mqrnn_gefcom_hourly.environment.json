@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-21",
+  "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+  "torch": "2.14.1",
+  "platform": "macOS-26.1-arm64-arm-64bit",
+  "code_sha256": {
+    "product/backend/app/domain/forecast/price_mqrnn.py": "e841f59f05645cbd54681f2e4a14b7e53b646c02058e6fc2481dcc6b99b15a05",
+    "product/backend/app/domain/forecast/price_data.py": "64ae8c7aec4d596682635b513b0fe4cd122a325a079a40114253bf7329060621",
+    "product/backend/scripts/train_price_mqrnn.py": "6bdc3e60791f83c7ea07532c8b0ff077ce2f27009173d78995c7e5a4c8957c2e",
+    "product/backend/tests/test_price_mqrnn.py": "012ea7d70fbbd1cbf75b3029cbcfdf274d7644d693205ffac3a74991d4706a93",
+    "product/backend/app/application/forecast_service.py": "2552ace865b10d971a25de411604a2c471cb7b21fc7a87edcf5476de689825a6",
+    "product/frontend/src/components/PriceForecastPanel.tsx": "6f6534a42ee136606d44e209740ba6f7a06027e96c951dcee6e13298a4d5cfad"
+  },
+  "validation": {
+    "backend": "235 passed; 295 dependency deprecation warnings",
+    "frontend": "npm run build passed; bundle size warning"
+  },
+  "paper_verification": "Local 1711.11053v2 PDF and MQRCNN_final_version.tex verified; architecture pages 3-4 rendered and visually inspected; MQ-RNN, not DeepAR",
+  "paper_pdf_sha256": "acedb348ade492a43bd8a45e0606f1e8dac34ae42e0bb22f54cbc5e5be485a36",
+  "checkpoint_sha256": "98b56e3470cc0cbe1c4499a8548aabcd836be700d02476b8b48f449f88eebb0d",
+  "test_metrics": {
+    "MQ-RNN": {
+      "MAE": 8.739517016899892,
+      "RMSE": 20.315223864810875,
+      "pinball_0.1": 1.425798411603667,
+      "pinball_0.5": 4.369758508449946,
+      "pinball_0.9": 3.6711925890404955,
+      "mean_pinball": 3.155583169698035,
+      "coverage_80": 0.8135683760683761,
+      "mean_interval_width": 22.245415278989025
+    },
+    "seasonal_day": {
+      "MAE": 10.948627136752137,
+      "RMSE": 24.71397093660038
+    },
+    "seasonal_week": {
+      "MAE": 12.054492521367521,
+      "RMSE": 26.908576871351872
+    },
+    "points": 3744,
+    "origins": 39
+  },
+  "deployment": "No actual environment changed; GEFCom source-unit UTC artifact is offline only; site CNY/kWh model requires native real history",
+  "scope": "Forecast API and frontend only; existing TOU dispatch is unchanged; no stochastic optimization",
+  "github_repository_validation": {
+    "branch": "feat/product-mvp-impl",
+    "backend": "241 passed, 20 skipped (optional neuralforecast dependency unavailable)",
+    "frontend": "npm run build passed; bundle size warning",
+    "integration": "Selective port into existing repository; restored missing MachineLearningForecastRequest and ScheduleRequest fields used by existing APIs; restored getAccuracy client export."
+  },
+  "github_code_sha256": {
+    "product/backend/app/domain/forecast/price_mqrnn.py": "e841f59f05645cbd54681f2e4a14b7e53b646c02058e6fc2481dcc6b99b15a05",
+    "product/backend/app/domain/forecast/price_data.py": "5e9770057d7c929c9fc279390b7c2e77b538728dd3f82bbc2c553606e3ba88a0",
+    "product/backend/scripts/train_price_mqrnn.py": "6bdc3e60791f83c7ea07532c8b0ff077ce2f27009173d78995c7e5a4c8957c2e",
+    "product/backend/tests/test_price_mqrnn.py": "012ea7d70fbbd1cbf75b3029cbcfdf274d7644d693205ffac3a74991d4706a93",
+    "product/backend/app/application/forecast_service.py": "2552ace865b10d971a25de411604a2c471cb7b21fc7a87edcf5476de689825a6",
+    "product/frontend/src/components/PriceForecastPanel.tsx": "6f6534a42ee136606d44e209740ba6f7a06027e96c951dcee6e13298a4d5cfad"
+  }
+}

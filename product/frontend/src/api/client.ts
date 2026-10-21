@@ -1,4 +1,6 @@
 import type {
+  AccuracyResponse,
+  ForecastTarget,
   CreateScheduleRequest,
   CsvUploadResult,
   CurvesResponse,
@@ -104,10 +106,12 @@ export function uploadCsv(
   siteId: string,
   dataType: DataType,
   file: File,
+  resolutionMinutes = 15,
 ): Promise<CsvUploadResult> {
   const form = new FormData()
   form.append('file', file)
   form.append('data_type', dataType)
+  form.append('resolution_minutes', String(resolutionMinutes))
   return request<CsvUploadResult>(
     `/sites/${encodeURIComponent(siteId)}/measurements/csv`,
     { method: 'POST', body: form },
@@ -224,4 +228,11 @@ export function getReport(reportId: string): Promise<ReportJob> {
 
 export function getOverview(siteId: string): Promise<SiteOverview> {
   return request<SiteOverview>(`/sites/${encodeURIComponent(siteId)}/overview`)
+}
+
+// 现有精度面板的查询入口。
+export function getAccuracy(siteId: string, target?: ForecastTarget, days = 30): Promise<AccuracyResponse> {
+  const params = new URLSearchParams({ days: String(days) })
+  if (target) params.set('target', target)
+  return request<AccuracyResponse>(`/sites/${encodeURIComponent(siteId)}/accuracy?${params.toString()}`)
 }

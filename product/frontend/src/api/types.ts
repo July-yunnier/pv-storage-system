@@ -57,7 +57,7 @@ export interface Tariff {
   tiers: TariffTier[]
 }
 
-export type DataType = 'pv_power' | 'load_power' | 'storage_soc' | 'grid_power'
+export type DataType = 'pv_power' | 'load_power' | 'storage_soc' | 'grid_power' | 'price'
 
 export interface CsvUploadRejected {
   row: number
@@ -277,6 +277,10 @@ export interface ForecastRequest {
   options?: {
     include_uncertainty?: boolean
     pv_model?: 'auto' | 'statistical' | 'physics' | 'ampdnet'
+    price_model?: 'auto' | 'tou' | 'mqrnn' | 'deepar'
+    price_series_id?: string
+    price_num_samples?: number
+    price_seed?: number
     ampdnet_input?: {
       station: 'Solar1' | 'Solar2' | 'Solar6' | 'Solar7' | 'Solar8'
       task: '15min' | '1h' | '4h'

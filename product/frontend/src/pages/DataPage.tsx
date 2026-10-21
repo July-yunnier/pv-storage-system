@@ -49,6 +49,7 @@ const DATA_TYPE_OPTIONS: { value: DataType; label: string }[] = [
   { value: 'load_power', label: '负荷功率' },
   { value: 'storage_soc', label: '储能SOC' },
   { value: 'grid_power', label: '电网功率' },
+  { value: 'price', label: '电能量价格' },
 ]
 
 function formatHour(h: string | number): string {
@@ -239,6 +240,7 @@ function TariffCard({
 function UploadCard({ site }: { site?: Site }) {
   const { message } = AntdApp.useApp()
   const [dataType, setDataType] = useState<DataType>('pv_power')
+  const [priceResolution, setPriceResolution] = useState(15)
   const [uploading, setUploading] = useState(false)
   const [result, setResult] = useState<CsvUploadResult | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -256,7 +258,7 @@ function UploadCard({ site }: { site?: Site }) {
     setResult(null)
     setError(null)
     try {
-      const res = await uploadCsv(site.site_id, dataType, file)
+      const res = await uploadCsv(site.site_id, dataType, file, dataType === 'price' ? priceResolution : 15)
       setResult(res)
       message.success(`上传完成：接受 ${res.accepted} 条`)
     } catch (e) {
@@ -280,7 +282,13 @@ function UploadCard({ site }: { site?: Site }) {
               style={{ width: 160 }}
             />
           </Form.Item>
+          {dataType === 'price' && <Form.Item label="原始结算间隔" style={{ marginBottom: 0 }}>
+            <Select value={priceResolution} onChange={setPriceResolution} style={{ width: 120 }}
+              options={[{ value: 15, label: '15 分钟' }, { value: 60, label: '1 小时' }]} />
+          </Form.Item>}
         </Form>
+        {dataType === 'price' && <Alert type="info" showIcon
+          message="价格 CSV：ts,value；单位为人民币/千瓦时，仅填写电能量价格，不含输配和基金附加；支持负电价。" />}
         <Upload.Dragger
           accept=".csv"
           maxCount={1}

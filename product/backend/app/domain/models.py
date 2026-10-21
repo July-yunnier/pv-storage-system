@@ -85,7 +85,7 @@ class SiteRead(SiteCreate):
     updated_at: datetime
 
 
-MeasurementType = Literal["pv_power", "load_power", "storage_soc", "grid_power"]
+MeasurementType = Literal["pv_power", "load_power", "storage_soc", "grid_power", "price"]
 
 
 class MeasurementPoint(BaseModel):
@@ -110,6 +110,13 @@ class MeasurementUpload(BaseModel):
 
     @model_validator(mode="after")
     def validate_points(self) -> "MeasurementUpload":
+        if self.data_type == "price":
+            if self.unit != "CNY/kWh":
+                raise ValueError("price measurements must use CNY/kWh (energy price only)")
+            if self.resolution_minutes not in (15, 60):
+                raise ValueError("price measurements must use native 15 or 60 minute resolution")
+            if any(p.value is not None and not math.isfinite(p.value) for p in self.points):
+                raise ValueError("price measurements must be finite")
         timestamps = [point.ts for point in self.points]
         if timestamps != sorted(timestamps):
             raise ValueError("points must be sorted by ts")
@@ -183,6 +190,14 @@ class ScheduleRequest(BaseModel):
     strategy: Literal["rule_v1"] = "rule_v1"
     resolution_minutes: int = Field(default=15, gt=0)
     source: Literal["auto", "measurements", "forecast"] = "auto"
+    predicted_loads: list[MeasurementPoint] | None = None
+    predicted_pv: list[MeasurementPoint] | None = None
+    predicted_prices: list[PricePoint] | None = None
+    price_model: Literal["tou", "ml"] = "tou"
+    price_unit: Literal["CNY/kWh"] = "CNY/kWh"
+    reserve_soc: float | None = Field(default=None, ge=0, le=1)
+    peak_shaving_target_kw: float | None = Field(default=None, gt=0)
+    lookahead_hours: int = Field(default=4, gt=0, le=24)
 
 
 ForecastTarget = Literal["pv_power", "load_power", "price"]
@@ -242,6 +257,10 @@ class ForecastOptions(BaseModel):
     ampdnet_input: AmpdnetInput | None = None
     load_model: Literal["statistical", "advanced"] = "statistical"
     advanced_load_input: AdvancedLoadInput | None = None
+    price_model: Literal["auto", "tou", "mqrnn", "deepar"] = "auto"
+    price_series_id: str | None = None  # 训练时的市场/节点 ID，缺省使用 site_id
+    price_num_samples: int = Field(default=200, ge=20, le=2000)  # 仅旧 DeepAR；MQ-RNN 直接输出分位数
+    price_seed: int = Field(default=42, ge=0, le=2**31 - 1)
     intraday: bool = False
     explain: bool = False  # true 时 provenance 附带气象原始点与回测明细
 
@@ -251,6 +270,38 @@ class ForecastOptions(BaseModel):
             raise ValueError("advanced load_model requires advanced_load_input")
         if self.pv_model == "ampdnet" and self.ampdnet_input is None:
             raise ValueError("ampdnet requires station, task and timestamped TSI/DNI/GHI/temperature observations")
+        return self
+
+
+class MachineLearningForecastRequest(BaseModel):
+    """现有离线 /forecast/ml 接口的原生小时请求，与本站 MQ-RNN 接口独立。"""
+
+    task: Literal["load", "price"]
+    model: str = Field(pattern=r"^[A-Za-z][A-Za-z0-9_]*$")
+    horizon_hours: Literal[1, 4] = 1
+    resolution_minutes: Literal[60] = 60
+    unit: str = Field(min_length=1)
+    forecast_origin: datetime
+    history: list[MeasurementPoint] = Field(min_length=169)
+    historical_exogenous: dict[str, list[float]] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def validate_native_history(self) -> "MachineLearningForecastRequest":
+        if self.forecast_origin.tzinfo is None or self.forecast_origin.utcoffset() is None:
+            raise ValueError("forecast_origin must include timezone")
+        for point in self.history:
+            if point.ts.tzinfo is None or point.ts.utcoffset() is None:
+                raise ValueError("history timestamps must include timezone")
+            if point.value is None or not math.isfinite(point.value):
+                raise ValueError("history must contain finite values")
+        if self.history[-1].ts != self.forecast_origin:
+            raise ValueError("last observation must be at forecast origin")
+        for previous, current in zip(self.history, self.history[1:]):
+            if current.ts.timestamp() - previous.ts.timestamp() != 3600:
+                raise ValueError("history must be chronological, unique and contiguous hourly points")
+        for values in self.historical_exogenous.values():
+            if len(values) != len(self.history) or any(not math.isfinite(v) for v in values):
+                raise ValueError("historical exogenous features must be finite and match history length")
         return self
 
 
