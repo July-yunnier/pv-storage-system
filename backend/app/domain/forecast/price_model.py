@@ -21,6 +21,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from app.domain.forecast.price_calibration import ConformalCalibrator
 from app.domain.forecast.price_features import (
     FEATURE_COLUMNS,
     PriceSeries,
@@ -75,6 +76,7 @@ class LgbmQuantileForecaster:
         self.medians: dict[str, float] = {}
         self.horizon: int = 24
         self.fitted = False
+        self.calibrator: ConformalCalibrator | None = None
 
     # ---- 训练 ----
     def fit(
@@ -91,12 +93,33 @@ class LgbmQuantileForecaster:
         bagging_fraction: float = 0.85,
         bagging_freq: int = 1,
         seed: int = 42,
+        cal_days: int = 0,
         verbose: bool = False,
     ) -> "LgbmQuantileForecaster":
+        """训练三分位模型。
+
+        `cal_days > 0` 时，把训练窗口尾部若干天留作**校准集**（不参与拟合），
+        用于保形校准区间。留出会损失一点训练样本，换来覆盖率有保证的区间——
+        下游调度要靠这个区间做决策，宁可牺牲一点拟合。
+        """
         from lightgbm import LGBMRegressor
 
+        origins = np.arange(len(series.ts)) if origins is None else np.asarray(origins, dtype=int)
+        origins = origins[(origins >= min_origin) & (origins + horizon < len(series.ts))]
+
+        cal_origins = np.asarray([], dtype=int)
+        train_origins = origins
+        if cal_days > 0 and len(origins) > 0:
+            cut = origins[-1] - cal_days * 24
+            train_origins = origins[origins <= cut]
+            cal_origins = origins[origins > cut]
+            if len(train_origins) < 200 or len(cal_origins) < 24:
+                raise ValueError(
+                    f"calibration split too small: train={len(train_origins)} cal={len(cal_origins)}"
+                )
+
         x, y, _, _ = build_samples(
-            series, origins=origins, horizon=horizon, min_origin=min_origin, require_target=True
+            series, origins=train_origins, horizon=horizon, min_origin=min_origin, require_target=True
         )
         if len(x) < MIN_LGBM_TRAIN_ROWS:
             raise ValueError(
@@ -125,10 +148,34 @@ class LgbmQuantileForecaster:
             model.fit(matrix, y)
             self.models[level] = model
         self.fitted = True
+
+        if cal_days > 0 and len(cal_origins):
+            self.calibrator = self._fit_calibrator(series, cal_origins, horizon)
         return self
 
+    def _fit_calibrator(
+        self, series: PriceSeries, cal_origins: np.ndarray, horizon: int
+    ) -> ConformalCalibrator:
+        """在校准 origin 上取未校准的 P10/P90 与真实价格，学习外扩量。"""
+        x, y, _, _ = build_samples(
+            series, origins=cal_origins, horizon=horizon, min_origin=0, require_target=True
+        )
+        if len(x) < 24:
+            raise ValueError("calibration samples insufficient")
+        matrix = to_matrix(x, self.columns, self.medians)
+        raw = {level: self.models[level].predict(matrix) for level in QUANTILES}
+        p10, _, p90 = _order(raw[0.5], raw[0.5] - raw[0.1], raw[0.9] - raw[0.5])
+        return ConformalCalibrator().fit(y, p10, p90, x["horizon"].to_numpy(dtype=int))
+
     # ---- 推理 ----
-    def predict(self, series: PriceSeries, issue_idx: int, horizon: int | None = None) -> PriceForecastOutput:
+    def predict(
+        self,
+        series: PriceSeries,
+        issue_idx: int,
+        horizon: int | None = None,
+        apply_calibration: bool = True,
+    ) -> PriceForecastOutput:
+        """`apply_calibration=False` 用于消融：同一模型输出未校准区间做对照。"""
         if not self.fitted:
             raise RuntimeError("price model is not fitted")
         horizon = horizon or self.horizon
@@ -144,6 +191,15 @@ class LgbmQuantileForecaster:
         matrix = to_matrix(x, self.columns, self.medians)
         raw = {level: self.models[level].predict(matrix) for level in QUANTILES}
         p10, p50, p90 = _order(raw[0.5], raw[0.5] - raw[0.1], raw[0.9] - raw[0.5])
+        notes = "LightGBM 分位数回归，direct multi-horizon（特征锚定发报时刻，不用递归）"
+        if apply_calibration and self.calibrator is not None:
+            steps = x["horizon"].to_numpy(dtype=int)
+            p10, p90 = self.calibrator.apply(p10, p90, steps)
+            notes += (
+                f"；区间经保形校准（α={self.calibrator.alpha:.2f}，"
+                f"校准集 {self.calibrator.n_cal} 点，"
+                f"校准前覆盖 {self.calibrator.coverage_before:.3f}）"
+            )
         return PriceForecastOutput(
             ts=target_ts,
             p10=p10,
@@ -151,7 +207,7 @@ class LgbmQuantileForecaster:
             p90=p90,
             method=self.name,
             version=self.version,
-            notes="LightGBM 分位数回归，direct multi-horizon（特征锚定发报时刻，不用递归）",
+            notes=notes,
         )
 
     # ---- 工件 ----
@@ -177,6 +233,7 @@ class LgbmQuantileForecaster:
             "columns": self.columns,
             "medians": self.medians,
             "feature_columns": list(FEATURE_COLUMNS),
+            "calibration": self.calibrator.to_dict() if self.calibrator is not None else None,
         }
         (target / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
         return target
@@ -201,6 +258,8 @@ class LgbmQuantileForecaster:
             )
             for level in manifest["quantiles"]
         }
+        payload = manifest.get("calibration")
+        model.calibrator = ConformalCalibrator.from_dict(payload) if payload else None
         model.fitted = True
         return model
 

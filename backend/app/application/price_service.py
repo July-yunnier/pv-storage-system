@@ -25,6 +25,7 @@ import pandas as pd
 
 from app.api import errors
 from app.domain.forecast import price_calendar as cal
+from app.domain.forecast.event_calendar import load_calendar
 from app.domain.forecast.price import forecast_price_tou
 from app.domain.forecast.price_features import PriceSeries
 from app.domain.forecast.price_model import (
@@ -53,6 +54,15 @@ DEFAULT_ROUND_TRIP_EFF = 0.88
 
 class NoSpotHistory(ValueError):
     """站点还没有现货电价历史，无法做数据驱动预测。"""
+
+
+def event_calendar_path() -> Path | None:
+    """事件日历配置路径。环境变量优先，缺省用仓库 configs/ 下的示例。"""
+    override = os.environ.get("PRICE_EVENT_CALENDAR")
+    if override:
+        return Path(override)
+    default = Path(__file__).resolve().parents[3] / "configs" / "events.guangdong.yaml"
+    return default if default.exists() else None
 
 
 def model_dir() -> Path:
@@ -200,6 +210,8 @@ def build_price_series(
             tou[pos] = np.nan
 
     temperature, ghi, weather_name = _weather_arrays(site, grid, history_days)
+    calendar = load_calendar(event_calendar_path())
+    event_features = calendar.features(grid) if calendar is not None else None
     series = PriceSeries(
         ts=grid,
         price=price,
@@ -207,6 +219,7 @@ def build_price_series(
         temperature=temperature,
         ghi=ghi,
         tou_price=tou,
+        event=event_features,
     )
     # 数据来源必须把"电价从哪来"说清楚——前端据此决定是否打"演示数据"提示
     parts = ["spot:" + (",".join(sorted(sources)) if sources else "unknown")]
@@ -214,6 +227,8 @@ def build_price_series(
         parts.append(f"weather:{weather_name}")
     if series.load is None:
         parts.append("load:none")
+    if calendar is not None:
+        parts.append(f"events:{calendar.name}")
     return series, grid[-1], ";".join(parts)
 
 
