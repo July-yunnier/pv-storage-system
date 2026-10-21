@@ -34,6 +34,7 @@
 | 实验规划 | 全体成员 | 省钱能力验证协议与验收标准（17-experiment-plan） | 初稿 |
 | 仓库整合记录 | 全体成员 | 分支迁入口径与待确认项（14-repository-integration） | 初稿 |
 | PV 推理部署 | 部署、后端、算法 | 冻结推理包的平台化接入与运维（16-pv-inference-deployment） | 已落地 |
+| 双电价模型对比 | 算法、后端、负责人 | July MQ-RNN 与林 LightGBM 对比、组合方案与 AMPDNet 现状（18-price-model-comparison） | 初稿 |
 
 ## 3. 变更规则
 
