@@ -9,13 +9,16 @@
 |---|---|---|---|---|---|
 | A | 光伏功率预测 | 历史实测 + 气象预报 + 站点光伏参数 | 96 点功率曲线 + 置信区间 + 口径 | statistical / physics / blend | `options.pv_model` |
 | B | 负荷预测 | 历史实测 + 日历特征 | 96 点功率曲线 + 置信区间 + 口径 | 同刻均值+工作日模式 | `domain/forecast/load.py` |
-| C | 电价 | 电价配置 | 96 点价格曲线 | TOU 查表（**不是预测**） | `domain/forecast/price.py` |
+| C | 电价 | 历史现货电价 + 负荷/天气 + 目录电价政策 | 96 点价格曲线 + P10/P90 + 套利窗口 | `tou_policy` 查表 / `price_diurnal_quantile` 统计画像 / `price_lgbm_quantile` 分位数 GBM | `model=auto\|lgbm\|statistical\|tou`，见 `15-price-forecast.md` |
 | D | 调度决策 | A/B/C 的 96 点曲线 + 储能参数 + 初始 SOC | 96 点充放电计划 + SOC 轨迹 + 收益 | rule_v1 贪心 | 分层：D1 固定 / D2 规则 / D3 LP（待做） |
 | E | 容量规划 | 负荷/光伏曲线 + 设备候选 + 电价 + 造价 | 推荐 PCS/容量 + NPV/IRR/回收期 | 枚举+财务模型 | `sizing_service.py` |
 
 **纪律**：
 
 - 电价查表结果不得包装成"预测"（沿袭 `12-forecast-roadmap.md` 口径纪律）。
+  现实现区分两种模型名：`tou_policy`（政策表展开，确定量，区间退化）与
+  `price_diurnal_quantile` / `price_lgbm_quantile`（数据驱动预测，带 P10/P90）。
+  响应里的 `model` 字段必须如实反映用的是哪一种，不允许混称。
 - 任何精度数字必须带 `caliber`（归一化基准 / 是否含夜间 / 空间尺度 / 对照基线）。
 - LLM 只做意图层与解释层（"优化器管算，LLM 管说"），**不直接生成 96 点计划**。
 

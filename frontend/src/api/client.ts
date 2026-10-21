@@ -10,6 +10,9 @@ import type {
   ForecastTarget,
   LiveSimulateResponse,
   LiveStatus,
+  PriceForecastView,
+  PriceHistoryView,
+  PriceModelKind,
   ReplayRunDetail,
   ReplayRunSummary,
   RollingState,
@@ -264,4 +267,26 @@ export function runReplay(siteId: string, testDays = 30): Promise<ReplayRunSumma
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ test_days: testDays }),
   })
+}
+
+// ---------- 电价中心 ----------
+
+export function getPriceForecast(
+  siteId: string,
+  options: { days?: number; model?: PriceModelKind; uncertainty?: boolean } = {},
+): Promise<PriceForecastView> {
+  const params = new URLSearchParams({
+    days: String(options.days ?? 1),
+    model: options.model ?? 'auto',
+    uncertainty: String(options.uncertainty ?? true),
+  })
+  return request<PriceForecastView>(
+    `/sites/${encodeURIComponent(siteId)}/price/forecast?${params.toString()}`,
+  )
+}
+
+export function getPriceHistory(siteId: string, days = 30): Promise<PriceHistoryView> {
+  return request<PriceHistoryView>(
+    `/sites/${encodeURIComponent(siteId)}/price/history?days=${days}&resolution=hourly`,
+  )
 }

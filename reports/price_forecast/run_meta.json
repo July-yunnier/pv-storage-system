@@ -1,0 +1,90 @@
+{
+  "data": "C:/Users/huawei/Documents/ChatGPT/光伏预测+储能策略系统/data/power/price/Price",
+  "tasks": 15,
+  "horizon": 24,
+  "points": 360,
+  "models": [
+    "mqcnn"
+  ],
+  "seed": 42,
+  "origin_stride": 3,
+  "mqcnn_stride": 6,
+  "elapsed_seconds": 904.8,
+  "task_log": [
+    {
+      "task": 1,
+      "day": "2013-06-16",
+      "seconds": 47.1
+    },
+    {
+      "task": 2,
+      "day": "2013-06-17",
+      "seconds": 44.3
+    },
+    {
+      "task": 3,
+      "day": "2013-06-24",
+      "seconds": 40.1
+    },
+    {
+      "task": 4,
+      "day": "2013-07-04",
+      "seconds": 46.9
+    },
+    {
+      "task": 5,
+      "day": "2013-07-09",
+      "seconds": 102.9
+    },
+    {
+      "task": 6,
+      "day": "2013-07-13",
+      "seconds": 104.9
+    },
+    {
+      "task": 7,
+      "day": "2013-07-16",
+      "seconds": 85.9
+    },
+    {
+      "task": 8,
+      "day": "2013-07-18",
+      "seconds": 45.7
+    },
+    {
+      "task": 9,
+      "day": "2013-07-19",
+      "seconds": 50.3
+    },
+    {
+      "task": 10,
+      "day": "2013-07-20",
+      "seconds": 48.0
+    },
+    {
+      "task": 11,
+      "day": "2013-07-24",
+      "seconds": 65.3
+    },
+    {
+      "task": 12,
+      "day": "2013-07-25",
+      "seconds": 80.5
+    },
+    {
+      "task": 13,
+      "day": "2013-12-07",
+      "seconds": 46.5
+    },
+    {
+      "task": 14,
+      "day": "2013-12-08",
+      "seconds": 47.1
+    },
+    {
+      "task": 15,
+      "day": "2013-12-17",
+      "seconds": 49.1
+    }
+  ]
+}

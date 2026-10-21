@@ -18,6 +18,7 @@ from app.domain.models import (
     SiteCreate,
     SitePatch,
     SiteRead,
+    SpotPriceUpload,
     TariffCreate,
     TariffRead,
     generate_site_id,
@@ -218,6 +219,17 @@ class Database:
                     computed_at TEXT NOT NULL,
                     UNIQUE(site_id, target, method, target_date)
                 );
+                CREATE TABLE IF NOT EXISTS spot_prices (
+                    site_id TEXT NOT NULL,
+                    ts_utc TEXT NOT NULL,
+                    price_cny_per_kwh REAL,
+                    source TEXT NOT NULL,
+                    quality TEXT NOT NULL DEFAULT 'measured',
+                    PRIMARY KEY (site_id, ts_utc),
+                    FOREIGN KEY (site_id) REFERENCES sites(site_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_spot_prices_lookup
+                    ON spot_prices(site_id, ts_utc);
                 """
             )
             conn.execute(
@@ -675,6 +687,65 @@ class Database:
             }
             for row in rows
         ]
+
+    # ---- 现货电价 -------------------------------------------------------------
+
+    def insert_spot_prices(self, site_id: str, upload: SpotPriceUpload) -> int:
+        if self.get_site(site_id) is None:
+            raise KeyError(f"site not found: {site_id}")
+        with self.connection() as conn:
+            for point in upload.points:
+                conn.execute(
+                    """
+                    INSERT INTO spot_prices(site_id, ts_utc, price_cny_per_kwh, source, quality)
+                    VALUES (?, ?, ?, ?, ?)
+                    ON CONFLICT(site_id, ts_utc) DO UPDATE SET
+                        price_cny_per_kwh = excluded.price_cny_per_kwh,
+                        source = excluded.source,
+                        quality = excluded.quality
+                    """,
+                    (
+                        site_id,
+                        _to_utc(point.ts).isoformat(),
+                        point.price_cny_per_kwh,
+                        upload.source,
+                        point.quality,
+                    ),
+                )
+        return len(upload.points)
+
+    def get_spot_prices(
+        self, site_id: str, start: datetime, end: datetime
+    ) -> list[tuple[datetime, float | None, str]]:
+        """[start, end) 区间的现货电价，返回 (UTC 时间, 价格, 来源)。"""
+        with self.connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT ts_utc, price_cny_per_kwh, source FROM spot_prices
+                WHERE site_id = ? AND ts_utc >= ? AND ts_utc < ?
+                ORDER BY ts_utc
+                """,
+                (site_id, _to_utc(start).isoformat(), _to_utc(end).isoformat()),
+            ).fetchall()
+        return [(_parse_dt(row["ts_utc"]), row["price_cny_per_kwh"], row["source"]) for row in rows]
+
+    def spot_price_bounds(self, site_id: str) -> tuple[datetime, datetime] | None:
+        with self.connection() as conn:
+            row = conn.execute(
+                """
+                SELECT MIN(ts_utc) AS lo, MAX(ts_utc) AS hi, COUNT(*) AS n
+                FROM spot_prices WHERE site_id = ?
+                """,
+                (site_id,),
+            ).fetchone()
+        if row is None or row["n"] == 0 or row["lo"] is None:
+            return None
+        return _parse_dt(row["lo"]), _parse_dt(row["hi"])
+
+    def delete_spot_prices(self, site_id: str) -> int:
+        with self.connection() as conn:
+            cursor = conn.execute("DELETE FROM spot_prices WHERE site_id = ?", (site_id,))
+        return cursor.rowcount
 
     def insert_forecast_archive(
         self,

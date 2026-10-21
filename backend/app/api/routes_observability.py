@@ -13,7 +13,7 @@ router = APIRouter(prefix="/sites", tags=["observability"])
 @router.get("/{site_id}/accuracy")
 def get_accuracy(
     site_id: str,
-    target: str | None = Query(default=None, pattern="^(pv_power|load_power)$"),
+    target: str | None = Query(default=None, pattern="^(pv_power|load_power|price)$"),
     days: int = Query(default=30, ge=1, le=365),
     db: Database = Depends(get_db),
 ) -> dict:

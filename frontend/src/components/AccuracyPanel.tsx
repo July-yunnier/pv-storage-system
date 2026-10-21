@@ -17,6 +17,9 @@ const METHOD_LABEL: Record<string, string> = {
   physics: '物理法',
   blend: '融合',
   oracle: '事后上帝视角',
+  price_lgbm_quantile: 'LightGBM 分位数',
+  price_diurnal_quantile: '统计画像',
+  tou_policy: '政策表',
 }
 
 export function methodLabel(name: string): string {
