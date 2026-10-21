@@ -1,0 +1,179 @@
+{
+  "state": "awaiting_user_confirmation",
+  "upload_performed": false,
+  "github_target": "main/backend/pv_inference",
+  "remote_structure_verified": false,
+  "models": 10,
+  "training_performed": false,
+  "frozen_weights_unchanged": true,
+  "files": {
+    "backend/pv_inference/README.md": {
+      "bytes": 4543,
+      "sha256": "33fec4f9995827543a29dc7c09a48df24fa4426b3e8b00a050a0c7e516d94b86"
+    },
+    "backend/pv_inference/SELFTEST_RESULT.json": {
+      "bytes": 7964,
+      "sha256": "4263ddfd71edc13751a54a6253b5146fb5fdcf41bd118d7e57415fd7fb86a866"
+    },
+    "backend/pv_inference/__init__.py": {
+      "bytes": 168,
+      "sha256": "463f7f1a8ac1feaeaf07573e74e57aeed9d56ad94d58b7dec4a480adff0401b5"
+    },
+    "backend/pv_inference/__main__.py": {
+      "bytes": 959,
+      "sha256": "727f806e7f608cac4f49ef62c75c96269d9755025470aebf6a43d359aa264a0f"
+    },
+    "backend/pv_inference/docs/CV_REPORT.md": {
+      "bytes": 15220,
+      "sha256": "489474fbce8fb7670fef7e224cf322b761ef970c7334c42ffc178ded9b626a1c"
+    },
+    "backend/pv_inference/docs/RESEARCH.md": {
+      "bytes": 9208,
+      "sha256": "8719b00f666fc869200df2c0d1d6a53cfdc8eb2ea73f89a2f2d302d764ccb281"
+    },
+    "backend/pv_inference/docs/RESOURCES.md": {
+      "bytes": 1876,
+      "sha256": "0b77be7f188f5c256b42d56d054131373fb7da93bad08cddbee1118f2d779cd8"
+    },
+    "backend/pv_inference/docs/cv_rmse.png": {
+      "bytes": 74872,
+      "sha256": "1d01fc60968bfd9671ef55d1c8b6cfaa16bb8c62fd695ef864c3d43db685e445"
+    },
+    "backend/pv_inference/docs/cv_summary.csv": {
+      "bytes": 5626,
+      "sha256": "5b0f3185c06edc15659e123a89f404da1b6fb3facd146f4b45908a49d744ded7"
+    },
+    "backend/pv_inference/docs/final_test.csv": {
+      "bytes": 4186,
+      "sha256": "6252c6dc24c9be359227bb78422ee534041d5c6f8cdb85ea433882e6feb2820b"
+    },
+    "backend/pv_inference/docs/fold_metrics.csv": {
+      "bytes": 24964,
+      "sha256": "181e58433536d88a8232e612135805851d0689486f347b1700b28552dbef3b72"
+    },
+    "backend/pv_inference/docs/split_audit.csv": {
+      "bytes": 1796,
+      "sha256": "7c8800a3641df780e6299840e25a92005ddfd8a3f1185e0b944d58d052a4c3b9"
+    },
+    "backend/pv_inference/docs/verification.json": {
+      "bytes": 486,
+      "sha256": "f614d18376875c31c772e9ada2d3619ee9fdece7c773ced008cfd92a834e1c32"
+    },
+    "backend/pv_inference/examples/state_grid_1_request.json": {
+      "bytes": 10621,
+      "sha256": "35d09c8c1e1ccdfc559a49a1032b5940e0f98673e7417f518c958d708ddf449b"
+    },
+    "backend/pv_inference/features.py": {
+      "bytes": 8653,
+      "sha256": "961720a94caf953d287f28a1d01ec93b9ccd2216484e473e08a800abf6339e11"
+    },
+    "backend/pv_inference/infer.py": {
+      "bytes": 7361,
+      "sha256": "1dc367bf3e685d4516b7c1ef6facaf5c7d70155955e6c62008455de9954d7b59"
+    },
+    "backend/pv_inference/manifest.json": {
+      "bytes": 177090,
+      "sha256": "918f031bc703142ebca00a96b9ec99a2a2e1d35a824cd8d41cb18a80265c6530"
+    },
+    "backend/pv_inference/models/skippd.joblib": {
+      "bytes": 64794064,
+      "sha256": "3df1476abc0a8878a955e6b59dc2c561407987f6821f60aed069dd147f884a56"
+    },
+    "backend/pv_inference/models/skippd_images.joblib": {
+      "bytes": 66908506,
+      "sha256": "0c9315cc434249a6fde73eaaa2b4e0969f74dd1ee392a5d2413312cfe675fddb"
+    },
+    "backend/pv_inference/models/state_grid_1.joblib": {
+      "bytes": 20756044,
+      "sha256": "22c65db50b85aeca087e67b2435c11f37ce5919260ed3aab91f051dbbae80ce9"
+    },
+    "backend/pv_inference/models/state_grid_2.joblib": {
+      "bytes": 25401850,
+      "sha256": "7de34dcb23ae3f8419df7351bfc0d62f14e368939e691b119ecd19b8323744a3"
+    },
+    "backend/pv_inference/models/state_grid_3.joblib": {
+      "bytes": 17699443,
+      "sha256": "5e4e4729afb638818146979f2c47219268da1cdf61f34d7efdecab7b37061a08"
+    },
+    "backend/pv_inference/models/state_grid_4.joblib": {
+      "bytes": 20623215,
+      "sha256": "371b40d4a8874adf5693c620580c7ec481b477ab1ce526e2bc7d36d30f9687f5"
+    },
+    "backend/pv_inference/models/state_grid_5.joblib": {
+      "bytes": 20259031,
+      "sha256": "0cf36ec57bf1dfc9774e9ffa2d7728f79c4a182c2504e17950460807e04492cf"
+    },
+    "backend/pv_inference/models/state_grid_6.joblib": {
+      "bytes": 19375928,
+      "sha256": "354094a253d923f9ac5661d25b867564861e5efddc6d8a46f583deb330007365"
+    },
+    "backend/pv_inference/models/state_grid_7.joblib": {
+      "bytes": 19233285,
+      "sha256": "516b77fca770b61219111429ff252e31fd93a2786d5811c25be95bb866785f29"
+    },
+    "backend/pv_inference/models/state_grid_8.joblib": {
+      "bytes": 20210988,
+      "sha256": "462235a1ce1ea94defb9a18a28a784144a8726019fd6f8590397a3d262f3b1fb"
+    },
+    "backend/pv_inference/requirements-infer.lock.txt": {
+      "bytes": 126,
+      "sha256": "3e63c3490b89b12139053841c3e074fc09795b403e2d0fedf82c542446ec909f"
+    },
+    "backend/pv_inference/selftest.py": {
+      "bytes": 6937,
+      "sha256": "cbc080fe4a5c005206f89666ea3eb0171eb4b42e8b34bcc1351119e25cbd6f62"
+    },
+    "backend/pv_inference/verification/skippd.json": {
+      "bytes": 14984,
+      "sha256": "106be1d1ac48f397b135dc81505a6dfcbcef72873463f762dff0308ccade9e9b"
+    },
+    "backend/pv_inference/verification/skippd_images.json": {
+      "bytes": 116129,
+      "sha256": "f40a28203d8b9fa28f37d4f6122bac60be212cd5dc9b135d9398414e905b8e4c"
+    },
+    "backend/pv_inference/verification/skippd_images_bitmaps.npz": {
+      "bytes": 256889,
+      "sha256": "1edf8178c4cdfcfddc97157ba5298e61c4f88df57499da7ad37cc6f33092e970"
+    },
+    "backend/pv_inference/verification/state_grid_1.json": {
+      "bytes": 53035,
+      "sha256": "61f42353af2a4f9a6f73b64cd04262d263926dfe7e82f78c73cf5265639df073"
+    },
+    "backend/pv_inference/verification/state_grid_2.json": {
+      "bytes": 54029,
+      "sha256": "6950ad4d2b558bd232bb545207da8923d6a53bc167e4c1e40956c93c8dd01cd6"
+    },
+    "backend/pv_inference/verification/state_grid_3.json": {
+      "bytes": 53103,
+      "sha256": "2c34bf00c1491624ddc7f4a2cdc3eb06cd60399b191c34072afa33cc5c61c2cc"
+    },
+    "backend/pv_inference/verification/state_grid_4.json": {
+      "bytes": 58711,
+      "sha256": "51ff65f7f8dc7da2c4c2d487f3242ca95ea4e4d163aa58f33d17fff0478f785f"
+    },
+    "backend/pv_inference/verification/state_grid_5.json": {
+      "bytes": 52609,
+      "sha256": "37aae26d421e93291c5cb3bc33b3d7e0dc15f9dce15c1ca2f9f6246a2313b679"
+    },
+    "backend/pv_inference/verification/state_grid_6.json": {
+      "bytes": 53825,
+      "sha256": "a71ef6b76d7956612d7a7a1a75b0f3359c4f0e7c378ba06ca5b5aba56bb51be0"
+    },
+    "backend/pv_inference/verification/state_grid_7.json": {
+      "bytes": 54275,
+      "sha256": "49cb9870af6b1f5986688082954454c58427b7cf25c471f9645a9574e722ca12"
+    },
+    "backend/pv_inference/verification/state_grid_8.json": {
+      "bytes": 56080,
+      "sha256": "15162752dd6573ebb5e14f0244eefecaecc869c902434cd3175ffb531806f0aa"
+    }
+  },
+  "exclusions": [
+    "training scripts",
+    "GridSearchCV",
+    "experiments imports",
+    "raw datasets",
+    "cache",
+    "credentials"
+  ]
+}

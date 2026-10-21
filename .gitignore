@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 .venv/
+.venv-infer/
 venv/
 
 # Node
@@ -24,6 +25,8 @@ reports/generated/
 *.sqlite
 backend/data/replay/
 dataset_guowang/
+# 冻结 PV 推理权重（296MB，经发布 zip 部署；manifest 存 SHA256 可验）
+backend/pv_inference/models/
 
 # Trained price model artifacts (regenerate with backend/scripts/train_price_model.py)
 backend/data/price_models/

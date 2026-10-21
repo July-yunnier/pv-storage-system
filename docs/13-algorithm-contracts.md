@@ -128,6 +128,30 @@
   精度数字不得作为真实工厂表现对外宣称；真实数据到位后用
   `fine_tune_for_factory` 微调落地。
 
+### 4.2 算法注册表：新增算法三步走（算法与业务解耦）
+
+全部预测算法的元数据集中在 `app/application/algorithm_registry.py` 的
+`_CATALOG`（单一事实源）。业务层不再各自维护算法清单：API 入参校验、
+回放方法矩阵（`replay_service.PV_METHODS`）、算法发现接口
+`GET /api/v1/algorithms` 全部由注册表派生。
+
+新增一个算法的全部工作：
+
+1. **domain 纯函数实现**：在 `app/domain/forecast/` 写预测函数——禁止 I/O、
+   禁止读环境变量/文件；模型工件加载走 `infrastructure/model_store.py`
+   （`load_bundle` 带缓存），由 application 层注入 `state_dict`/`metadata`。
+2. **注册表登记一行**：`_CATALOG` 加一条 `ForecastAlgorithm`——
+   要对产品开放就填 `product_key`（即 `pv_model`/`load_model` 的取值），
+   要进回放矩阵就标 `replay=True`，仅日内模式标 `intraday=True`。
+3. **forecast_service 分发表挂分支**：在 `_pv_day_forecast` / `_forecast_target`
+   里把 `product_key` 映射到实现。
+
+`ForecastOptions.pv_model/load_model` 是宽 `str`（不再是 Literal）：
+新算法登记即可用，不必改请求 schema；非法取值在 `run_forecast` 入口
+统一 422 并报可用清单。`GET /api/v1/algorithms` 返回完整目录
+（含 `requires` 依赖声明与 `available/unavailable_reason` 环境探测），
+前端与协作方据此发现能力，无需翻源码。
+
 ## 5. 契约 C：电价
 
 TOU 查表：输入站点电价配置（`configs/tariff.*.yaml`），输出 96 点 CNY/kWh。
