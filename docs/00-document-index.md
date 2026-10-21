@@ -11,6 +11,7 @@
 5. `06-technical-architecture.md`、`07-optimization-model.md`：理解实现方式
 6. `08-ui-spec.md`、`09-test-acceptance.md`：理解交互和验收
 7. `13-algorithm-contracts.md`：算法分工界面（做算法的同学必读）
+7.1 `15-price-forecast.md`：电价预测方法、GEFCom2014-P 基准实验与在线链路
 8. `10-open-decisions.md`、`11-development-plan.md`：查看待定项和执行顺序
 
 ## 2. 文档责任

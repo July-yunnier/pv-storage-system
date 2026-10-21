@@ -90,6 +90,43 @@ class SiteRead(SiteCreate):
 
 MeasurementType = Literal["pv_power", "load_power", "storage_soc", "grid_power"]
 
+#: 现货电价单独一张表：单位是 CNY/kWh 且允许负值（负电价是真实市场现象），
+#: 与功率测量（kW、非负）不是同一口径，不能复用 measurements。
+SpotPriceQuality = Literal["measured", "estimated", "missing", "invalid"]
+
+
+class SpotPricePoint(BaseModel):
+    ts: datetime
+    price_cny_per_kwh: float | None = None
+    quality: SpotPriceQuality = "measured"
+
+    @field_validator("ts")
+    @classmethod
+    def require_timezone(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("ts must include a timezone")
+        return value
+
+
+class SpotPriceUpload(BaseModel):
+    """现货电价导入。允许负电价，不允许无时区时间戳。"""
+
+    source: str = "api"
+    points: list[SpotPricePoint] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_points(self) -> "SpotPriceUpload":
+        timestamps = [point.ts for point in self.points]
+        if timestamps != sorted(timestamps):
+            raise ValueError("points must be sorted by ts")
+        if len(set(timestamps)) != len(timestamps):
+            raise ValueError("points must not contain duplicate timestamps")
+        return self
+
+
+class SpotPriceRead(SpotPricePoint):
+    source: str
+
 
 class MeasurementPoint(BaseModel):
     ts: datetime
