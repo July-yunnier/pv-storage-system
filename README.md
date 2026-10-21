@@ -33,7 +33,7 @@
 
 ## 首版 MVP
 
-首版聚焦单站点、峰谷分时电价、15 分钟粒度、规则式调度、基础曲线看板和可复现的示例数据。现货电价、机器学习预测、线性规划、多站点和生产级权限体系作为后续扩展。
+首版聚焦单站点、峰谷分时电价、15 分钟粒度、规则式调度、基础曲线看板和可复现的示例数据。现货电价预测已落地（见 `docs/15-price-forecast.md`），线性规划、多站点和生产级权限体系仍作为后续扩展。
 
 ## 当前开发状态
 
@@ -45,6 +45,7 @@
 - 光伏/负荷/SOC/电网测量数据上传（JSON + CSV 文件 `POST /api/v1/sites/{site_id}/measurements/csv`，行级容错）
 - 数据质量报告 `GET /api/v1/sites/{site_id}/data-quality`（完整度、缺失区间合并）
 - TOU 电价 Provider、价目查询、站点日价格点 `GET /api/v1/sites/{site_id}/tariff-points`
+- 电价预测 `GET /api/v1/sites/{site_id}/price/forecast?days=1..7&model=auto`：现货历史 + 负荷 + 天气 → 小时级 P10/P50/P90，按 15 分钟阶跃展开，并直接折算最优充放窗口与净价差；降级链 `LightGBM 工件 → 统计画像 → 政策表`，模型名如实标注（`tou_policy` 仍表示"政策查表，不是预测"）。现货序列导入见 `backend/scripts/import_spot_price.py`，站点级训练见 `backend/scripts/train_price_model.py`，GEFCom2014-P 基准实验见 `backend/scripts/run_price_benchmark.py`，方法与结果见 `docs/15-price-forecast.md`
 - 规则式日调度和 SOC 计算（需量感知：站点可配 `demand_limit_kw` 限制谷段电网充电功率）
 - 调度运行落库追溯 `GET /api/v1/sites/{site_id}/dispatch-runs[/{run_id}]`（含 input_digest 与分时段人话计划说明，可复现性校验）
 - 曲线聚合 `GET /api/v1/sites/{site_id}/curves`（多日 15 分钟网格，pv/load/net_load/price/tier 单一对齐数据源）

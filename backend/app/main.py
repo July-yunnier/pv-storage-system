@@ -12,6 +12,7 @@ from app.api.errors import AppError
 from app.api.routes_forecast import router as forecast_router
 from app.api.routes_live import router as live_router
 from app.api.routes_policy_tariffs import router as policy_tariffs_router
+from app.api.routes_price import router as price_router
 from app.api.routes_rolling import router as rolling_router
 from app.api.routes_measurements import quality_router as data_quality_router
 from app.api.routes_measurements import router as measurements_router
@@ -128,6 +129,7 @@ def create_app(database_path: str | None = None) -> FastAPI:
     app.include_router(replay_router, prefix="/api/v1")
     app.include_router(replay_runs_router, prefix="/api/v1")
     app.include_router(observability_router, prefix="/api/v1")
+    app.include_router(price_router, prefix="/api/v1")
 
     @app.on_event("startup")
     async def start_rolling_loop() -> None:

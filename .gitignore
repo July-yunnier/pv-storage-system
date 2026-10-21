@@ -25,6 +25,10 @@ reports/generated/
 backend/data/replay/
 dataset_guowang/
 
+# Trained price model artifacts (regenerate with backend/scripts/train_price_model.py)
+backend/data/price_models/
+backend/data/forecast_experiments/
+
 # IDE and OS
 .idea/
 .vscode/

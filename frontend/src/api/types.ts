@@ -529,3 +529,75 @@ export interface ReplayRunDetail extends ReplayRunSummary {
   } | null
   day_results: ReplayDayResult[]
 }
+
+// ---------- 电价中心 ----------
+
+export type PriceModelKind = 'auto' | 'lgbm' | 'statistical' | 'tou'
+
+export interface PriceForecastPoint {
+  ts: string
+  p10: number | null
+  p50: number
+  p90: number | null
+  tou_price: number | null
+  tier: TierName | null
+}
+
+export interface PriceArbitrage {
+  charge_start: string
+  discharge_start: string
+  slot_hours: number
+  charge_price: number
+  discharge_price: number
+  gross_spread: number
+  net_spread: number
+  round_trip_eff: number
+  note: string
+}
+
+export interface PriceForecastSummary {
+  mean: number
+  max: number
+  min: number
+  peak_valley_spread: number
+  base_tou_spread: number | null
+  max_hours: string[]
+  min_hours: string[]
+  arbitrage: PriceArbitrage | null
+  holidays: string[]
+}
+
+export interface PriceForecastView {
+  site_id: string
+  issued_at: string
+  horizon_hours: number
+  resolution_minutes: number
+  model: string
+  method_note: string
+  data_note: string
+  uncertainty: boolean
+  points: PriceForecastPoint[]
+  summary: PriceForecastSummary
+  accuracy: {
+    metric: string
+    value: number
+    caliber: Record<string, unknown>
+    evaluated_on: string
+  } | null
+}
+
+export interface PriceHistoryView {
+  site_id: string
+  unit: string
+  resolution: 'hourly' | 'daily'
+  points: { ts: string; price: number; source: string }[]
+  stats: {
+    count: number
+    mean: number | null
+    max: number | null
+    min: number | null
+    negative_hours: number
+    spike_hours: number
+  }
+  bounds: { first: string; last: string } | null
+}
