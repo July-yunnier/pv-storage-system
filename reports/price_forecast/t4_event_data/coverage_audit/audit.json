@@ -1,0 +1,37 @@
+{
+  "status": "incomplete",
+  "effect_verified": false,
+  "calendar": {
+    "name": "guangdong-real",
+    "schema_version": 2,
+    "data_kind": "real",
+    "market": "guangdong",
+    "timezone": "Asia/Shanghai",
+    "records": 1,
+    "sources": 1,
+    "source_sha256": [
+      "f946fdefb913ed4a27ffe7a84275cc75e162b0c45b1f3c911366f0e6a8b8dcc1"
+    ],
+    "by_type": {
+      "event": 1,
+      "coverage": 0,
+      "fuel": 0
+    }
+  },
+  "rows": 48,
+  "missing": {
+    "event_pressure": 48,
+    "in_maintenance": 48,
+    "days_to_maintenance": 48,
+    "cold_wave": 4,
+    "heat_wave": 48,
+    "fuel_index_norm": 48,
+    "fuel_change_7d": 48
+  },
+  "calendar_sha256": "a6d03b8c63db42a3f119e0bb6cda052e4f975889e160b3f36233ba7b8561e276",
+  "source_hashes": {
+    "f946fdefb913ed4a27ffe7a84275cc75e162b0c45b1f3c911366f0e6a8b8dcc1.txt": "f946fdefb913ed4a27ffe7a84275cc75e162b0c45b1f3c911366f0e6a8b8dcc1"
+  },
+  "created_at": "2026-10-22T14:38:08.470619+00:00",
+  "issue_protocol": "previous local day 23:00"
+}

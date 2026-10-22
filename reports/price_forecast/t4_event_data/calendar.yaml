@@ -1,0 +1,19 @@
+schema_version: 2
+name: guangdong-real
+market: guangdong
+timezone: Asia/Shanghai
+data_kind: real
+records:
+- record_type: event
+  record_id: nmc-20240119-blue-south-china
+  kind: cold_wave
+  start: '2024-01-19T20:00:00+08:00'
+  end: '2024-01-21T20:00:00+08:00'
+  published_at: '2024-01-19T21:54:00+08:00'
+  source_url: https://news.southcn.com/node_179d29f1ce/707460e73d.shtml
+  source_file: sources/f946fdefb913ed4a27ffe7a84275cc75e162b0c45b1f3c911366f0e6a8b8dcc1.txt
+  severity: '0.25'
+  status: active
+  note: 真实南方网转述中央气象台寒潮蓝色预警；包含华南。采用报道发布时间21:54，未假设18:00已采集；蓝色映射0.25为编码约定；不代表完整广东预警档案。
+  source_sha256: f946fdefb913ed4a27ffe7a84275cc75e162b0c45b1f3c911366f0e6a8b8dcc1
+imported_at: '2026-10-22T14:26:58.315587+00:00'

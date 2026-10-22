@@ -85,6 +85,10 @@ class PriceSeries:
     tou_price: np.ndarray | None = None     # 目录电价，政策给定，未来时刻也有值
     event: dict[str, np.ndarray] | None = None  # 事件日历特征（见 event_calendar）
 
+    event_calendar: object | None = None  # EventCalendar v2, evaluated per origin
+    event_timezone: str | None = None  # explicit zone for legacy local hour grids
+    event_available_at: pd.Timestamp | None = None  # freeze publications in recursive forecasts
+
     def __post_init__(self) -> None:
         n = len(self.ts)
         if n == 0:
@@ -199,6 +203,25 @@ def build_samples(
     load_hourly = series.load
     load_stats = _CausalStats(np.nan_to_num(load_hourly, nan=np.nan)) if load_hourly is not None else None
 
+    event_blocks = None
+    if series.event_calendar is not None:
+        from app.domain.forecast.event_calendar import EVENT_FEATURES
+        from app.domain.forecast.event_data import aware
+
+        stamps = series.ts
+        if stamps.tz is None:
+            if not series.event_timezone:
+                raise ValueError("an event calendar requires aware timestamps or explicit event_timezone")
+            stamps = stamps.tz_localize(series.event_timezone)
+        cap = aware(series.event_available_at) if series.event_available_at is not None else None
+        event_blocks = {key: np.full((len(origins), horizon), np.nan) for key in EVENT_FEATURES}
+        for pos, origin in enumerate(origins):
+            targets = stamps[origin + 1:min(origin + horizon + 1, n)]
+            issued_at = min(stamps[origin], cap) if cap is not None else stamps[origin]
+            features = series.event_calendar.features(targets, issued_at=issued_at)
+            for key, values in features.items():
+                event_blocks[key][pos, :len(targets)] = values
+
     frames: list[np.ndarray] = []
     ys: list[np.ndarray] = []
     target_stamps: list[pd.DatetimeIndex] = []
@@ -245,7 +268,7 @@ def build_samples(
             _at(series.temperature, t),
             _at(series.temperature, o),
             _at(series.ghi, t),
-            *[_at_event(series.event, event_name, t) for event_name in (
+            *([_at_event(series.event, event_name, t) for event_name in (
                 "event_pressure",
                 "in_maintenance",
                 "days_to_maintenance",
@@ -253,7 +276,10 @@ def build_samples(
                 "heat_wave",
                 "fuel_index_norm",
                 "fuel_change_7d",
-            )],
+            )] if event_blocks is None else [event_blocks[key][keep, step - 1] for key in (
+                "event_pressure", "in_maintenance", "days_to_maintenance", "cold_wave",
+                "heat_wave", "fuel_index_norm", "fuel_change_7d",
+            )]),
         ]
         frames.append(np.column_stack(cols).astype("float32"))
         ys.append(price[t].astype("float64"))
@@ -270,8 +296,8 @@ def build_samples(
 
     x = pd.DataFrame(np.vstack(frames), columns=list(FEATURE_COLUMNS))
     y = np.concatenate(ys)
-    target_index = pd.DatetimeIndex(np.concatenate([s.values for s in target_stamps]))
-    origin_index = pd.DatetimeIndex(np.concatenate([s.values for s in origin_stamps]))
+    target_index = target_stamps[0].append(target_stamps[1:])
+    origin_index = origin_stamps[0].append(origin_stamps[1:])
 
     if require_target:
         mask = np.isfinite(y)

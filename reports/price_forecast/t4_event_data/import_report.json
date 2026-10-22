@@ -1,0 +1,17 @@
+{
+  "name": "guangdong-real",
+  "schema_version": 2,
+  "data_kind": "real",
+  "market": "guangdong",
+  "timezone": "Asia/Shanghai",
+  "records": 1,
+  "sources": 1,
+  "by_type": {
+    "event": 1,
+    "coverage": 0,
+    "fuel": 0
+  },
+  "calendar_sha256": "a6d03b8c63db42a3f119e0bb6cda052e4f975889e160b3f36233ba7b8561e276",
+  "imported_at": "2026-10-22T14:26:58.315587+00:00",
+  "input_sha256": "1c347d2dfbd64474a162f2b6524c6a5a9c106a98383ec2b4bfa668bcdb30bfac"
+}

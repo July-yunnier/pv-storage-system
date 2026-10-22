@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -27,7 +28,8 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.application.price_service import build_price_series, model_dir  # noqa: E402
+from app.application.price_service import build_price_series, event_calendar_path, model_dir  # noqa: E402
+from app.domain.forecast.event_data import digest  # noqa: E402
 from app.domain.forecast.price_features import PriceSeries  # noqa: E402
 from app.domain.forecast.price_model import LgbmQuantileForecaster  # noqa: E402
 from app.infrastructure.db import Database  # noqa: E402
@@ -41,10 +43,14 @@ def main() -> int:
     parser.add_argument("--cal-days", type=int, default=45, help="保形校准留出天数，0 表示关闭（默认 45）")
     parser.add_argument("--rounds", type=int, default=500)
     parser.add_argument("--origin-stride", type=int, default=3)
+    parser.add_argument("--event-calendar", type=Path, help="V2 publication-aware event bundle")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
     if args.cal_days < 0:
         parser.error("--cal-days must be >= 0")
+
+    if args.event_calendar is not None:
+        os.environ["PRICE_EVENT_CALENDAR"] = str(args.event_calendar.resolve())
 
     db = Database(args.db)
     site = db.get_site(args.site)
@@ -99,6 +105,10 @@ def main() -> int:
     manifest = json.loads(manifest_path.read_text())
     manifest.update(
         {
+            "event_calendar": {
+                **series.event_calendar.summary(),
+                "calendar_sha256": digest(Path(event_calendar_path())),
+            } if series.event_calendar is not None else None,
             "site_id": args.site,
             "trained_at": datetime.now(timezone.utc).isoformat(),
             "train_hours": int(len(series.ts)),

@@ -1,0 +1,2 @@
+record_type,record_id,kind,start,end,published_at,source_url,source_file,severity,status,note
+event,nmc-20240119-blue-south-china,cold_wave,2024-01-19T20:00:00+08:00,2024-01-21T20:00:00+08:00,2024-01-19T21:54:00+08:00,https://news.southcn.com/node_179d29f1ce/707460e73d.shtml,southcn_20240119.ax.txt,0.25,active,真实南方网转述中央气象台寒潮蓝色预警；包含华南。采用报道发布时间21:54，未假设18:00已采集；蓝色映射0.25为编码约定；不代表完整广东预警档案。

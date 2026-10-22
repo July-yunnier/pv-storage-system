@@ -94,7 +94,9 @@ def _forecast_window(series: PriceSeries, origin_idx: int, train_days: int) -> t
         value = getattr(series, name)
         values[name] = None if value is None else value[start:end].copy()
     event = None if series.event is None else {k: v[start:end].copy() for k, v in series.event.items()}
-    return PriceSeries(ts=series.ts[start:end], price=price, event=event, **values), issue
+    return PriceSeries(ts=series.ts[start:end], price=price, event=event,
+                       event_calendar=series.event_calendar, event_timezone=series.event_timezone,
+                       event_available_at=series.event_available_at, **values), issue
 
 
 def _day_matrix(series: PriceSeries) -> tuple[pd.DatetimeIndex, np.ndarray, np.ndarray, np.ndarray]:
