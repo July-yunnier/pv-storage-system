@@ -17,7 +17,7 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta, timezone
 
 from app.api import errors
-from app.application import algorithm_registry
+from app.application import algorithm_registry, price_service
 from app.application.load_features import build_advanced_load_inputs, predict_advanced
 from app.domain.forecast.blend import blend_pv_forecast
 from app.domain.forecast.load import predict_load_intraday, predict_load_profile
@@ -309,6 +309,9 @@ def _archive_forecasts(
         if not result.points:
             continue
         try:
+            if result.target == "price":
+                price_service.archive_price_forecast(db, site, result, issued_at)
+                continue
             db.insert_forecast_archive(
                 site_id=site.site_id,
                 target=result.target,

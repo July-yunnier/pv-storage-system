@@ -256,6 +256,25 @@ P50 不因应用校准而改变，响应结构、元/kWh 单位及带时区的�
 旧工件缺少 `calibration` 时仍按原方式加载；只有重训后才会启用新校准量。
 本项是训练到在线推理的机制接通，不代表真实站点 PICP80 已达 0.80；覆盖率监控仍待 T2。
 
+### 7.1.1 覆盖率监控（T2）
+
+电价专用预测接口会按站点本地自然日封存完整的 P10/P50/P90 曲线；实测到位后按小时
+聚合（24 个小时点）计算 PICP80，并写入 `forecast_accuracy`。15/30/60 分钟封存粒度
+都只在小时级对账，不套用功率模块的 96 点日级判断。缺少原始区间的旧工件只提供点误差，
+其 `interval_coverage` 为 `null`，不会被当成 0，也不会参与低覆盖连续天数。
+
+`GET /api/v1/sites/{id}/price/forecast` 和
+`GET /api/v1/sites/{id}/accuracy?target=price` 暴露：
+
+- `interval_coverage`：最近已对账日的 PICP80；
+- `warning`：同一模型连续 3 个自然日低于 0.75 时为
+  `price_interval_undercoverage`，否则为 `null`；
+- `consecutive_low_days`（精度摘要）：连续低覆盖天数；日期缺口、未知覆盖率或达到
+  0.75 都会中断计数。
+
+这里的告警是覆盖率异常的运营信号，不是“校准已失效”或“模型效果已验证”的结论；
+没有真实区间对账数据时接口返回 `null`。
+
 ### 7.2 事件日历（`event_calendar.py` + `configs/events.guangdong.yaml`）
 
 机组检修、寒潮/高温、燃料价格指数三类外生信息，共 7 个特征，追加在 `FEATURE_COLUMNS` 末尾。

@@ -456,3 +456,22 @@ def _archive_accuracy(db: Database, site: SiteRead) -> ForecastAccuracy | None:
         ),
         evaluated_on=latest["target_date"],
     )
+
+
+def archive_price_forecast(
+    db: Database, site: SiteRead, target: TargetForecast, issued_at: datetime
+) -> None:
+    """按站点本地日封存原始价格区间；每个日期独立对账。"""
+    tz = _zone(site.location.timezone)
+    by_day: dict[date, list[dict]] = {}
+    for i, point in enumerate(target.points):
+        record = {"ts": point.ts.isoformat(), "value": point.value}
+        if target.p10 is not None and target.p90 is not None:
+            record.update(p10=target.p10[i], p90=target.p90[i])
+        by_day.setdefault(point.ts.astimezone(tz).date(), []).append(record)
+    for day, points in by_day.items():
+        db.insert_forecast_archive(
+            site_id=site.site_id, target="price", method=target.model.name,
+            target_date=day, issued_at=issued_at, points=points,
+            provenance=target.provenance.model_dump(mode="json") if target.provenance else None,
+        )
