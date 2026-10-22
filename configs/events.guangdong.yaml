@@ -1,0 +1,51 @@
+# 广东电力市场事件日历（示例配置，需按真实公告替换）
+#
+# 三类事件都是**发报时刻已知**的信息，可以合法进入特征：
+#   - maintenance  机组检修计划（月前公布）
+#   - cold_wave    寒潮预警（气象台提前 3-7 天）
+#   - heat_wave    高温预警（同上）
+# 燃料价格走 fuel_index_csv（动力煤/天然气现货价），是连续序列不是事件。
+#
+# 注意：下面的日期与强度是**占位示例**，只为跑通链路与做单元测试，
+# 不代表任何真实机组。上线前请用省交易中心公告与气象台预警替换。
+
+name: guangdong-demo
+
+fuel_index_csv: fuel_index_sample.csv
+
+events:
+  - kind: maintenance
+    start: 2026-03-02
+    end: 2026-03-18
+    severity: 0.8
+    note: 示例：某 1000MW 燃煤机组 C 级检修
+
+  - kind: maintenance
+    start: 2026-05-11
+    end: 2026-05-20
+    severity: 0.5
+    note: 示例：某 600MW 机组临修
+
+  - kind: heat_wave
+    start: 2026-07-18
+    end: 2026-07-27
+    severity: 0.9
+    note: 示例：持续高温，降温负荷抬升
+
+  - kind: heat_wave
+    start: 2026-08-05
+    end: 2026-08-09
+    severity: 0.6
+    note: 示例：副热带高压
+
+  - kind: cold_wave
+    start: 2026-12-14
+    end: 2026-12-19
+    severity: 0.85
+    note: 示例：寒潮南下，采暖负荷与机组非计划停运风险同时上升
+
+  - kind: maintenance
+    start: 2027-01-05
+    end: 2027-01-20
+    severity: 0.7
+    note: 示例：年度检修

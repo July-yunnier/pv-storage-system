@@ -9,6 +9,8 @@ from uuid import uuid4
 from app.api import errors
 from app.application import forecast_service
 from app.domain.dispatch import DispatchInputs, RuleDispatchEngine
+from app.domain.dispatch_interval import IntervalDispatchEngine, IntervalInputs, PriceBand
+from app.application import price_service
 from app.domain.explain import explain_schedule
 from app.domain.forecast.result import ForecastPoint
 from app.domain.models import MeasurementRead, PricePoint, ScheduleRequest, ScheduleResponse
@@ -117,17 +119,20 @@ def run_schedule(db: Database, payload: ScheduleRequest) -> ScheduleResponse:
             periods=len(pv_points),
             resolution_minutes=payload.resolution_minutes,
         )
-        result = RuleDispatchEngine().run(
-            DispatchInputs(
-                site=site,
-                target_date=payload.date,
-                initial_soc=payload.initial_soc,
-                pv_points=pv_points,
-                load_points=load_points,
-                price_points=price_points,
-                resolution_minutes=payload.resolution_minutes,
+        if payload.strategy == "interval_robust":
+            result = _run_interval(db, site, payload, pv_points, load_points)
+        else:
+            result = RuleDispatchEngine().run(
+                DispatchInputs(
+                    site=site,
+                    target_date=payload.date,
+                    initial_soc=payload.initial_soc,
+                    pv_points=pv_points,
+                    load_points=load_points,
+                    price_points=price_points,
+                    resolution_minutes=payload.resolution_minutes,
+                )
             )
-        )
     except ValueError as exc:
         raise errors.validation_error(str(exc)) from exc
 
@@ -151,3 +156,34 @@ def run_schedule(db: Database, payload: ScheduleRequest) -> ScheduleResponse:
         data_source=source,
     )
     return result
+
+
+def _run_interval(db: Database, site, payload, pv_points, load_points):
+    """区间感知调度：价格带优先用现货预测，取不到时退化为政策表（带宽为 0）。"""
+    from app.infrastructure.db import _zone
+
+    tz = _zone(site.location.timezone)
+    target, _, _ = price_service.forecast_price(
+        db, site, payload.date, 1, tz,
+        model="auto", include_uncertainty=True,
+        resolution_minutes=payload.resolution_minutes,
+    )
+    if len(target.points) != len(pv_points):
+        raise ValueError("price forecast length does not match dispatch horizon")
+    p10 = target.p10 or [p.value for p in target.points]
+    p90 = target.p90 or [p.value for p in target.points]
+    bands = [
+        PriceBand(ts=point.ts, p10=float(lo), p50=float(point.value), p90=float(hi))
+        for point, lo, hi in zip(target.points, p10, p90)
+    ]
+    return IntervalDispatchEngine().run(
+        IntervalInputs(
+            site=site,
+            target_date=payload.date,
+            initial_soc=payload.initial_soc,
+            pv_points=pv_points,
+            load_points=load_points,
+            bands=bands,
+            resolution_minutes=payload.resolution_minutes,
+        )
+    )

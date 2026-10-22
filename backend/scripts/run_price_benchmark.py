@@ -154,6 +154,7 @@ def main() -> int:
     parser.add_argument("--mqrnn-stride", type=int, default=1, help="MQ-RNN 训练块抽样步长")
     parser.add_argument("--mqrnn-epochs", type=int, default=20)
     parser.add_argument("--lgbm-rounds", type=int, default=300)
+    parser.add_argument("--cal-days", type=int, default=45, help="尾部留作保形校准集的天数，0 表示不校准")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--tasks", default="", help="只跑指定任务，如 1,15（调试用）")
     parser.add_argument("--append", action="store_true", help="保留已有 predictions.csv 的其他模型")
@@ -216,22 +217,31 @@ def main() -> int:
                 print(f"  [task {task_index}] LEAR skipped: {exc}", flush=True)
 
         # 4) LightGBM 分位数
-        if "lgbm_quantile" in selected:
+        if {"lgbm_quantile", "lgbm_calibrated"} & selected:
             try:
                 from app.domain.forecast.price_model import LgbmQuantileForecaster
 
+                # 两个变体共用同一份训练/校准切分，保证消融是配对的
                 model = LgbmQuantileForecaster().fit(
                     series,
                     horizon=HORIZON,
                     origins=train_origins,
                     num_boost_round=args.lgbm_rounds,
                     seed=args.seed,
+                    cal_days=args.cal_days,
                 )
-                forecast = model.predict(series, origin_idx, HORIZON)
-                _record(
-                    rows, task_index, day, "lgbm_quantile", actual,
-                    forecast.p10, forecast.p50, forecast.p90,
-                )
+                if "lgbm_quantile" in selected:
+                    raw = model.predict(series, origin_idx, HORIZON, apply_calibration=False)
+                    _record(
+                        rows, task_index, day, "lgbm_quantile", actual,
+                        raw.p10, raw.p50, raw.p90,
+                    )
+                if "lgbm_calibrated" in selected:
+                    cal = model.predict(series, origin_idx, HORIZON, apply_calibration=True)
+                    _record(
+                        rows, task_index, day, "lgbm_calibrated", actual,
+                        cal.p10, cal.p50, cal.p90,
+                    )
             except (ValueError, ImportError) as exc:
                 print(f"  [task {task_index}] lgbm skipped: {exc}", flush=True)
 

@@ -57,6 +57,14 @@ FEATURE_COLUMNS: tuple[str, ...] = (
     "temp_target",
     "temp_origin",
     "ghi_target",
+    # --- 事件日历（追加在末尾，旧工件按保存的列名取数，不受影响）---
+    "event_pressure",
+    "in_maintenance",
+    "days_to_maintenance",
+    "cold_wave",
+    "heat_wave",
+    "fuel_index_norm",
+    "fuel_change_7d",
 )
 
 #: 需要提前 168 小时历史才能算的特征，冷启动时整列缺失。
@@ -75,6 +83,7 @@ class PriceSeries:
     temperature: np.ndarray | None = None
     ghi: np.ndarray | None = None
     tou_price: np.ndarray | None = None     # 目录电价，政策给定，未来时刻也有值
+    event: dict[str, np.ndarray] | None = None  # 事件日历特征（见 event_calendar）
 
     def __post_init__(self) -> None:
         n = len(self.ts)
@@ -86,6 +95,10 @@ class PriceSeries:
             value = getattr(self, field)
             if value is not None and len(value) != n:
                 raise ValueError(f"{field} length must match ts")
+        if self.event is not None:
+            for key, value in self.event.items():
+                if len(value) != n:
+                    raise ValueError(f"event feature {key} length must match ts")
 
     def slice_index(self, issue_ts: pd.Timestamp) -> int:
         """返回 <= issue_ts 的最后一个索引；早于序列起点返回 -1。"""
@@ -232,6 +245,15 @@ def build_samples(
             _at(series.temperature, t),
             _at(series.temperature, o),
             _at(series.ghi, t),
+            *[_at_event(series.event, event_name, t) for event_name in (
+                "event_pressure",
+                "in_maintenance",
+                "days_to_maintenance",
+                "cold_wave",
+                "heat_wave",
+                "fuel_index_norm",
+                "fuel_change_7d",
+            )],
         ]
         frames.append(np.column_stack(cols).astype("float32"))
         ys.append(price[t].astype("float64"))
@@ -264,6 +286,15 @@ def _at(values: np.ndarray | None, idx: np.ndarray) -> np.ndarray:
     if values is None:
         return np.full(idx.size, np.nan, dtype="float32")
     return np.asarray(values, dtype="float64")[idx].astype("float32")
+
+
+def _at_event(
+    event: dict[str, np.ndarray] | None, name: str, idx: np.ndarray
+) -> np.ndarray:
+    """事件特征取目标时刻的值；无事件日历或该事件未配置时整列 NaN。"""
+    if event is None or name not in event:
+        return np.full(idx.size, np.nan, dtype="float32")
+    return np.asarray(event[name], dtype="float64")[idx].astype("float32")
 
 
 def _shifted(values: np.ndarray, idx: np.ndarray, back: int) -> np.ndarray:

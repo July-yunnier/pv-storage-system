@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -59,6 +60,18 @@ def main() -> int:
     parser.add_argument("--recent", action="store_true", help="把时间轴平移到最近 N 天")
     parser.add_argument("--keep-days", type=int, default=120, help="保留多少天历史")
     parser.add_argument("--scale", type=float, default=1.0, help="价格缩放（单位换算用，如 $/MWh→¥/kWh 需 0.0072）")
+    parser.add_argument(
+        "--profile",
+        choices=["raw", "guangdong"],
+        default="raw",
+        help="raw=按给定列直接入库；guangdong=按交易所导出格式规范化（自动识别元/MWh、补时区、15 分钟聚合到小时）",
+    )
+    parser.add_argument("--unit", default="auto", choices=["auto", "CNY/MWh", "CNY/kWh"])
+    parser.add_argument(
+        "--keep-resolution",
+        action="store_true",
+        help="guangdong 模式下保留原始 15 分钟粒度（默认聚合到小时，与模型粒度一致）",
+    )
     args = parser.parse_args()
 
     db = Database(args.db)
@@ -82,14 +95,35 @@ def main() -> int:
         source = "gefcom2014p"
     elif args.csv:
         raw = pd.read_csv(args.csv)
-        if args.ts_col not in raw.columns or args.price_col not in raw.columns:
-            print(f"csv must contain columns {args.ts_col!r} and {args.price_col!r}", file=sys.stderr)
-            return 2
-        frame = pd.DataFrame({"ts": pd.to_datetime(raw[args.ts_col]), "price": raw[args.price_col]})
-        frame = frame.dropna(subset=["price"]).sort_values("ts")
-        if frame["ts"].dt.tz is None:
-            frame["ts"] = frame["ts"].dt.tz_localize(tz)
-        source = args.source
+        if args.profile == "guangdong":
+            from app.domain.forecast.price_ingest import aggregate_hourly, normalize_spot
+
+            try:
+                clean, report = normalize_spot(
+                    raw,
+                    ts_col=args.ts_col if args.ts_col in raw.columns else None,
+                    price_col=args.price_col if args.price_col in raw.columns else None,
+                    tz=args.tz,
+                    unit=args.unit,
+                )
+            except ValueError as exc:
+                print(f"normalize failed: {exc}", file=sys.stderr)
+                return 2
+            if not args.keep_resolution:
+                clean = aggregate_hourly(clean)
+            report.rows_out = int(len(clean))
+            print("[ingest report] " + json.dumps(report.as_dict(), ensure_ascii=False))
+            frame = clean
+            source = args.source if args.source != "csv" else "guangdong"
+        else:
+            if args.ts_col not in raw.columns or args.price_col not in raw.columns:
+                print(f"csv must contain columns {args.ts_col!r} and {args.price_col!r}", file=sys.stderr)
+                return 2
+            frame = pd.DataFrame({"ts": pd.to_datetime(raw[args.ts_col]), "price": raw[args.price_col]})
+            frame = frame.dropna(subset=["price"]).sort_values("ts")
+            if frame["ts"].dt.tz is None:
+                frame["ts"] = frame["ts"].dt.tz_localize(tz)
+            source = args.source
     else:
         print("either --csv or --gefcom is required", file=sys.stderr)
         return 2

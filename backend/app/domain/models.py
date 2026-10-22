@@ -220,7 +220,7 @@ class ScheduleRequest(BaseModel):
     site_id: str
     date: date
     initial_soc: float = Field(default=0.5, ge=0, le=1)
-    strategy: Literal["rule_v1"] = "rule_v1"
+    strategy: Literal["rule_v1", "interval_robust"] = "rule_v1"
     resolution_minutes: int = Field(default=15, gt=0)
     source: Literal["auto", "measurements", "forecast"] = "auto"
 
