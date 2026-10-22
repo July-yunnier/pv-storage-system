@@ -28,9 +28,12 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import importlib.metadata
 import json
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -48,6 +51,50 @@ from app.domain.forecast.price_metrics import summarize  # noqa: E402
 from app.domain.forecast.price_model import QUANTILES  # noqa: E402
 
 HORIZON = 24
+
+
+def _peak_rss_mb() -> float | None:
+    try:
+        import resource
+    except ImportError:  # Windows 不提供 resource；不阻止离线实验。
+        return None
+    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / (1024**2 if sys.platform == "darwin" else 1024)
+
+
+def _rolling_days(series: PriceSeries, start: str, count: int) -> list[pd.Timestamp]:
+    """连续自然日；不补测试真值，不静默跳过缺失日或 DST 异常日。"""
+    if count < 1:
+        raise ValueError("rolling-days must be positive")
+    first = pd.Timestamp(start, tz=series.ts.tz)
+    if first != first.normalize():
+        raise ValueError("rolling-start must be a date at midnight")
+    days = list(pd.date_range(first, periods=count, freq="D"))
+    for day in days:
+        local_day = day.tz_localize("America/New_York") if day.tzinfo is None else day
+        local_grid = pd.date_range(local_day, periods=HORIZON, freq="h")
+        if (len({stamp.date() for stamp in local_grid}) != 1
+                or len({stamp.hour for stamp in local_grid}) != 24):
+            raise ValueError(f"evaluation day must have 24 distinct hours: {day.date()}")
+        grid = pd.date_range(day, periods=HORIZON, freq="h")
+        pos = series.ts.get_indexer(grid)
+        if (pos < 0).any() or not np.isfinite(series.price[pos]).all():
+            raise ValueError(f"missing evaluation actuals for {day.date()}")
+    return days
+
+
+def _forecast_window(series: PriceSeries, origin_idx: int, train_days: int) -> tuple[PriceSeries, int]:
+    """物理截断到目标日末尾，并屏蔽发报后的价格；未来负荷是日前已知量。"""
+    start = max(0, origin_idx + 1 - train_days * 24) if train_days else 0
+    end = origin_idx + HORIZON + 1
+    price = series.price[start:end].copy()
+    issue = origin_idx - start
+    price[issue + 1 :] = np.nan
+    values = {}
+    for name in ("load", "load_total", "temperature", "ghi", "tou_price"):
+        value = getattr(series, name)
+        values[name] = None if value is None else value[start:end].copy()
+    event = None if series.event is None else {k: v[start:end].copy() for k, v in series.event.items()}
+    return PriceSeries(ts=series.ts[start:end], price=price, event=event, **values), issue
 
 
 def _day_matrix(series: PriceSeries) -> tuple[pd.DatetimeIndex, np.ndarray, np.ndarray, np.ndarray]:
@@ -125,6 +172,7 @@ def _lear_forecast(
 
 
 def _record(rows: list[dict], task: int, day: pd.Timestamp, model: str, actual, p10, p50, p90) -> None:
+    day = day.tz_localize("America/New_York") if day.tzinfo is None else day
     for hour in range(HORIZON):
         rows.append(
             {
@@ -157,16 +205,31 @@ def main() -> int:
     parser.add_argument("--cal-days", type=int, default=45, help="尾部留作保形校准集的天数，0 表示不校准")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--tasks", default="", help="只跑指定任务，如 1,15（调试用）")
+    parser.add_argument("--rolling-start", default="", help="连续评估起日 YYYY-MM-DD")
+    parser.add_argument("--rolling-days", type=int, default=0, help="连续评估天数，不能与 --tasks 混用")
+    parser.add_argument("--train-days", type=int, default=0, help="训练历史天数（含校准），0 为扩展窗口")
+    parser.add_argument("--price-scale", type=float, default=1.0,
+                        help="源价格换算系数；T3 用 0.008 换算到元/kWh（情景汇率 8 元/美元）")
     parser.add_argument("--append", action="store_true", help="保留已有 predictions.csv 的其他模型")
     args = parser.parse_args()
 
     selected = {m.strip() for m in args.models.split(",") if m.strip()}
+    if bool(args.rolling_start) != bool(args.rolling_days) or args.rolling_days < 0:
+        parser.error("--rolling-start and positive --rolling-days must be provided together")
+    if args.rolling_start and (args.tasks or selected - {"naive_daily", "lgbm_quantile", "lgbm_calibrated"}):
+        parser.error("rolling mode supports naive_daily/lgbm_quantile/lgbm_calibrated and no --tasks")
+    if (args.train_days < 0 or args.cal_days < 0 or args.origin_stride < 1
+            or args.lgbm_rounds < 1 or not np.isfinite(args.price_scale) or args.price_scale <= 0):
+        parser.error("invalid training window, calibration days, stride, rounds or price scale")
     out_dir = Path(args.output)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     started = time.time()
     gefcom = load_gefcom_price(args.data)
     series = gefcom.series
+    # 先检查原始真值，再前向填补历史中的短缺口，避免把缺失测试标签编成实测。
+    rolling_days = _rolling_days(series, args.rolling_start, args.rolling_days) if args.rolling_start else None
+    series.price = series.price * args.price_scale
     # 美东夏令时缺口（2013-03-10 02:00 不存在）：单点前向填充，只影响 3 月训练窗口，
     # 15 个任务日（6-7 月、12 月）的真实值不受影响
     for attr in ("price", "load", "load_total"):
@@ -178,6 +241,8 @@ def main() -> int:
             print(f"filled {n_filled} DST-gap point(s) in {attr}", flush=True)
     # 保留官方任务编号：--tasks 只是筛选，不能重排，否则基准文件会错位
     task_items = list(enumerate(gefcom.task_days, start=1))
+    if rolling_days is not None:
+        task_items = list(enumerate(rolling_days, start=1))
     if args.tasks:
         keep = {int(t) for t in args.tasks.split(",")}
         task_items = [(i, d) for i, d in task_items if i in keep]
@@ -222,27 +287,31 @@ def main() -> int:
                 from app.domain.forecast.price_model import LgbmQuantileForecaster
 
                 # 两个变体共用同一份训练/校准切分，保证消融是配对的
+                fit_series, fit_issue = _forecast_window(series, origin_idx, args.train_days)
+                fit_origins = np.arange(0, fit_issue - HORIZON + 1, args.origin_stride)
                 model = LgbmQuantileForecaster().fit(
-                    series,
+                    fit_series,
                     horizon=HORIZON,
-                    origins=train_origins,
+                    origins=fit_origins,
                     num_boost_round=args.lgbm_rounds,
                     seed=args.seed,
                     cal_days=args.cal_days,
                 )
                 if "lgbm_quantile" in selected:
-                    raw = model.predict(series, origin_idx, HORIZON, apply_calibration=False)
+                    raw = model.predict(fit_series, fit_issue, HORIZON, apply_calibration=False)
                     _record(
                         rows, task_index, day, "lgbm_quantile", actual,
                         raw.p10, raw.p50, raw.p90,
                     )
                 if "lgbm_calibrated" in selected:
-                    cal = model.predict(series, origin_idx, HORIZON, apply_calibration=True)
+                    cal = model.predict(fit_series, fit_issue, HORIZON, apply_calibration=True)
                     _record(
                         rows, task_index, day, "lgbm_calibrated", actual,
                         cal.p10, cal.p50, cal.p90,
                     )
             except (ValueError, ImportError) as exc:
+                if rolling_days is not None:
+                    raise
                 print(f"  [task {task_index}] lgbm skipped: {exc}", flush=True)
 
         # 5) MQ-CNN（截断到 origin：全序列喂入会泄漏任务日之后的数据，2026-10-22 修复）
@@ -310,7 +379,7 @@ def main() -> int:
                 cols = list(bench.columns) if hasattr(bench, "columns") else None
                 levels = np.asarray([round(0.01 * i, 2) for i in range(1, 100)])
                 idx = [int(np.argmin(np.abs(levels - q))) for q in QUANTILES]
-                q = bench[:, idx]
+                q = bench[:, idx] * args.price_scale
                 _record(rows, task_index, day, "gefcom_benchmark", actual, q[:, 0], q[:, 1], q[:, 2])
             except FileNotFoundError as exc:
                 print(f"  [task {task_index}] benchmark skipped: {exc}", flush=True)
@@ -326,7 +395,13 @@ def main() -> int:
         # 同模型同名点以本次结果为准，其余保留（分批跑深度模型时不必重跑基准）
         previous = previous[~previous["model"].isin(predictions["model"].unique())]
         predictions = pd.concat([previous, predictions], ignore_index=True)
-    predictions.to_csv(predictions_path, index=False, float_format="%.4f")
+    # 源表只有壁钟时间。输出显式附加纽约时区；不支持的 DST 日直接报错。
+    predictions["ts"] = [
+        pd.Timestamp(ts).tz_localize("America/New_York").isoformat()
+        if pd.Timestamp(ts).tzinfo is None else pd.Timestamp(ts).isoformat()
+        for ts in predictions["ts"]
+    ]
+    predictions.to_csv(predictions_path, index=False, float_format="%.8f")
 
     metrics_rows = []
     for model, block in predictions.groupby("model"):
@@ -364,6 +439,22 @@ def main() -> int:
         "models": sorted(selected),
         "seed": args.seed,
         "origin_stride": args.origin_stride,
+        "rolling_start": args.rolling_start or None,
+        "rolling_days": args.rolling_days,
+        "train_days": args.train_days,
+        "cal_days": args.cal_days,
+        "lgbm_rounds": args.lgbm_rounds,
+        "price_scale": args.price_scale,
+        "price_unit": "CNY/kWh" if args.price_scale == 0.008 else "source_unit * price_scale",
+        "timestamp_timezone": "America/New_York",
+        "source_sha256": hashlib.sha256((Path(args.data) / "Task 15" / "Task15_P.csv").read_bytes()).hexdigest(),
+        "predictions_sha256": hashlib.sha256(predictions_path.read_bytes()).hexdigest(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "versions": {pkg: importlib.metadata.version(pkg) for pkg in ("numpy", "pandas", "lightgbm")
+                     if pkg == "lightgbm" and {"lgbm_quantile", "lgbm_calibrated"} & selected or pkg != "lightgbm"},
+        "peak_rss_mb": _peak_rss_mb(),
+        "python_version": sys.version,
+        "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "mqcnn_stride": args.mqcnn_stride,
         "mqrnn_stride": args.mqrnn_stride,
         "mqrnn_epochs": args.mqrnn_epochs,
