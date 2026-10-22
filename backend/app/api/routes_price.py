@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 
 from app.api import errors
 from app.api.dependencies import get_db
-from app.application import algorithm_registry, price_service
+from app.application import algorithm_registry, observability_service, price_service
 from app.domain.forecast import price_calendar as cal
 from app.domain.models import SiteRead, SpotPriceRead, SpotPriceUpload
 from app.infrastructure.db import Database, _zone
@@ -58,6 +58,9 @@ class PriceForecastView(BaseModel):
     points: list[PricePointView]
     summary: PriceForecastSummary
     accuracy: dict | None = None
+    interval_coverage: float | None = None
+    warning: str | None = None
+    interval_coverage_evaluated_on: str | None = None
 
 
 class PriceHistoryView(BaseModel):
@@ -125,6 +128,10 @@ def get_price_forecast(
     if not target.points:
         raise errors.data_quality_error("empty price forecast")
 
+    price_service.archive_price_forecast(db, site, target, issued_at)
+    observability_service.reconcile_site(db, site_id)
+    coverage_status = observability_service.price_interval_status(db, site_id, target.model.name)
+
     provider, tiers = _tier_map(site, db)
     tou_by_hour: dict[int, float] = {}
     if provider is not None:
@@ -179,6 +186,9 @@ def get_price_forecast(
         points=points,
         summary=summary,
         accuracy=target.accuracy.model_dump(mode="json") if target.accuracy else None,
+        interval_coverage=coverage_status["interval_coverage"],
+        warning=coverage_status["warning"],
+        interval_coverage_evaluated_on=coverage_status["evaluated_on"],
     )
 
 

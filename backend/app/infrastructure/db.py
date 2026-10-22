@@ -777,15 +777,17 @@ class Database:
         with self.connection() as conn:
             rows = conn.execute(
                 """
-                SELECT fa.id, fa.target, fa.method, fa.target_date, fa.points_json
+                SELECT fa.id, fa.target, fa.method, fa.target_date, fa.issued_at, fa.points_json
                 FROM forecast_archive fa
                 WHERE fa.site_id = ? AND fa.target_date <= ?
                   AND NOT EXISTS (
                       SELECT 1 FROM forecast_accuracy ac
                       WHERE ac.site_id = fa.site_id AND ac.target = fa.target
                         AND ac.method = fa.method AND ac.target_date = fa.target_date
+                        AND (fa.target != 'price'
+                             OR json_extract(ac.metrics_json, '$.interval_coverage_version') = 1)
                   )
-                ORDER BY fa.target_date
+                ORDER BY fa.target_date, fa.issued_at DESC, fa.id DESC
                 """,
                 (site_id, up_to_date.isoformat()),
             ).fetchall()
@@ -795,6 +797,7 @@ class Database:
                 "target": row["target"],
                 "method": row["method"],
                 "target_date": row["target_date"],
+                "issued_at": row["issued_at"],
                 "points": json.loads(row["points_json"]),
             }
             for row in rows
