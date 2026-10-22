@@ -12,7 +12,12 @@
 3. `lear`          Lasso 自回归（Uniejewski/Weron 系，电价预测经典强基准）
 4. `lgbm_quantile` 本文分位数梯度提升
 5. `mqcnn`         MQ-CNN（Wen et al., NIPS 2017）
-6. `gefcom_benchmark` 赛事官方基准给出的 99 分位数预测
+6. `mqrnn`         MQ-RNN（同论文 RNN 变体，July 复现移植，forking-sequences）
+7. `gefcom_benchmark` 赛事官方基准给出的 99 分位数预测
+
+2026-10-22 修正：MQ-CNN 此前误用全序列训练（泄漏任务日之后的数据），
+已改为与其余模型一致的 origin 截断；docs/15 的 MQ-CNN 旧数字随之作废，
+以本次修正后的重跑为准（见 docs/18 §5）。
 
 用法::
 
@@ -141,11 +146,13 @@ def main() -> int:
     parser.add_argument("--output", default="data/forecast_experiments/price_benchmark")
     parser.add_argument(
         "--models",
-        default="naive_daily,naive_weekly,lear,lgbm_quantile,mqcnn,gefcom_benchmark",
+        default="naive_daily,naive_weekly,lear,lgbm_quantile,mqcnn,mqrnn,gefcom_benchmark",
     )
     parser.add_argument("--origin-stride", type=int, default=3, help="LGBM 训练 origin 抽样步长")
     parser.add_argument("--mqcnn-stride", type=int, default=6, help="MQ-CNN 训练 origin 抽样步长")
     parser.add_argument("--mqcnn-epochs", type=int, default=25)
+    parser.add_argument("--mqrnn-stride", type=int, default=1, help="MQ-RNN 训练块抽样步长")
+    parser.add_argument("--mqrnn-epochs", type=int, default=20)
     parser.add_argument("--lgbm-rounds", type=int, default=300)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--tasks", default="", help="只跑指定任务，如 1,15（调试用）")
@@ -159,6 +166,15 @@ def main() -> int:
     started = time.time()
     gefcom = load_gefcom_price(args.data)
     series = gefcom.series
+    # 美东夏令时缺口（2013-03-10 02:00 不存在）：单点前向填充，只影响 3 月训练窗口，
+    # 15 个任务日（6-7 月、12 月）的真实值不受影响
+    for attr in ("price", "load", "load_total"):
+        values = getattr(series, attr)
+        if not np.isfinite(values).all():
+            filled = pd.Series(values).ffill(limit=2).to_numpy(dtype="float64")
+            n_filled = int((~np.isfinite(values)).sum() - (~np.isfinite(filled)).sum())
+            setattr(series, attr, filled)
+            print(f"filled {n_filled} DST-gap point(s) in {attr}", flush=True)
     # 保留官方任务编号：--tasks 只是筛选，不能重排，否则基准文件会错位
     task_items = list(enumerate(gefcom.task_days, start=1))
     if args.tasks:
@@ -219,29 +235,63 @@ def main() -> int:
             except (ValueError, ImportError) as exc:
                 print(f"  [task {task_index}] lgbm skipped: {exc}", flush=True)
 
-        # 5) MQ-CNN
+        # 5) MQ-CNN（截断到 origin：全序列喂入会泄漏任务日之后的数据，2026-10-22 修复）
         if "mqcnn" in selected:
             try:
                 from app.domain.forecast.price_mqcnn import MqCnn
 
                 model = MqCnn(enc_channels=3, future_features=7)
                 model.fit(
-                    series.ts,
-                    series.price,
-                    series.load,
+                    series.ts[: origin_idx + 1],
+                    series.price[: origin_idx + 1],
+                    series.load[: origin_idx + 1],
                     horizon=HORIZON,
                     max_epochs=args.mqcnn_epochs,
                     seed=args.seed,
                     val_days=45,
                     origin_stride=max(1, args.mqcnn_stride),
                 )
-                forecast = model.predict(series.ts, series.price, series.load, origin_idx)
+                forecast = model.predict(
+                    series.ts[: origin_idx + 1],
+                    series.price[: origin_idx + 1],
+                    series.load[: origin_idx + 1],
+                    origin_idx,
+                )
                 _record(
                     rows, task_index, day, "mqcnn", actual,
                     forecast.p10, forecast.p50, forecast.p90,
                 )
             except (ValueError, ImportError) as exc:
                 print(f"  [task {task_index}] mqcnn skipped: {exc}", flush=True)
+
+        # 5b) MQ-RNN（July 的 arXiv:1711.11053 RNN 变体移植，同协议对决臂）
+        if "mqrnn" in selected:
+            try:
+                from app.domain.forecast.price_mqrnn import MqRnn
+
+                model = MqRnn(horizon=HORIZON)
+                model.fit(
+                    series.ts[: origin_idx + 1],
+                    series.price[: origin_idx + 1],
+                    None,
+                    horizon=HORIZON,
+                    max_epochs=args.mqrnn_epochs,
+                    seed=args.seed,
+                    val_days=45,
+                    block_stride=max(1, args.mqrnn_stride),
+                )
+                forecast = model.predict(
+                    series.ts[: origin_idx + 1],
+                    series.price[: origin_idx + 1],
+                    None,
+                    origin_idx,
+                )
+                _record(
+                    rows, task_index, day, "mqrnn", actual,
+                    forecast.p10, forecast.p50, forecast.p90,
+                )
+            except (ValueError, ImportError, RuntimeError) as exc:
+                print(f"  [task {task_index}] mqrnn skipped: {exc}", flush=True)
 
         # 6) 官方基准
         if "gefcom_benchmark" in selected:
@@ -305,6 +355,8 @@ def main() -> int:
         "seed": args.seed,
         "origin_stride": args.origin_stride,
         "mqcnn_stride": args.mqcnn_stride,
+        "mqrnn_stride": args.mqrnn_stride,
+        "mqrnn_epochs": args.mqrnn_epochs,
         "elapsed_seconds": round(time.time() - started, 1),
         "task_log": log,
     }

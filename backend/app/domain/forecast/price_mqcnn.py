@@ -278,11 +278,38 @@ class MqCnn:
 
     # ---- 推理 ----
     def predict(self, ts: pd.DatetimeIndex, price: np.ndarray, load: np.ndarray | None, origin: int) -> PriceForecastOutput:
+        """从 origin（最后一个已知点索引）预测之后 horizon 小时。
+
+        预测期没有未来价格可读，不复用 build_sequences（它会丢弃越界 origin）；
+        日历/负荷预报是未来已知量，单独按时间外推构造。
+        """
         import torch
 
-        enc, fut, _, _, starts = build_sequences(
-            ts, price, load, lookback=168, horizon=self.horizon, origins=np.asarray([origin])
-        )
+        lookback = 168
+        if self.has_load and load is None:
+            raise ValueError("MQ-CNN 训练时使用了负荷协变量，推理必须提供")
+        if origin + 1 < lookback:
+            raise ValueError(f"MQ-CNN 需要 origin 前至少 {lookback} 个小时历史")
+        window = pd.Series(price[origin - lookback + 1 : origin + 1], dtype="float64").ffill(limit=2).to_numpy()
+        if not np.isfinite(window).all():
+            raise ValueError("MQ-CNN 历史窗口含非有限值")
+        ext_ts = pd.date_range(ts[origin - lookback + 1], periods=lookback + self.horizon, freq="h")
+        cal_all = _calendar_channels(ext_ts)
+        channels = [window, cal_all[:lookback]]
+        fut_parts = [cal_all[lookback:]]
+        if load is not None:
+            load_window = pd.Series(load[origin - lookback + 1 : origin + 1], dtype="float64").ffill(limit=2).to_numpy()
+            if not np.isfinite(load_window).all():
+                raise ValueError("MQ-CNN 负荷窗口含非有限值")
+            channels.insert(1, load_window)
+            fut_load = load[origin + 1 : origin + 1 + self.horizon]
+            if len(fut_load) == self.horizon and np.isfinite(fut_load).all():
+                fut_parts.insert(0, fut_load.reshape(-1, 1))
+            else:  # 无日前负荷预报时退回训练均值（等效 z-score 后的 0）
+                fut_parts.insert(0, np.full((self.horizon, 1), self.load_mean))
+
+        enc = np.column_stack(channels)[None].astype("float32")
+        fut = np.concatenate(fut_parts, axis=-1)[None].astype("float32")
         enc, fut = self._scale(enc, fut)
         self.net.eval()
         with torch.no_grad():
