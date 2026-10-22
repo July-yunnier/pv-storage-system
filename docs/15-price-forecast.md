@@ -237,6 +237,25 @@ GEFCom2014-P 上 PICP80 由 **0.642 → 0.756**（严格滚动）、**0.803**（
 严格滚动没到 0.80，是因为 12 月寒潮尖峰在校准窗口里没有先例——这是可交换性假设被打破，
 不是实现问题。上线需配**覆盖率监控**（PICP80 < 0.75 触发人工复核），而不是假设永远 0.80。
 
+站点训练入口默认启用 `--cal-days 45`，透传给 `LgbmQuantileForecaster.fit()`；
+可显式指定其他天数，`--cal-days 0` 关闭校准。保护条件按**实际训练窗口内有限值价格的
+小时数 / 24**计算有效历史（缺失小时不计入，不能只看数据库首尾日期跨度）：
+不足 `2 × cal_days` 天时打印提示，并自动以 `cal_days=0` 训练。
+例如默认校准需要至少 90 天有效小时价格；恰好 90 天时保留校准。
+`--min-days` 仍是独立的最低训练历史门槛，`--cal-days` 不接受负数。
+
+```bash
+cd backend
+python scripts/train_price_model.py --site S-XXX --db data/storage.db --cal-days 45
+```
+
+重新训练后的 `data/price_models/<site>/manifest.json` 在启用且完成校准时保存非空
+`calibration`，并记录 `cal_days_requested`、实际 `cal_days` 和 `valid_price_hours`。
+现有 `/api/v1/sites/{id}/price/forecast` 会从工件读取校准量，外扩 P10/P90；
+P50 不因应用校准而改变，响应结构、元/kWh 单位及带时区的对外时间戳保持不变。
+旧工件缺少 `calibration` 时仍按原方式加载；只有重训后才会启用新校准量。
+本项是训练到在线推理的机制接通，不代表真实站点 PICP80 已达 0.80；覆盖率监控仍待 T2。
+
 ### 7.2 事件日历（`event_calendar.py` + `configs/events.guangdong.yaml`）
 
 机组检修、寒潮/高温、燃料价格指数三类外生信息，共 7 个特征，追加在 `FEATURE_COLUMNS` 末尾。

@@ -9,6 +9,8 @@
 
 数据要求：至少 ``--min-days`` 天的小时级现货电价（默认 45 天）。样本不足时不要
 硬训——直接返回非零退出码，让在线链路走统计画像，比训练一个过拟合模型更诚实。
+默认留出 ``--cal-days 45`` 天做保形校准；设为 0 可关闭。实际训练窗口内有效价格
+不足两倍校准天数（按有效小时数 / 24 计）时，提示并自动关闭校准。
 """
 
 from __future__ import annotations
@@ -36,10 +38,13 @@ def main() -> int:
     parser.add_argument("--site", required=True)
     parser.add_argument("--db", default="data/storage.db")
     parser.add_argument("--min-days", type=int, default=45)
+    parser.add_argument("--cal-days", type=int, default=45, help="保形校准留出天数，0 表示关闭（默认 45）")
     parser.add_argument("--rounds", type=int, default=500)
     parser.add_argument("--origin-stride", type=int, default=3)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
+    if args.cal_days < 0:
+        parser.error("--cal-days must be >= 0")
 
     db = Database(args.db)
     site = db.get_site(args.site)
@@ -68,6 +73,16 @@ def main() -> int:
     target_end = datetime.now(tz).replace(minute=0, second=0, microsecond=0)
     series, _, _ = build_price_series(db, site, tariff, target_end)
 
+    valid_price_hours = int(np.isfinite(series.price).sum())
+    cal_days = args.cal_days
+    if cal_days > 0 and valid_price_hours < cal_days * 2 * 24:
+        print(
+            f"only {valid_price_hours / 24:.2f} effective days of spot prices in the training window, "
+            f"need >= {cal_days * 2} for --cal-days {cal_days}; disabling calibration (cal_days=0)",
+            file=sys.stderr,
+        )
+        cal_days = 0
+
     origins = np.arange(0, len(series.ts), max(1, args.origin_stride))
     model = LgbmQuantileForecaster().fit(
         series,
@@ -75,6 +90,7 @@ def main() -> int:
         origins=origins,
         num_boost_round=args.rounds,
         seed=args.seed,
+        cal_days=cal_days,
     )
     target = model_dir() / args.site
     model.save(target)
@@ -88,6 +104,9 @@ def main() -> int:
             "train_hours": int(len(series.ts)),
             "train_rows_note": "origin × horizon 全量展开，origin 按 stride 抽样",
             "origin_stride": args.origin_stride,
+            "cal_days_requested": args.cal_days,
+            "cal_days": cal_days,
+            "valid_price_hours": valid_price_hours,
         }
     )
     manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
