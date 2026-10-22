@@ -10,7 +10,7 @@ from app.application import algorithm_registry
 
 def test_catalog_covers_three_targets() -> None:
     catalog = algorithm_registry.catalog()
-    assert len(catalog) == 11
+    assert len(catalog) == 14
     assert {a.target for a in catalog} == {"pv_power", "load_power", "price"}
 
 
@@ -22,7 +22,7 @@ def test_catalog_filter_by_target() -> None:
 def test_product_options() -> None:
     assert algorithm_registry.product_options("pv_power") == ["statistical", "physics"]
     assert algorithm_registry.product_options("load_power") == ["statistical", "advanced"]
-    assert algorithm_registry.product_options("price") == []
+    assert algorithm_registry.product_options("price") == ["tou", "statistical", "lgbm"]
 
 
 def test_validate_product_choice_accepts_known() -> None:
@@ -49,7 +49,7 @@ def test_replay_methods_match_legacy_matrix() -> None:
 
 def test_catalog_view_fields_and_availability() -> None:
     view = algorithm_registry.catalog_view()
-    assert len(view) == 11
+    assert len(view) == 14
     for entry in view:
         assert {"name", "target", "kind", "available", "unavailable_reason"} <= set(entry)
     advanced = next(e for e in view if e["name"] == "load_mes_multitask_attention")
@@ -64,7 +64,7 @@ def test_algorithms_api(client: TestClient) -> None:
     response = client.get("/api/v1/algorithms")
     assert response.status_code == 200, response.text
     algorithms = response.json()["algorithms"]
-    assert len(algorithms) == 11
+    assert len(algorithms) == 14
     names = {a["name"] for a in algorithms}
     assert {"blend", "load_mes_multitask_attention", "tou_policy"} <= names
 

@@ -69,3 +69,4 @@
 | D-008 | 物理转换链使用 pvlib，不自研；仿真站在 pvlib/PVWatts/TMY 生态上 | forecast/sizing 模块依赖 pvlib |
 | D-009 | 天空相机路线（SUNSET）明确放弃：企业站点无相机 | 兄弟项目竞赛成果不进入产品 |
 | D-010 | 调度数据源默认 auto（实测够→实测，否则→预测），结果如实标记实际来源 | ScheduleRequest.source 语义 |
+| D-011 | skippd/skippd_images 冻结权重不启用（天空相机路线终局确认，2026-10-21）；AMPDNet 仅训练代码（2 轮未测），不纳入主交付模型 | docs/16 §4 边界；算法注册表不含 skippd 产品选项 |
