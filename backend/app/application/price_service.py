@@ -57,12 +57,10 @@ class NoSpotHistory(ValueError):
 
 
 def event_calendar_path() -> Path | None:
-    """事件日历配置路径。环境变量优先，缺省用仓库 configs/ 下的示例。"""
+    """Only explicitly configured calendars; never enable the repository demo by default."""
     override = os.environ.get("PRICE_EVENT_CALENDAR")
-    if override:
-        return Path(override)
-    default = Path(__file__).resolve().parents[3] / "configs" / "events.guangdong.yaml"
-    return default if default.exists() else None
+    return Path(override) if override else None
+
 
 
 def model_dir() -> Path:
@@ -211,7 +209,7 @@ def build_price_series(
 
     temperature, ghi, weather_name = _weather_arrays(site, grid, history_days)
     calendar = load_calendar(event_calendar_path())
-    event_features = calendar.features(grid) if calendar is not None else None
+    event_features = calendar.features(grid) if calendar is not None and calendar.data is None else None
     series = PriceSeries(
         ts=grid,
         price=price,
@@ -220,6 +218,8 @@ def build_price_series(
         ghi=ghi,
         tou_price=tou,
         event=event_features,
+        event_calendar=calendar if calendar is not None and calendar.data is not None else None,
+        event_timezone=site.location.timezone,
     )
     # 数据来源必须把"电价从哪来"说清楚——前端据此决定是否打"演示数据"提示
     parts = ["spot:" + (",".join(sorted(sources)) if sources else "unknown")]
@@ -316,6 +316,13 @@ def _recursive_day_ahead(
             temperature=series.temperature,
             ghi=series.ghi,
             tou_price=series.tou_price,
+            event=series.event,
+            event_calendar=series.event_calendar,
+            event_timezone=series.event_timezone,
+            event_available_at=series.event_available_at if series.event_available_at is not None else (
+                series.ts[issue_idx] if series.ts.tz is not None else
+                series.ts[issue_idx].tz_localize(series.event_timezone) if series.event_timezone else None
+            ),
         )
         part = forecaster.predict(working, origin, 24)
         parts.append(part)
@@ -323,7 +330,7 @@ def _recursive_day_ahead(
     if not parts:
         raise ValueError("no day could be forecast")
     return PriceForecastOutput(
-        ts=pd.DatetimeIndex(np.concatenate([p.ts.values for p in parts])),
+        ts=parts[0].ts.append([p.ts for p in parts[1:]]),
         p10=np.concatenate([p.p10 for p in parts]),
         p50=np.concatenate([p.p50 for p in parts]),
         p90=np.concatenate([p.p90 for p in parts]),

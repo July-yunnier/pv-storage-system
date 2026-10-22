@@ -10,8 +10,8 @@
    特征取 `fuel_index_norm`（相对近一年分位）与 `fuel_change_7d`（7 日变化率）。
 
 纪律：
-- 所有事件必须是**发报时刻已知**的。检修计划、天气预报、燃料现货价都满足；
-  事后才知道的事件（如突发故障）不能进特征，否则就是泄漏。
+- V2 按发布时间逐 origin 回放，只纳入发报时刻已知的信息；V1 仅保留演示兼容。
+  检修计划、预警和燃料指数都必须记录实际发布时间，事后信息不能提前进入特征。
 - 事件缺失时整列为 NaN，`select_active_columns` 会自动剔除，不影响无事件的市场。
 - 本模块只负责"把日历变成数字"，不做任何价格推断。
 """
@@ -61,6 +61,7 @@ class EventCalendar:
     events: list[MarketEvent] = field(default_factory=list)
     fuel: pd.Series | None = None          # index = date, value = 指数
     name: str = "empty"
+    data: object | None = None  # schema v2, publication-aware records
 
     # ---- 构造 ----
     @classmethod
@@ -71,6 +72,13 @@ class EventCalendar:
         if not source.exists():
             raise FileNotFoundError(f"event calendar not found: {source}")
         payload = yaml.safe_load(source.read_text(encoding="utf-8")) or {}
+        if payload.get("schema_version") == 2:
+            from app.domain.forecast.event_data import EventData
+
+            data = EventData(payload, source.parent)
+            return cls(name=data.name, data=data)
+        if payload.get("schema_version", 1) != 1:
+            raise ValueError("unsupported event schema_version")
         events: list[MarketEvent] = []
         for item in payload.get("events", []):
             kind = str(item["kind"])
@@ -102,7 +110,13 @@ class EventCalendar:
         return cls(events=events, fuel=fuel, name=str(payload.get("name", source.stem)))
 
     # ---- 特征 ----
-    def features(self, ts: pd.DatetimeIndex) -> dict[str, np.ndarray]:
+    def features(self, ts: pd.DatetimeIndex, issued_at=None) -> dict[str, np.ndarray]:
+        """V2 requires an aware issue time; legacy data is demonstration-only."""
+        if self.data is not None:
+            return self.data.features(ts, issued_at)
+        return self._legacy_features(ts)
+
+    def _legacy_features(self, ts: pd.DatetimeIndex) -> dict[str, np.ndarray]:
         """按小时时间戳生成事件特征。日期粒度事件在当日内保持不变。"""
         days = [t.date() for t in ts]
         n = len(days)
@@ -183,11 +197,15 @@ class EventCalendar:
 
     # ---- 描述 ----
     def summary(self) -> dict:
+        if self.data is not None:
+            return self.data.summary()
         by_kind: dict[str, int] = {}
         for event in self.events:
             by_kind[event.kind] = by_kind.get(event.kind, 0) + 1
         return {
             "name": self.name,
+            "schema_version": 1,
+            "data_kind": "example",
             "events": len(self.events),
             "by_kind": by_kind,
             "fuel_points": 0 if self.fuel is None else int(len(self.fuel)),
@@ -202,17 +220,11 @@ def _as_date(value) -> date:
     return datetime.fromisoformat(str(value)).date()
 
 
-_CACHE: dict[str, EventCalendar] = {}
-
-
 def load_calendar(path: str | Path | None) -> EventCalendar | None:
-    """带缓存加载；路径为空或文件不存在时返回 None（调用方按"无事件"处理）。"""
+    """Reload on each request so periodic imports and source hash changes take effect."""
     if not path:
         return None
-    key = str(path)
-    if key not in _CACHE:
-        try:
-            _CACHE[key] = EventCalendar.from_yaml(key)
-        except FileNotFoundError:
-            return None
-    return _CACHE[key]
+    try:
+        return EventCalendar.from_yaml(path)
+    except FileNotFoundError:
+        return None

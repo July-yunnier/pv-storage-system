@@ -1,0 +1,110 @@
+[
+  {
+    "day": "2025-03-15",
+    "training": {
+      "rows": 528,
+      "missing": {
+        "event_pressure": 0,
+        "in_maintenance": 0,
+        "days_to_maintenance": 0,
+        "cold_wave": 0,
+        "heat_wave": 0,
+        "fuel_index_norm": 0,
+        "fuel_change_7d": 0
+      }
+    },
+    "evaluation": {
+      "rows": 24,
+      "missing": {
+        "event_pressure": 0,
+        "in_maintenance": 0,
+        "days_to_maintenance": 0,
+        "cold_wave": 0,
+        "heat_wave": 0,
+        "fuel_index_norm": 0,
+        "fuel_change_7d": 0
+      }
+    }
+  },
+  {
+    "day": "2025-03-16",
+    "training": {
+      "rows": 528,
+      "missing": {
+        "event_pressure": 0,
+        "in_maintenance": 0,
+        "days_to_maintenance": 0,
+        "cold_wave": 0,
+        "heat_wave": 0,
+        "fuel_index_norm": 0,
+        "fuel_change_7d": 0
+      }
+    },
+    "evaluation": {
+      "rows": 24,
+      "missing": {
+        "event_pressure": 0,
+        "in_maintenance": 0,
+        "days_to_maintenance": 0,
+        "cold_wave": 0,
+        "heat_wave": 0,
+        "fuel_index_norm": 0,
+        "fuel_change_7d": 0
+      }
+    }
+  },
+  {
+    "day": "2025-03-17",
+    "training": {
+      "rows": 528,
+      "missing": {
+        "event_pressure": 0,
+        "in_maintenance": 0,
+        "days_to_maintenance": 0,
+        "cold_wave": 0,
+        "heat_wave": 0,
+        "fuel_index_norm": 0,
+        "fuel_change_7d": 0
+      }
+    },
+    "evaluation": {
+      "rows": 24,
+      "missing": {
+        "event_pressure": 0,
+        "in_maintenance": 0,
+        "days_to_maintenance": 0,
+        "cold_wave": 0,
+        "heat_wave": 0,
+        "fuel_index_norm": 0,
+        "fuel_change_7d": 0
+      }
+    }
+  },
+  {
+    "day": "2025-03-18",
+    "training": {
+      "rows": 528,
+      "missing": {
+        "event_pressure": 0,
+        "in_maintenance": 0,
+        "days_to_maintenance": 0,
+        "cold_wave": 0,
+        "heat_wave": 0,
+        "fuel_index_norm": 0,
+        "fuel_change_7d": 0
+      }
+    },
+    "evaluation": {
+      "rows": 24,
+      "missing": {
+        "event_pressure": 0,
+        "in_maintenance": 0,
+        "days_to_maintenance": 0,
+        "cold_wave": 0,
+        "heat_wave": 0,
+        "fuel_index_norm": 0,
+        "fuel_change_7d": 0
+      }
+    }
+  }
+]

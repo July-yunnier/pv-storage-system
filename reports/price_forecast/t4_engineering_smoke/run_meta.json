@@ -1,0 +1,68 @@
+{
+  "status": "synthetic_engineering_only",
+  "effect_verified": false,
+  "note": "CI conditional on this window and model protocol; no causal/universal claim",
+  "created_at": "2026-10-22T14:40:23.610622+00:00",
+  "parameters": {
+    "prices": "/var/folders/dn/g9yx2g6j66s7dz4t23mrt1r40000gn/T/t4-cli-release-och_y452/inputs/prices.csv",
+    "price_meta": "/var/folders/dn/g9yx2g6j66s7dz4t23mrt1r40000gn/T/t4-cli-release-och_y452/inputs/price_meta.json",
+    "calendar": "/var/folders/dn/g9yx2g6j66s7dz4t23mrt1r40000gn/T/t4-cli-release-och_y452/inputs/calendar.yaml",
+    "output": "/Users/july/Documents/ChatGPT/光储协同优化/price-training-calibration/reports/price_forecast/t4_engineering_smoke",
+    "start": "2025-03-15",
+    "days": 4,
+    "train_days": 30,
+    "cal_days": 0,
+    "rounds": 3,
+    "stride": 24,
+    "seed": 42,
+    "bootstrap": 100,
+    "block_days": 2,
+    "example_smoke": true
+  },
+  "source": {
+    "data_kind": "example",
+    "market": "guangdong",
+    "timezone": "Asia/Shanghai",
+    "unit": "CNY/kWh",
+    "price_kind": "spot",
+    "price_sha256": "cae7236c90bfde5aa6814273c8c233fd1758f52351dc8938f7c528646a7d15a2",
+    "source_file": "evidence.txt",
+    "source_url": "https://example.invalid/fixture",
+    "source_sha256": "91f4604bea5b9ebf3a240fd136485edf670fcae82c9ad1d3cee7e1175576c5ca"
+  },
+  "calendar": {
+    "name": "guangdong",
+    "schema_version": 2,
+    "data_kind": "example",
+    "market": "guangdong",
+    "timezone": "Asia/Shanghai",
+    "records": 134,
+    "sources": 1,
+    "source_sha256": [
+      "91f4604bea5b9ebf3a240fd136485edf670fcae82c9ad1d3cee7e1175576c5ca"
+    ],
+    "by_type": {
+      "event": 1,
+      "coverage": 3,
+      "fuel": 130
+    }
+  },
+  "price_sha256": "cae7236c90bfde5aa6814273c8c233fd1758f52351dc8938f7c528646a7d15a2",
+  "calendar_sha256": "105888947d7063772673c3ba584f372c30c4f30f5cc864a0868d7a87b4c7e272",
+  "predictions_sha256": "2282bc816855cfb723ecc5d3d88934d69a951663a20e7e0f17a07c26cf134faa",
+  "code_sha256": {
+    "scripts/run_event_ablation.py": "532dac4d2500bfe131a34cd5d833aa4e5d1e0bf3a7937073320f84299f4ca65e",
+    "app/domain/forecast/event_data.py": "23624d9383080629c9a96223d5fe3c7df7a75f2574f1dfd9a5ed12df6394a02e",
+    "app/domain/forecast/event_calendar.py": "ff3e71a89c6a5492022e889970d334e0105e4fc62602712024e3608cba12fb21",
+    "app/domain/forecast/price_features.py": "65ce9846b2313cfb4a7fb50bd8cb50464b714cea219b8dba2a7091161548a50e",
+    "app/domain/forecast/price_model.py": "4a20fd5a33115bfa5fb298b9d6f70a41290426d1f56f5e91570978cdb5848a46",
+    "scripts/run_price_benchmark.py": "cd71178588ee6ea2af0821ea358a8f5e4b1640ad263fc74d56e4705da2fdcf34"
+  },
+  "versions": {
+    "numpy": "2.4.6",
+    "pandas": "3.0.3",
+    "lightgbm": "4.7.0"
+  },
+  "runtime_seconds": 0.8664292920002481,
+  "peak_rss_mib": 168.890625
+}

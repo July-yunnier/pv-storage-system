@@ -1,0 +1,127 @@
+Browser tab: 1247561525, Title: "2024首个寒潮预警发布！广东部分地区降温14～16℃_南方网", URL: "https://news.southcn.com/node_179d29f1ce/707460e73d.shtml".
+1 AXWebArea 2024首个寒潮预警发布！广东部分地区降温14～16℃_南方网, URL: news.southcn.com/node_179d29f1ce/707460e73d.shtml
+	2 container
+		3 container
+			4 image
+			5 pop up button (collapsed) ID: el-id-4672-0, Secondary Actions: Expand
+		6 container
+			7 image vip
+			8 text 升级VIP 畅享AI智能解题特权 了解详情
+		9 container
+			10 text 聊天历史记录 暂无会话历史记录哦～
+		11 container
+			12 text APP扫码登录
+			13 text 打开 大学搜题酱APP 或 WakeUp课程表APP 在  「我的」 页点击 「电脑端扫码」
+		14 text 下载大学搜题酱App
+		15 text 帮助
+	16 container
+		17 container
+			18 link Description: 南方网, Value: southcn.com/
+			19 text 南方报业
+			20 text 党政网站
+			21 link Description: 新媒体矩阵, Value: news.southcn.com/node_54a44f01a2/3e28537297.shtml
+			22 text 地市
+			23 link Description: 网络有害信息举报专区, Value: 12377.cn/
+		24 container
+			25 link Description: 要闻, Value: southcn.com/node_b5769d65fb
+			26 link Description: 广东, Value: news.southcn.com/node_54a44f01a2
+			27 link Description: 热点, Value: news.southcn.com/node_179d29f1ce
+			28 link Description: 经济, Value: economy.southcn.com/
+			29 link Description: 直播, Value: live.southcn.com/
+			30 image
+		31 container
+			32 text field (settable) Description: 请输入查找内容, ID: search
+			33 button 搜索, ID: search_btn
+		34 container
+			35 link Description: 长者助手, ID: slh
+				36 text 长者助手
+			37 link Description: 无障碍, ID: wza
+				38 text 无障碍
+			39 link 简
+				40 text 简
+			41 link 繁
+				42 text 繁
+			43 link Description: EN, Value: goguangdong.southcn.com/
+		44 link Description: 南方网, Value: southcn.com/
+		45 text >
+		46 link Description: 新闻, Value: news.southcn.com/
+		47 text >
+		48 link Description: 热点, Value: news.southcn.com/node_179d29f1ce
+		49 container
+			50 link Description: 分享到qq空间, Value: sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=https%3A%2F%2Fnews.southcn.com%2Fnode_179d29f1ce%2F707460e73d.shtml&site=http%3A%2F%2Fwww.southcn.com&title=%E5%88%86%E4%BA%AB%E5%8D%97%E6%96%B9%E7%BD%91%E6%96%B0%E9%97%BB%EF%BC%9A2024%E9%A6%96%E4%B8%AA%E5%AF%92%E6%BD%AE%E9%A2%84%E8%AD%A6%E5%8F%91%E5%B8%83%EF%BC%81%E5%B9%BF%E4%B8%9C%E9%83%A8%E5%88%86%E5%9C%B0%E5%8C%BA%E9%99%8D%E6%B8%A914%EF%BD%9E16%E2%84%83&pics=http%3A%2F%2Fnfcms-mainsiteoss.southcn.com%2Fnfw%2F__tpl_asset%2F68e544a3d8.jpg
+			51 link Description: 分享到微博, Value: service.weibo.com/share/share.php?appkey=1741374966&url=https%3A%2F%2Fnews.southcn.com%2Fnode_179d29f1ce%2F707460e73d.shtml&title=%E5%88%86%E4%BA%AB%E5%8D%97%E6%96%B9%E7%BD%91%E6%96%B0%E9%97%BB%EF%BC%9A2024%E9%A6%96%E4%B8%AA%E5%AF%92%E6%BD%AE%E9%A2%84%E8%AD%A6%E5%8F%91%E5%B8%83%EF%BC%81%E5%B9%BF%E4%B8%9C%E9%83%A8%E5%88%86%E5%9C%B0%E5%8C%BA%E9%99%8D%E6%B8%A914%EF%BD%9E16%E2%84%83&pic=http%3A%2F%2Fnfcms-mainsiteoss.southcn.com%2Fnfw%2F__tpl_asset%2F68e544a3d8.jpg
+		52 container 您已进入页面内容视窗区
+			53 heading 2024首个寒潮预警发布！广东部分地区降温14～16℃, Value: 2, ID: article_title
+				54 text 2024首个寒潮预警发布！广东部分地区降温14～16℃
+			55 heading Value: 3, ID: article_subtitle
+			56 container
+				57 text 2024-01-19 21:54
+				58 text 来源：南方网
+				59 link Description: 字号减小, Value: news.southcn.com/node_179d29f1ce/707460e73d.shtml#
+				60 link Description: 字号增大, Value: news.southcn.com/node_179d29f1ce/707460e73d.shtml#
+			61 container content
+				62 text 　　南方网讯 据中国天气网消息，中央气象台1月19日18时发布寒潮蓝色预警：
+				63 text 　　受寒潮影响，预计，1月20日至23日，内蒙古大部、东北地区中南部、西北地区东部、华北西部和北部、黄淮东部和南部、江淮、江汉东部、江南、华南、西南地区东部等地将降温8～12℃，其中，内蒙古中部和河套地区、陕西北部、山西北部、河北西北部、吉林东南部、辽宁东部、江西南部、浙江南部、福建中西部、贵州南部、广西、广东等地部分地区降温14～16℃，局地可超过18℃。1月23日最低温度0℃线将南压到广西北部和广东北部。我国中东部大部地区自北向南将先后有4~5级风，东部和南部海区将先后有6~8级风。
+				64 text 　　预计，1月19日20时至1月21日20时，西北地区东部、内蒙古中西部、华北北部、华南等地的部分地区将降温8～12℃，其中，内蒙古河套地区和中部、陕西北部、山西北部、河北西北部等地部分地区降温可达14～16℃，局地可超过18℃。
+				65 image
+				66 image
+				67 container
+					68 text 防御指南：
+				69 text 　　1、政府及有关部门按照职责做好防寒潮准备工作；
+				70 text 　　2、注意添衣保暖；
+				71 text 　　3、对热带作物、水产品采取一定的防护措施；
+				72 text 　　4、做好防风准备工作。
+			73 text 编辑：陈榕   责任编辑：林涛  
+		74 container
+			75 link Description: 返回南方网首页, Value: southcn.com/
+			76 link Description: 返回热点频道, Value: news.southcn.com/node_179d29f1ce
+		77 AXWebArea news.southcn.com/proxy/commonaside
+			78 container
+				79 link Description: 南方日报电子报, Value: epaper.nfnews.com/
+				80 link Description: 南方杂志电子报, Value: nfzz.net.cn/
+				81 link Description: 2026-10-22 封面, Value: epaper.nfnews.com/nfdaily/html/202610/22/node_A01.html
+				82 link Description: 南方+客户端, Value: nfplus.southcn.com/nfapp/index.html
+				83 link Description: 粤学习客户端, Value: app.southcn.com/
+				84 link Description: 广东新闻, Value: news.southcn.com/node_54a44f01a2
+				85 content list
+					86 link Description: 广东医疗AI创新成果集中亮相，国家级中试基地推动应用落地, Value: news.southcn.com/node_54a44f01a2/a69a47b7f9.shtml
+					87 link Description: 《思想耀岭南》第18集嘉宾大揭秘：一句“让立体出行人人可及”，他扎进低空出行赛道, Value: news.southcn.com/node_54a44f01a2/db1d0cc341.shtml
+					88 link Description: 港珠澳大桥开通8周年 出入境旅客达1.25亿人次, Value: news.southcn.com/node_54a44f01a2/9cfff9e973.shtml
+					89 link Description: 冷空气今晨影响华南沿海 未来几天广州气温小幅下降, Value: news.southcn.com/node_54a44f01a2/4cd9dd266e.shtml
+					90 link Description: 连接高铁站和机场，粤东城际铁路迎新进展, Value: news.southcn.com/node_54a44f01a2/fb82cf33bb.shtml
+					91 link Description: 声光影营造疗愈分娩空间 广州妇儿中心SDR情境感知产房启用, Value: news.southcn.com/node_54a44f01a2/c151c01773.shtml
+					92 link Description: 广东跑友专属礼遇！一日穿越万亩胡杨、大漠绿洲，2026图木舒克马拉松11月1日开跑, Value: news.southcn.com/node_54a44f01a2/e8ae5c296e.shtml
+					93 link Description: 耕耘厚土，等待新的花开, Value: news.southcn.com/node_54a44f01a2/6fa3b1ba25.shtml
+				94 link Description: 南方融媒报道, Value: southcn.com/node_096b189f3f
+				95 content list
+					96 link Description: APEC在湾区｜从看到、看清到看懂：东莞如何承包世界的目光 APEC在湾区｜从看到、看清到看懂：东莞如何承包世界的目光, Value: news.southcn.com/node_26a2150a75/faca4fbb06.shtml
+					97 link Description: 直播回顾：纪念中国工农红军长征胜利90周年电视文艺晚会《长征颂歌》 直播回顾：纪念中国工农红军长征胜利90周年电视文艺晚会《长征颂歌》, Value: nflive.southcn.com/index?id=5924
+					98 link Description: 直播回顾：“长征之路”——广东文艺界纪念中国工农红军长征胜利90周年情景叙事演出 直播回顾：“长征之路”——广东文艺界纪念中国工农红军长征胜利90周年情景叙事演出, Value: nflive.southcn.com/index?id=5911
+					99 link Description: 锁定这场直播，解锁“中山百货”的重庆使用指南｜广货行天下 锁定这场直播，解锁“中山百货”的重庆使用指南｜广货行天下, Value: news.southcn.com/node_457bd632a7/24c0d1b224.shtml
+					100 link Description: 【专题】2026粤港澳大湾区具身智能机器人大赛 【专题】2026粤港澳大湾区具身智能机器人大赛, Value: news.southcn.com/node_9db9828a50
+					101 link Description: 接纳情绪、拥抱阳光，守护心理健康｜懂预防 更健康 接纳情绪、拥抱阳光，守护心理健康｜懂预防 更健康, Value: news.southcn.com/node_96b737051b/01b08c3820.shtml
+					102 link Description: APEC在湾区｜粤港澳三地学生走进东莞，见证一部智能手机的诞生！ APEC在湾区｜粤港澳三地学生走进东莞，见证一部智能手机的诞生！, Value: news.southcn.com/node_26a2150a75/c24e2d42f6.shtml
+					103 link Description: 规避意外伤害，掌握急救技能 | 懂预防，更健康 规避意外伤害，掌握急救技能 | 懂预防，更健康, Value: news.southcn.com/node_96b737051b/7b738b977e.shtml
+					104 link Description: APEC在湾区丨广东先进制造新品集中亮相，记者现场沉浸式体验 APEC在湾区丨广东先进制造新品集中亮相，记者现场沉浸式体验, Value: news.southcn.com/node_26a2150a75/6393c179d5.shtml
+					105 link Description: 直播：这条路！“薪火相传——我们的长征故事” 直播：这条路！“薪火相传——我们的长征故事”, Value: nflive.southcn.com/index?id=5915
+		106 link Description: 回到首页, Value: southcn.com/
+		107 text 回到顶部
+		108 link Description: 南方报业传媒集团简介, Value: southcn.com/aboutus/nfbyjt/content/2019-05/17/content_187473107.htm
+		109 text - 
+		110 link Description: 网站简介, Value: southcn.com/aboutus/aboutus/
+		111 text - 
+		112 link Description: 广告服务, Value: southcn.com/aboutus/service/
+		113 text - 
+		114 link Description: 招标投标, Value: zbtb.southcn.com/node_78e8a889c5
+		115 text - 
+		116 link Description: 物资采购, Value: jtcg.southcn.com/node_059a3c5977
+		117 text - 
+		118 link Description: 联系我们, Value: southcn.com/aboutus/contactus/
+		119 text - 
+		120 link Description: 法律声明, Value: southcn.com/aboutus/law/
+		121 text - 
+		122 link Description: 友情链接, Value: southcn.com/aboutus/links/
+		123 text 本网站由南方新闻网版权所有，未经授权禁止复制或建立镜像　广东南方网络信息科技有限公司负责制作维护 违法和不良信息举报电话：020-87373397 18122015068
+		124 link Description: ICP备案号：粤B-20050235, Value: beian.miit.gov.cn/
+
+The focused UI element is 1 AXWebArea 2024首个寒潮预警发布！广东部分地区降温14～16℃_南方网, URL: news.southcn.com/node_179d29f1ce/707460e73d.shtml
