@@ -1,0 +1,26 @@
+# 来源页面明确标注的“实际实时”曲线；原单位元/MWh；非合成示例
+ts,price,market,source_url,unit
+2026-03-31 00:00:00,1007.12,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 01:00:00,653.01,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 02:00:00,795.59,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 03:00:00,606.66,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 04:00:00,607.78,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 05:00:00,567.36,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 06:00:00,784.48,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 07:00:00,798.5,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 08:00:00,652.51,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 09:00:00,753.49,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 10:00:00,779.04,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 11:00:00,930.18,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 12:00:00,482.68,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 13:00:00,545.84,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 14:00:00,626.93,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 15:00:00,766.68,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 16:00:00,772.99,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 17:00:00,867.02,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 18:00:00,717.98,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 19:00:00,754.99,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 20:00:00,782.77,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 21:00:00,823.93,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 22:00:00,650.13,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh
+2026-03-31 23:00:00,475.65,guangdong_rt,https://yuandian.space/forecasts/fc-rt-guangdong/,CNY/MWh

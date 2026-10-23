@@ -94,7 +94,9 @@ def main() -> int:
         frame["ts"] = frame["ts"].dt.tz_localize(tz)
         source = "gefcom2014p"
     elif args.csv:
-        raw = pd.read_csv(args.csv)
+        # Permit an auditable provenance marker as the first ``#`` line without
+        # changing the ordinary CSV contract.
+        raw = pd.read_csv(args.csv, comment="#")
         if args.profile == "guangdong":
             from app.domain.forecast.price_ingest import aggregate_hourly, normalize_spot
 

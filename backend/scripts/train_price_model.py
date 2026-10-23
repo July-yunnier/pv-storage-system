@@ -44,10 +44,24 @@ def main() -> int:
     parser.add_argument("--rounds", type=int, default=500)
     parser.add_argument("--origin-stride", type=int, default=3)
     parser.add_argument("--event-calendar", type=Path, help="V2 publication-aware event bundle")
+    parser.add_argument(
+        "--as-of",
+        type=str,
+        help="训练数据截止时刻（ISO 8601，必须带时区；默认使用当前站点本地整点）",
+    )
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
     if args.cal_days < 0:
         parser.error("--cal-days must be >= 0")
+
+    parsed_as_of = None
+    if args.as_of:
+        try:
+            parsed_as_of = datetime.fromisoformat(args.as_of)
+        except ValueError as exc:
+            parser.error(f"--as-of must be ISO 8601 with timezone: {exc}")
+        if parsed_as_of.tzinfo is None or parsed_as_of.utcoffset() is None:
+            parser.error("--as-of must include a timezone offset")
 
     if args.event_calendar is not None:
         os.environ["PRICE_EVENT_CALENDAR"] = str(args.event_calendar.resolve())
@@ -76,7 +90,10 @@ def main() -> int:
         )
         return 3
 
-    target_end = datetime.now(tz).replace(minute=0, second=0, microsecond=0)
+    if parsed_as_of is not None:
+        target_end = parsed_as_of.astimezone(tz).replace(minute=0, second=0, microsecond=0)
+    else:
+        target_end = datetime.now(tz).replace(minute=0, second=0, microsecond=0)
     series, _, _ = build_price_series(db, site, tariff, target_end)
 
     valid_price_hours = int(np.isfinite(series.price).sum())
@@ -111,6 +128,7 @@ def main() -> int:
             } if series.event_calendar is not None else None,
             "site_id": args.site,
             "trained_at": datetime.now(timezone.utc).isoformat(),
+            "as_of": target_end.isoformat(),
             "train_hours": int(len(series.ts)),
             "train_rows_note": "origin × horizon 全量展开，origin 按 stride 抽样",
             "origin_stride": args.origin_stride,

@@ -249,6 +249,8 @@ cd backend
 python scripts/train_price_model.py --site S-XXX --db data/storage.db --cal-days 45
 ```
 
+历史数据回放时可用 `--as-of 2026-03-31T23:00:00+08:00` 指定带时区的训练截止时刻；工件 `manifest.json` 会记录 `as_of`。不带时区的裸时间会被拒绝，避免把历史数据错误地截到当前时间。
+
 重新训练后的 `data/price_models/<site>/manifest.json` 在启用且完成校准时保存非空
 `calibration`，并记录 `cal_days_requested`、实际 `cal_days` 和 `valid_price_hours`。
 现有 `/api/v1/sites/{id}/price/forecast` 会从工件读取校准量，外扩 P10/P90；
@@ -314,6 +316,12 @@ P50 不因应用校准而改变，响应结构、元/kWh 单位及带时区的�
 `import_spot_price.py --profile guangdong` 处理四件事：元/兆瓦时→元/千瓦时自动识别、
 无时区时间戳按本地解释、15 分钟按均值聚合到小时、负电价保留。导入时打印体检报告
 （单位、重复、缺失、负电价点数）。
+
+T5 数据核验：电查查首页/数据目录未提供可审计的广东逐时现货下载；公开的源电社区广东
+页面提供了 2026-03-31 的 24 点“实际实时”曲线，已归档并转换为元/kWh 验证导入链路。
+该公开窗口只有 31 天，当前归档的逐日可复核数据不足 `--min-days 45`，因此没有生成广东
+生产工件，也没有宣称 MAE/PICP80 已完成验收。历史训练必须使用带时区的 `--as-of`，避免把
+数据错误截到当前时间。详见 `reports/price_forecast/t5_guangdong_e2e.md`。
 
 ## 8. 参考文献
 
