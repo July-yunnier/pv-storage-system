@@ -188,6 +188,7 @@ function AppLayout() {
               <Route path="/sizing/:runId" element={<SizingDetailPage />} />
               <Route path="/data" element={<DataPage />} />
               <Route path="/eval" element={<EvalCenterPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>
         </Content>
