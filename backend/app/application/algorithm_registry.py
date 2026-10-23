@@ -18,7 +18,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable
 
-from app.infrastructure.model_store import load_model_unavailable_reason
+from app.infrastructure.model_store import load_ampdnet_unavailable_reason, load_model_unavailable_reason
 
 # 预测对象
 PV = "pv_power"
@@ -86,6 +86,13 @@ _CATALOG: tuple[ForecastAlgorithm, ...] = (
         summary="日内滚动修正：实测持续外推 + 偏差随时效衰减回归基线",
         intraday=True, requires_history_days=3,
     ),
+    ForecastAlgorithm(
+        name="ampdnet", target=PV, kind="ml",
+        summary="AMPDNet 交付工件：白昼压缩协议下的日内 15 分钟短临候选",
+        product_key="ampdnet", replay=True, intraday=True,
+        requires_torch=True, requires_artifact=True,
+        probe=load_ampdnet_unavailable_reason,
+    ),
     # ---- 负荷 ----
     ForecastAlgorithm(
         name="load_diurnal_mean", target=LOAD, kind="statistical",
@@ -146,8 +153,8 @@ def _lightgbm_unavailable() -> str | None:
     try:
         import lightgbm  # noqa: F401
         return None
-    except ImportError:
-        return "lightgbm 未安装（工件路径不可用，auto 链回退统计画像）"
+    except (ImportError, OSError):
+        return "lightgbm 未安装或本机运行库不可用（工件路径不可用，auto 链回退统计画像）"
 
 
 def catalog(target: str | None = None) -> list[ForecastAlgorithm]:

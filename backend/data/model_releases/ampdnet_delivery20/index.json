@@ -1,0 +1,133 @@
+{
+  "version": "delivery20-seed42-full",
+  "models": [
+    {
+      "station": "Solar1",
+      "task": "15min",
+      "manifest": "15min_Solar1_processed_3_full_tr0.6_val0.2_s42.json",
+      "cap_kw": 50000,
+      "training_epochs": 20,
+      "selected_epoch": 15
+    },
+    {
+      "station": "Solar1",
+      "task": "1h",
+      "manifest": "1h_Solar1_processed_3_full_tr0.6_val0.2_s42.json",
+      "cap_kw": 50000,
+      "training_epochs": 20,
+      "selected_epoch": 19
+    },
+    {
+      "station": "Solar1",
+      "task": "4h",
+      "manifest": "4h_Solar1_processed_3_full_tr0.6_val0.2_s42.json",
+      "cap_kw": 50000,
+      "training_epochs": 20,
+      "selected_epoch": 10
+    },
+    {
+      "station": "Solar2",
+      "task": "15min",
+      "manifest": "15min_Solar2_processed_3_full_tr0.6_val0.2_s42.json",
+      "cap_kw": 130000,
+      "training_epochs": 20,
+      "selected_epoch": 19
+    },
+    {
+      "station": "Solar2",
+      "task": "1h",
+      "manifest": "1h_Solar2_processed_3_full_tr0.6_val0.2_s42.json",
+      "cap_kw": 130000,
+      "training_epochs": 20,
+      "selected_epoch": 13
+    },
+    {
+      "station": "Solar2",
+      "task": "4h",
+      "manifest": "4h_Solar2_processed_3_full_tr0.6_val0.2_s42.json",
+      "cap_kw": 130000,
+      "training_epochs": 20,
+      "selected_epoch": 12
+    },
+    {
+      "station": "Solar6",
+      "task": "15min",
+      "manifest": "15min_Solar6_processed_3_full_tr0.6_val0.2_s42.json",
+      "cap_kw": 35000,
+      "training_epochs": 20,
+      "selected_epoch": 16
+    },
+    {
+      "station": "Solar6",
+      "task": "1h",
+      "manifest": "1h_Solar6_processed_3_full_tr0.6_val0.2_s42.json",
+      "cap_kw": 35000,
+      "training_epochs": 20,
+      "selected_epoch": 14
+    },
+    {
+      "station": "Solar6",
+      "task": "4h",
+      "manifest": "4h_Solar6_processed_3_full_tr0.6_val0.2_s42.json",
+      "cap_kw": 35000,
+      "training_epochs": 20,
+      "selected_epoch": 14
+    },
+    {
+      "station": "Solar7",
+      "task": "15min",
+      "manifest": "15min_Solar7_processed_3_full_tr0.6_val0.2_s42.json",
+      "cap_kw": 30000,
+      "training_epochs": 20,
+      "selected_epoch": 16
+    },
+    {
+      "station": "Solar7",
+      "task": "1h",
+      "manifest": "1h_Solar7_processed_3_full_tr0.6_val0.2_s42.json",
+      "cap_kw": 30000,
+      "training_epochs": 20,
+      "selected_epoch": 18
+    },
+    {
+      "station": "Solar7",
+      "task": "4h",
+      "manifest": "4h_Solar7_processed_3_full_tr0.6_val0.2_s42.json",
+      "cap_kw": 30000,
+      "training_epochs": 20,
+      "selected_epoch": 12
+    },
+    {
+      "station": "Solar8",
+      "task": "15min",
+      "manifest": "15min_Solar8_processed_3_full_tr0.6_val0.2_s42.json",
+      "cap_kw": 30000,
+      "training_epochs": 20,
+      "selected_epoch": 10
+    },
+    {
+      "station": "Solar8",
+      "task": "1h",
+      "manifest": "1h_Solar8_processed_3_full_tr0.6_val0.2_s42.json",
+      "cap_kw": 30000,
+      "training_epochs": 20,
+      "selected_epoch": 19
+    },
+    {
+      "station": "Solar8",
+      "task": "4h",
+      "manifest": "4h_Solar8_processed_3_full_tr0.6_val0.2_s42.json",
+      "cap_kw": 30000,
+      "training_epochs": 20,
+      "selected_epoch": 7
+    }
+  ],
+  "features": [
+    "TSI",
+    "DNI",
+    "GHI",
+    "Temp"
+  ],
+  "status": "experimental_historical_protocol",
+  "upstream_license": "unverified"
+}

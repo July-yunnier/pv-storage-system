@@ -1,0 +1,204 @@
+{
+  "passed": true,
+  "selection": {
+    "stations": [
+      "Solar1",
+      "Solar2",
+      "Solar6",
+      "Solar7",
+      "Solar8"
+    ],
+    "tasks": [
+      "15min",
+      "1h",
+      "4h"
+    ],
+    "ablation": "full",
+    "season": "all",
+    "train_ratio": 0.6,
+    "val_ratio": 0.2,
+    "test_ratio": 0.2,
+    "seed": 42,
+    "epochs_completed": 20,
+    "checkpoint_selection": "lowest validation MAE within each preselected run; no test ranking",
+    "release_scope": "historical daylight-compressed protocol; opt-in experimental inference; not energy-v3 unified main result",
+    "comparison_tolerance_norm": {
+      "atol": 0.001,
+      "rtol": 0.0001
+    },
+    "comparison_tolerance_kw_fraction_nominal_cap": 0.001,
+    "tolerance_note": "CPU/GPU float32 inference is numerically close but not bitwise identical for long horizons. All reported max deltas are retained; acceptance is norm atol=1e-3/rtol=1e-4 and absolute error <=0.1% nominal Cap. This tolerance validates deployment numerical equivalence, not metric reproduction or training correctness."
+  },
+  "torch_version": "2.14.1",
+  "numpy_version": "2.3.5",
+  "device": "cpu",
+  "checks": [
+    {
+      "tag": "15min_Solar1_processed_3_full_tr0.6_val0.2_s42",
+      "n_test_windows": 7594,
+      "n_predictions": 7594,
+      "cpu_vs_delivered_max_abs_norm": 1.7881393432617188e-07,
+      "cpu_vs_delivered_max_abs_kw": 0.011444091796875,
+      "torchscript_vs_eager_max_abs_norm": 0.0,
+      "tolerance_kw": 50.0,
+      "best_epoch": 15,
+      "checkpoint_sha256": "f99bb4e386a9b21e1a080226b1a911e4f4083ae223fe4bd110998780ef8c2fe0"
+    },
+    {
+      "tag": "1h_Solar1_processed_3_full_tr0.6_val0.2_s42",
+      "n_test_windows": 7584,
+      "n_predictions": 30336,
+      "cpu_vs_delivered_max_abs_norm": 2.4437904357910156e-06,
+      "cpu_vs_delivered_max_abs_kw": 0.118255615234375,
+      "torchscript_vs_eager_max_abs_norm": 0.0,
+      "tolerance_kw": 50.0,
+      "best_epoch": 19,
+      "checkpoint_sha256": "c1a8f7dc7aa785a98c03d0702fc7c86a1afe57a0fcf34c4e0e056432c6dc413d"
+    },
+    {
+      "tag": "4h_Solar1_processed_3_full_tr0.6_val0.2_s42",
+      "n_test_windows": 7561,
+      "n_predictions": 120976,
+      "cpu_vs_delivered_max_abs_norm": 4.6253204345703125e-05,
+      "cpu_vs_delivered_max_abs_kw": 2.23541259765625,
+      "torchscript_vs_eager_max_abs_norm": 0.0,
+      "tolerance_kw": 50.0,
+      "best_epoch": 10,
+      "checkpoint_sha256": "d0d508086b5f56f57b7b460c37aa28c43cc4a58baf823774f38fbce4c0f2c101"
+    },
+    {
+      "tag": "15min_Solar2_processed_3_full_tr0.6_val0.2_s42",
+      "n_test_windows": 7594,
+      "n_predictions": 7594,
+      "cpu_vs_delivered_max_abs_norm": 3.5762786865234375e-07,
+      "cpu_vs_delivered_max_abs_kw": 0.03814697265625,
+      "torchscript_vs_eager_max_abs_norm": 0.0,
+      "tolerance_kw": 130.0,
+      "best_epoch": 19,
+      "checkpoint_sha256": "d689b53e23d9db2239a398a6b4b71b1cc0e7374145d65fd5a5c11840c8a5110c"
+    },
+    {
+      "tag": "1h_Solar2_processed_3_full_tr0.6_val0.2_s42",
+      "n_test_windows": 7584,
+      "n_predictions": 30336,
+      "cpu_vs_delivered_max_abs_norm": 2.2649765014648438e-06,
+      "cpu_vs_delivered_max_abs_kw": 0.2288818359375,
+      "torchscript_vs_eager_max_abs_norm": 0.0,
+      "tolerance_kw": 130.0,
+      "best_epoch": 13,
+      "checkpoint_sha256": "e3ceb0372a61f5fdd04ee3108a6cc067aeb06ee8570121f367e338c5a25972b0"
+    },
+    {
+      "tag": "4h_Solar2_processed_3_full_tr0.6_val0.2_s42",
+      "n_test_windows": 7561,
+      "n_predictions": 120976,
+      "cpu_vs_delivered_max_abs_norm": 8.615851402282715e-05,
+      "cpu_vs_delivered_max_abs_kw": 8.615493774414062,
+      "torchscript_vs_eager_max_abs_norm": 0.0,
+      "tolerance_kw": 130.0,
+      "best_epoch": 12,
+      "checkpoint_sha256": "9490b426a7e9077cab4765d219e7365d0808bdcaee98a4877d6faa23ffbe613f"
+    },
+    {
+      "tag": "15min_Solar6_processed_3_full_tr0.6_val0.2_s42",
+      "n_test_windows": 7594,
+      "n_predictions": 7594,
+      "cpu_vs_delivered_max_abs_norm": 1.7881393432617188e-07,
+      "cpu_vs_delivered_max_abs_kw": 0.0057220458984375,
+      "torchscript_vs_eager_max_abs_norm": 0.0,
+      "tolerance_kw": 35.0,
+      "best_epoch": 16,
+      "checkpoint_sha256": "20f77b23d235a8b0eba1e6da959bfc3d066d3e7abd8621e46985c18da25edc42"
+    },
+    {
+      "tag": "1h_Solar6_processed_3_full_tr0.6_val0.2_s42",
+      "n_test_windows": 7584,
+      "n_predictions": 30336,
+      "cpu_vs_delivered_max_abs_norm": 2.384185791015625e-06,
+      "cpu_vs_delivered_max_abs_kw": 0.0743865966796875,
+      "torchscript_vs_eager_max_abs_norm": 0.0,
+      "tolerance_kw": 35.0,
+      "best_epoch": 14,
+      "checkpoint_sha256": "a1189c2db2cbca1ae9fddd6e152dcc315e45b3cea9fd485115d7bbf6d9844783"
+    },
+    {
+      "tag": "4h_Solar6_processed_3_full_tr0.6_val0.2_s42",
+      "n_test_windows": 7561,
+      "n_predictions": 120976,
+      "cpu_vs_delivered_max_abs_norm": 3.775954246520996e-05,
+      "cpu_vs_delivered_max_abs_kw": 1.1794567108154297,
+      "torchscript_vs_eager_max_abs_norm": 0.0,
+      "tolerance_kw": 35.0,
+      "best_epoch": 14,
+      "checkpoint_sha256": "abc7d81a0d6b0c3199552dfb3f121ed9db15c9809f3334a4103ac7b0a14b55d4"
+    },
+    {
+      "tag": "15min_Solar7_processed_3_full_tr0.6_val0.2_s42",
+      "n_test_windows": 7594,
+      "n_predictions": 7594,
+      "cpu_vs_delivered_max_abs_norm": 1.7881393432617188e-07,
+      "cpu_vs_delivered_max_abs_kw": 0.0057220458984375,
+      "torchscript_vs_eager_max_abs_norm": 0.0,
+      "tolerance_kw": 30.0,
+      "best_epoch": 16,
+      "checkpoint_sha256": "e27d75e7f505d7210f1b7260e8c949062f3b8d89860be2f7dfd0b9ce88b65e71"
+    },
+    {
+      "tag": "1h_Solar7_processed_3_full_tr0.6_val0.2_s42",
+      "n_test_windows": 7584,
+      "n_predictions": 30336,
+      "cpu_vs_delivered_max_abs_norm": 2.086162567138672e-06,
+      "cpu_vs_delivered_max_abs_kw": 0.06103515625,
+      "torchscript_vs_eager_max_abs_norm": 0.0,
+      "tolerance_kw": 30.0,
+      "best_epoch": 18,
+      "checkpoint_sha256": "3b0e6be563f3f05415c92191a72c927c3da868ba8013b7e31c7924b1d618d238"
+    },
+    {
+      "tag": "4h_Solar7_processed_3_full_tr0.6_val0.2_s42",
+      "n_test_windows": 7561,
+      "n_predictions": 120976,
+      "cpu_vs_delivered_max_abs_norm": 3.1828880310058594e-05,
+      "cpu_vs_delivered_max_abs_kw": 0.9479522705078125,
+      "torchscript_vs_eager_max_abs_norm": 0.0,
+      "tolerance_kw": 30.0,
+      "best_epoch": 12,
+      "checkpoint_sha256": "af1018a501da627efb0a20b1d122882743b1201fb2ec8e9c0c89b427c92fd315"
+    },
+    {
+      "tag": "15min_Solar8_processed_3_full_tr0.6_val0.2_s42",
+      "n_test_windows": 7594,
+      "n_predictions": 7594,
+      "cpu_vs_delivered_max_abs_norm": 1.7881393432617188e-07,
+      "cpu_vs_delivered_max_abs_kw": 0.003814697265625,
+      "torchscript_vs_eager_max_abs_norm": 0.0,
+      "tolerance_kw": 30.0,
+      "best_epoch": 10,
+      "checkpoint_sha256": "40d9b832459b7ca5beb1a981727b71093030c45b93a81fabf3051407d6b3e62d"
+    },
+    {
+      "tag": "1h_Solar8_processed_3_full_tr0.6_val0.2_s42",
+      "n_test_windows": 7584,
+      "n_predictions": 30336,
+      "cpu_vs_delivered_max_abs_norm": 1.9073486328125e-06,
+      "cpu_vs_delivered_max_abs_kw": 0.0553131103515625,
+      "torchscript_vs_eager_max_abs_norm": 0.0,
+      "tolerance_kw": 30.0,
+      "best_epoch": 19,
+      "checkpoint_sha256": "a46e8069fc7baaf8751160164661ccc705dd873f4cffe4f7ec10cc333436daae"
+    },
+    {
+      "tag": "4h_Solar8_processed_3_full_tr0.6_val0.2_s42",
+      "n_test_windows": 7561,
+      "n_predictions": 120976,
+      "cpu_vs_delivered_max_abs_norm": 4.585832357406616e-05,
+      "cpu_vs_delivered_max_abs_kw": 1.3486146926879883,
+      "torchscript_vs_eager_max_abs_norm": 0.0,
+      "tolerance_kw": 30.0,
+      "best_epoch": 7,
+      "checkpoint_sha256": "d814ee1c3912b5a3ce41f6a0212e2a7c93cb0a137de646ab38af07c935815bfb"
+    }
+  ],
+  "total_test_windows": 113695,
+  "total_predictions": 794530
+}

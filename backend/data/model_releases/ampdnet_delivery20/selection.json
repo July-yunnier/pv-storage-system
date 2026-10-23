@@ -1,0 +1,29 @@
+{
+  "stations": [
+    "Solar1",
+    "Solar2",
+    "Solar6",
+    "Solar7",
+    "Solar8"
+  ],
+  "tasks": [
+    "15min",
+    "1h",
+    "4h"
+  ],
+  "ablation": "full",
+  "season": "all",
+  "train_ratio": 0.6,
+  "val_ratio": 0.2,
+  "test_ratio": 0.2,
+  "seed": 42,
+  "epochs_completed": 20,
+  "checkpoint_selection": "lowest validation MAE within each preselected run; no test ranking",
+  "release_scope": "historical daylight-compressed protocol; opt-in experimental inference; not energy-v3 unified main result",
+  "comparison_tolerance_norm": {
+    "atol": 0.001,
+    "rtol": 0.0001
+  },
+  "comparison_tolerance_kw_fraction_nominal_cap": 0.001,
+  "tolerance_note": "CPU/GPU float32 inference is numerically close but not bitwise identical for long horizons. All reported max deltas are retained; acceptance is norm atol=1e-3/rtol=1e-4 and absolute error <=0.1% nominal Cap. This tolerance validates deployment numerical equivalence, not metric reproduction or training correctness."
+}
