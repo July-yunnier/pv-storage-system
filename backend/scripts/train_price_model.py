@@ -137,7 +137,7 @@ def main() -> int:
             "valid_price_hours": valid_price_hours,
         }
     )
-    manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
+    manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"saved price model for {args.site} -> {target}")
     print(f"  hours={len(series.ts)} features={len(manifest['columns'])} stride={args.origin_stride}")
     return 0

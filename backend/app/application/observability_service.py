@@ -186,6 +186,7 @@ def accuracy_summary(db: Database, site_id: str, target: str | None, days: int) 
                               if m.get("interval_coverage") is not None]
             status = price_interval_status(db, site_id, key.split(":", 1)[1])
             summary[key] = {
+                "method": key.split(":", 1)[1],
                 "days": n,
                 "mae": round(sum(m.get("mae", 0.0) for m in metrics_list) / n, 4),
                 "rmse": round(sum(m.get("rmse", 0.0) for m in metrics_list) / n, 4),
@@ -203,6 +204,7 @@ def accuracy_summary(db: Database, site_id: str, target: str | None, days: int) 
             }
             continue
         summary[key] = {
+            "method": key.split(":", 1)[1],
             "days": n,
             "skill_all_day": round(sum(m["skill_all_day"] for m in metrics_list) / n, 4),
             "skill_daylight": round(
