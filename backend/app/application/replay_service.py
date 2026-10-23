@@ -233,7 +233,11 @@ def run_replay(
     site = db.get_site(site_id)
     if site is None:
         raise errors.not_found(f"site not found: {site_id}")
-    pv_methods = pv_methods or PV_METHODS
+    if pv_methods is None:
+        # The registry keeps AMPDNet in the replay catalog for discovery, but
+        # this day-ahead runner has no explicit daylight weather-window input.
+        # The dedicated validate_ampdnet_pv.py script owns rolling-origin runs.
+        pv_methods = [method for method in PV_METHODS if method != "ampdnet"]
     strategies = strategies or STRATEGIES
     unknown_pv = set(pv_methods) - set(PV_METHODS)
     unknown_st = set(strategies) - set(STRATEGIES)
