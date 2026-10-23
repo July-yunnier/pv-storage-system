@@ -53,7 +53,11 @@ def test_training_calibration_uses_valid_hours_in_window(
             (target / "manifest.json").write_text(json.dumps({"columns": []}), encoding="utf-8")
 
     monkeypatch.setattr(train_price_model, "Database", lambda _: db)
-    monkeypatch.setattr(train_price_model, "build_price_series", lambda *args: (series, None, None))
+    received_target = {}
+    def build_series(*args):
+        received_target["target_end"] = args[3]
+        return series, None, None
+    monkeypatch.setattr(train_price_model, "build_price_series", build_series)
     monkeypatch.setattr(train_price_model, "LgbmQuantileForecaster", RecordingModel)
     monkeypatch.setenv("PRICE_MODEL_DIR", str(tmp_path))
     monkeypatch.setattr(sys, "argv", ["train_price_model.py", "--site", "S-TEST", *cli_args])
@@ -83,6 +87,47 @@ def test_negative_cal_days_rejected_before_database_access(monkeypatch, capsys):
         train_price_model.main()
     assert exc.value.code == 2
     assert "--cal-days must be >= 0" in capsys.readouterr().err
+
+
+def test_as_of_requires_timezone_and_is_recorded(monkeypatch, tmp_path):
+    ts = pd.date_range("2026-01-01", periods=100 * 24, freq="h", tz="Asia/Shanghai")
+    series = PriceSeries(ts=ts, price=np.full(len(ts), 0.5))
+    site = SimpleNamespace(location=SimpleNamespace(timezone="Asia/Shanghai"), tariff_id="T-TEST")
+    db = SimpleNamespace(
+        get_site=lambda _: site,
+        get_tariff=lambda _: object(),
+        spot_price_bounds=lambda _: (ts[0].to_pydatetime(), ts[-1].to_pydatetime()),
+    )
+
+    class RecordingModel:
+        def fit(self, series, **kwargs):
+            return self
+
+        def save(self, target):
+            target.mkdir(parents=True)
+            (target / "manifest.json").write_text(json.dumps({"columns": []}), encoding="utf-8")
+
+    monkeypatch.setattr(train_price_model, "Database", lambda _: db)
+    received_target = {}
+    def build_series(*args):
+        received_target["target_end"] = args[3]
+        return series, None, None
+    monkeypatch.setattr(train_price_model, "build_price_series", build_series)
+    monkeypatch.setattr(train_price_model, "LgbmQuantileForecaster", RecordingModel)
+    monkeypatch.setenv("PRICE_MODEL_DIR", str(tmp_path))
+    monkeypatch.setattr(sys, "argv", ["train_price_model.py", "--site", "S-TEST", "--as-of", "2026-03-31T23:00:00+08:00"])
+    assert train_price_model.main() == 0
+    manifest = json.loads((tmp_path / "S-TEST" / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["as_of"] == "2026-03-31T23:00:00+08:00"
+    assert received_target["target_end"].isoformat() == "2026-03-31T23:00:00+08:00"
+
+
+def test_as_of_rejects_bare_datetime_before_database_access(monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["train_price_model.py", "--site", "S-TEST", "--as-of", "2026-03-31T23:00:00"])
+    monkeypatch.setattr(train_price_model, "Database", lambda _: pytest.fail("database must not open"))
+    with pytest.raises(SystemExit) as exc:
+        train_price_model.main()
+    assert exc.value.code == 2
 
 
 def test_trained_calibration_reaches_forecast_api_and_legacy_artifact_loads(
