@@ -1,0 +1,65 @@
+{
+  "experiment": "europe_pretrain_china_synthetic_finetune",
+  "status": "domain_adaptation_only",
+  "warning": "中国微调标签是合成典型分时电价，不是真实广东现货；结果不能作为广东真实效果验收。",
+  "units": "CNY/kWh",
+  "eur_cny": 7.8,
+  "europe": {
+    "path": "/Users/july/Documents/ChatGPT/光储协同优化/free_electricity_csv/european_power_prices_2026-04-26_to_2026-10-22/DE-LU_180d_15min_raw.csv",
+    "timezone": "UTC",
+    "rows": 4320,
+    "train_hours": 3984,
+    "validation_hours": 336
+  },
+  "china": {
+    "path": "/Users/july/Documents/ChatGPT/光储协同优化/china_synthetic_csv/china_typical_price_90d_15min_rich.csv",
+    "timezone": "Asia/Shanghai",
+    "rows": 2160,
+    "finetune_hours": 1440,
+    "validation_hours": 720
+  },
+  "features": [
+    "hour",
+    "dow",
+    "is_weekend",
+    "is_holiday",
+    "is_pre_holiday",
+    "is_post_holiday",
+    "is_workday",
+    "month",
+    "doy_sin",
+    "doy_cos",
+    "hour_sin",
+    "hour_cos",
+    "season_pressure",
+    "horizon",
+    "price_origin",
+    "price_lag_d1",
+    "price_lag_w1",
+    "price_mean_24",
+    "price_std_24",
+    "price_min_24",
+    "price_max_24",
+    "price_mean_168",
+    "price_rank_168"
+  ],
+  "metrics": {
+    "europe_pretrain_holdout": {
+      "rows": 7488,
+      "mae_p50_cny_kwh": 0.3138404480035179,
+      "picp80": 0.44551282051282054,
+      "mean_interval_width_cny_kwh": 0.4889633296394809
+    },
+    "china_synthetic_holdout_after_finetune": {
+      "rows": 16704,
+      "mae_p50_cny_kwh": 0.18274156489797547,
+      "picp80": 0.41044061302681994,
+      "mean_interval_width_cny_kwh": 0.41070218388165247
+    }
+  },
+  "split": {
+    "eu_val_days": 14,
+    "china_finetune_days": 60,
+    "china_val_days": 30
+  }
+}
