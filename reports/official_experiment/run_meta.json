@@ -1,0 +1,27 @@
+{
+  "generated_at": "2026-10-24T04:23:42.863511+00:00",
+  "git_commit": "33d031ddbdbf38a427ae781eae19139ee61282f8",
+  "python": "Python 3.13.13",
+  "data_sha256": "7680c323c5f49f951dddacfab0414eb292d023a384f48183c8726779bff7ff13",
+  "data_window": [
+    "2019-01-01",
+    "2019-04-30"
+  ],
+  "test_window": [
+    "2019-04-01",
+    "2019-04-30"
+  ],
+  "site_id": "S-DONGGUAN-DEMO",
+  "units": "CNY/kWh, kW, kWh",
+  "timezone": "Asia/Shanghai",
+  "data_provenance": {
+    "pv": "public/scenario observed proxy",
+    "load": "synthetic two-shift factory",
+    "tariff": "synthetic Guangdong policy template",
+    "p2": "GEFCom2014-P PJM Zone1 demo"
+  },
+  "bootstrap": {
+    "n": 2000,
+    "seed": 42
+  }
+}
