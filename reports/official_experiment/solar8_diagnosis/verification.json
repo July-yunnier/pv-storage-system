@@ -1,0 +1,14 @@
+{
+  "15min_target_after_origin": true,
+  "15min_same_day_targets": true,
+  "15min_purged_boundary": true,
+  "1h_target_after_origin": true,
+  "1h_same_day_targets": true,
+  "1h_purged_boundary": true,
+  "4h_target_after_origin": true,
+  "4h_same_day_targets": true,
+  "4h_purged_boundary": true,
+  "strict_filter_retains_no_flagged_windows": true,
+  "all_15_station_tasks": true,
+  "backend_pytest": "353 passed"
+}

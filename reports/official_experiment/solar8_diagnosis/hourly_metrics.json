@@ -1,0 +1,614 @@
+[
+  {
+    "task": "15min",
+    "hour": "06",
+    "origins": 560,
+    "days": 140,
+    "mae_kw": 263.23276951440744,
+    "day_persistence_mae_kw": 152.28571428571428,
+    "skill": -0.7285453908075536,
+    "delta_ci95_kw": [
+      -153.14687078935762,
+      -70.64417926262531
+    ],
+    "skill_ci95": [
+      -1.1396497341982346,
+      -0.41197979620366104
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "hour": "07",
+    "origins": 560,
+    "days": 140,
+    "mae_kw": 1197.2269168176822,
+    "day_persistence_mae_kw": 972.625,
+    "skill": -0.2309234461562084,
+    "delta_ci95_kw": [
+      -419.06428230599636,
+      -44.19948338559701
+    ],
+    "skill_ci95": [
+      -0.4836312643180148,
+      -0.04185380744205694
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "hour": "08",
+    "origins": 560,
+    "days": 140,
+    "mae_kw": 2580.915522657122,
+    "day_persistence_mae_kw": 2178.125,
+    "skill": -0.1849253475613759,
+    "delta_ci95_kw": [
+      -819.4704699434552,
+      -17.2395269203186
+    ],
+    "skill_ci95": [
+      -0.4187762462218857,
+      -0.006563504921787167
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "hour": "09",
+    "origins": 560,
+    "days": 140,
+    "mae_kw": 4135.44853995187,
+    "day_persistence_mae_kw": 3461.4464285714284,
+    "skill": -0.1947168980623537,
+    "delta_ci95_kw": [
+      -1287.3406852558683,
+      -67.52070789882134
+    ],
+    "skill_ci95": [
+      -0.41794327456516217,
+      -0.017718901788882635
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "hour": "10",
+    "origins": 560,
+    "days": 140,
+    "mae_kw": 4818.368351091657,
+    "day_persistence_mae_kw": 4108.517857142857,
+    "skill": -0.1727753215711818,
+    "delta_ci95_kw": [
+      -1492.1426957484657,
+      73.73846288408522
+    ],
+    "skill_ci95": [
+      -0.4081859964609788,
+      0.016602114626142236
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "hour": "11",
+    "origins": 560,
+    "days": 140,
+    "mae_kw": 5203.582865251814,
+    "day_persistence_mae_kw": 4492.892857142857,
+    "skill": -0.15818093836337388,
+    "delta_ci95_kw": [
+      -1601.935956682478,
+      158.0537632751458
+    ],
+    "skill_ci95": [
+      -0.39504134872706365,
+      0.0316737785786228
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "hour": "12",
+    "origins": 560,
+    "days": 140,
+    "mae_kw": 5186.114135306222,
+    "day_persistence_mae_kw": 4648.0,
+    "skill": -0.11577326491097728,
+    "delta_ci95_kw": [
+      -1448.309224613735,
+      344.4105976867679
+    ],
+    "skill_ci95": [
+      -0.34391947070389917,
+      0.06740611401306032
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "hour": "13",
+    "origins": 560,
+    "days": 140,
+    "mae_kw": 5036.484123447964,
+    "day_persistence_mae_kw": 4338.071428571428,
+    "skill": -0.16099612613029968,
+    "delta_ci95_kw": [
+      -1533.523532769339,
+      131.8406595938538
+    ],
+    "skill_ci95": [
+      -0.3890835496124162,
+      0.02763212840484989
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "hour": "14",
+    "origins": 560,
+    "days": 140,
+    "mae_kw": 4071.652527945382,
+    "day_persistence_mae_kw": 3539.285714285714,
+    "skill": -0.15041645592805963,
+    "delta_ci95_kw": [
+      -1203.3306207220894,
+      111.6732772282182
+    ],
+    "skill_ci95": [
+      -0.37123289552149336,
+      0.029686141987607655
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "hour": "15",
+    "origins": 560,
+    "days": 140,
+    "mae_kw": 2800.5149012156894,
+    "day_persistence_mae_kw": 2376.089285714286,
+    "skill": -0.17862359720788668,
+    "delta_ci95_kw": [
+      -850.8839240721295,
+      -15.463241633006328
+    ],
+    "skill_ci95": [
+      -0.39278877807069157,
+      -0.00572667579970148
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "hour": "16",
+    "origins": 560,
+    "days": 140,
+    "mae_kw": 1303.1259100028446,
+    "day_persistence_mae_kw": 1125.982142857143,
+    "skill": -0.15732378019442228,
+    "delta_ci95_kw": [
+      -373.6614151402881,
+      21.309442168644523
+    ],
+    "skill_ci95": [
+      -0.36372657735301744,
+      0.017134671604211164
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "hour": "17",
+    "origins": 560,
+    "days": 140,
+    "mae_kw": 309.1580871701241,
+    "day_persistence_mae_kw": 217.89285714285714,
+    "skill": -0.41885370279683243,
+    "delta_ci95_kw": [
+      -151.9389737797635,
+      -31.214123078158906
+    ],
+    "skill_ci95": [
+      -0.8159709175520439,
+      -0.12784768643977612
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "hour": "18",
+    "origins": 421,
+    "days": 141,
+    "mae_kw": 122.16937565683186,
+    "day_persistence_mae_kw": 9.311163895486937,
+    "skill": -12.120741620287298,
+    "delta_ci95_kw": [
+      -138.79496227305017,
+      -88.27032570556582
+    ],
+    "skill_ci95": [
+      -19.909673646095236,
+      -8.265204979461055
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "hour": "06",
+    "origins": 552,
+    "days": 138,
+    "mae_kw": 552.7765363256002,
+    "day_persistence_mae_kw": 388.40579710144925,
+    "skill": -0.42319332113680663,
+    "delta_ci95_kw": [
+      -238.37008128644004,
+      -88.16565200862598
+    ],
+    "skill_ci95": [
+      -0.6822934302152215,
+      -0.2054483869712546
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "hour": "07",
+    "origins": 552,
+    "days": 138,
+    "mae_kw": 1682.1102864362192,
+    "day_persistence_mae_kw": 1439.8188405797102,
+    "skill": -0.16827911889175984,
+    "delta_ci95_kw": [
+      -502.3857493570749,
+      31.35918439376144
+    ],
+    "skill_ci95": [
+      -0.3785887101389679,
+      0.02011978826106906
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "hour": "08",
+    "origins": 556,
+    "days": 139,
+    "mae_kw": 3035.356889375251,
+    "day_persistence_mae_kw": 2685.8363309352517,
+    "skill": -0.13013471983167735,
+    "delta_ci95_kw": [
+      -860.4242746505807,
+      136.8005877759707
+    ],
+    "skill_ci95": [
+      -0.3548982488363635,
+      0.04466986784712783
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "hour": "09",
+    "origins": 556,
+    "days": 139,
+    "mae_kw": 4246.751467972351,
+    "day_persistence_mae_kw": 3732.8507194244603,
+    "skill": -0.13766978300892907,
+    "delta_ci95_kw": [
+      -1184.8689817600111,
+      191.69232576219216
+    ],
+    "skill_ci95": [
+      -0.351930404613471,
+      0.0471835200216952
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "hour": "10",
+    "origins": 556,
+    "days": 139,
+    "mae_kw": 4752.6020280028415,
+    "day_persistence_mae_kw": 4308.169964028777,
+    "skill": -0.10316029025894213,
+    "delta_ci95_kw": [
+      -1237.6363018927814,
+      359.30186245870215
+    ],
+    "skill_ci95": [
+      -0.3121352952005677,
+      0.0779836198053048
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "hour": "11",
+    "origins": 556,
+    "days": 139,
+    "mae_kw": 5011.097211769159,
+    "day_persistence_mae_kw": 4619.694244604317,
+    "skill": -0.08472486412320279,
+    "delta_ci95_kw": [
+      -1237.4161408156797,
+      477.6736002366311
+    ],
+    "skill_ci95": [
+      -0.295521881610759,
+      0.09381472718596362
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "hour": "12",
+    "origins": 556,
+    "days": 139,
+    "mae_kw": 4909.244461004682,
+    "day_persistence_mae_kw": 4581.119604316546,
+    "skill": -0.07162547259821839,
+    "delta_ci95_kw": [
+      -1152.002120643725,
+      524.3761254550734
+    ],
+    "skill_ci95": [
+      -0.28063626723857443,
+      0.1047254056806211
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "hour": "13",
+    "origins": 556,
+    "days": 139,
+    "mae_kw": 4613.443315307013,
+    "day_persistence_mae_kw": 4115.849820143885,
+    "skill": -0.12089690268284192,
+    "delta_ci95_kw": [
+      -1214.1177145954512,
+      241.66593855833852
+    ],
+    "skill_ci95": [
+      -0.32954654157874225,
+      0.0536484484808743
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "hour": "14",
+    "origins": 556,
+    "days": 139,
+    "mae_kw": 3548.2758782295873,
+    "day_persistence_mae_kw": 3076.043165467626,
+    "skill": -0.15351953381648076,
+    "delta_ci95_kw": [
+      -998.0828455829576,
+      71.69108182509115
+    ],
+    "skill_ci95": [
+      -0.3593350429240469,
+      0.021765452966714123
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "hour": "15",
+    "origins": 556,
+    "days": 139,
+    "mae_kw": 2233.040341161888,
+    "day_persistence_mae_kw": 1944.3705035971223,
+    "skill": -0.1484644192198561,
+    "delta_ci95_kw": [
+      -602.34044995923,
+      33.795598876561556
+    ],
+    "skill_ci95": [
+      -0.3332176226528547,
+      0.015598426696922936
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "hour": "16",
+    "origins": 557,
+    "days": 140,
+    "mae_kw": 999.5116828040653,
+    "day_persistence_mae_kw": 716.9210053859964,
+    "skill": -0.39417268471010924,
+    "delta_ci95_kw": [
+      -417.3523549455072,
+      -146.5212313189544
+    ],
+    "skill_ci95": [
+      -0.635162649951748,
+      -0.19223814702154135
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "hour": "17",
+    "origins": 560,
+    "days": 140,
+    "mae_kw": 281.7572587713067,
+    "day_persistence_mae_kw": 102.85714285714286,
+    "skill": -1.7393066824988148,
+    "delta_ci95_kw": [
+      -227.95267015655529,
+      -133.213778993039
+    ],
+    "skill_ci95": [
+      -2.5013476588327905,
+      -1.1764988290301743
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "4h",
+    "hour": "06",
+    "origins": 544,
+    "days": 136,
+    "mae_kw": 2126.774687250169,
+    "day_persistence_mae_kw": 2007.6056985294117,
+    "skill": -0.059358761936195714,
+    "delta_ci95_kw": [
+      -460.80328857144497,
+      230.09538265668536
+    ],
+    "skill_ci95": [
+      -0.25822077303485014,
+      0.10379706254202274
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "4h",
+    "hour": "07",
+    "origins": 544,
+    "days": 136,
+    "mae_kw": 3127.0828818970303,
+    "day_persistence_mae_kw": 2955.7261029411766,
+    "skill": -0.057974512180049675,
+    "delta_ci95_kw": [
+      -711.5317582478912,
+      338.88923000004036
+    ],
+    "skill_ci95": [
+      -0.26027944267220254,
+      0.10636163764216498
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "4h",
+    "hour": "08",
+    "origins": 544,
+    "days": 136,
+    "mae_kw": 4247.61462606402,
+    "day_persistence_mae_kw": 3724.906939338235,
+    "skill": -0.14032771697073554,
+    "delta_ci95_kw": [
+      -1228.1964170185079,
+      148.4048857733594
+    ],
+    "skill_ci95": [
+      -0.3655804521847795,
+      0.03749255116731339
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "4h",
+    "hour": "09",
+    "origins": 544,
+    "days": 136,
+    "mae_kw": 5040.237582276849,
+    "day_persistence_mae_kw": 4179.916130514706,
+    "skill": -0.20582265885229734,
+    "delta_ci95_kw": [
+      -1678.001731852223,
+      -97.90941582953246
+    ],
+    "skill_ci95": [
+      -0.4423129405129748,
+      -0.02222145235498852
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "4h",
+    "hour": "10",
+    "origins": 544,
+    "days": 136,
+    "mae_kw": 5003.944845367881,
+    "day_persistence_mae_kw": 4274.005055147059,
+    "skill": -0.17078589772414454,
+    "delta_ci95_kw": [
+      -1577.0427834644042,
+      30.013750934250183
+    ],
+    "skill_ci95": [
+      -0.4085662542933745,
+      0.006492640811172001
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "4h",
+    "hour": "11",
+    "origins": 544,
+    "days": 136,
+    "mae_kw": 4709.255749533281,
+    "day_persistence_mae_kw": 3970.962775735294,
+    "skill": -0.18592291479269263,
+    "delta_ci95_kw": [
+      -1488.9823612630585,
+      -56.38458804102535
+    ],
+    "skill_ci95": [
+      -0.41873575750020336,
+      -0.013356178496820435
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "4h",
+    "hour": "12",
+    "origins": 544,
+    "days": 136,
+    "mae_kw": 3947.1120793831205,
+    "day_persistence_mae_kw": 3319.35546875,
+    "skill": -0.189120031446804,
+    "delta_ci95_kw": [
+      -1220.8864806010445,
+      -85.24238049234322
+    ],
+    "skill_ci95": [
+      -0.40639271146578776,
+      -0.0229524565784131
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "4h",
+    "hour": "13",
+    "origins": 546,
+    "days": 137,
+    "mae_kw": 3016.6469258314523,
+    "day_persistence_mae_kw": 2393.397435897436,
+    "skill": -0.2604036757899846,
+    "delta_ci95_kw": [
+      -1008.2914485411063,
+      -210.56128669031162
+    ],
+    "skill_ci95": [
+      -0.46158508711158286,
+      -0.07899053807733745
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "4h",
+    "hour": "14",
+    "origins": 549,
+    "days": 138,
+    "mae_kw": 1855.6853086989515,
+    "day_persistence_mae_kw": 1429.051684881603,
+    "skill": -0.2985431726023926,
+    "delta_ci95_kw": [
+      -661.8913711068172,
+      -168.35574783063157
+    ],
+    "skill_ci95": [
+      -0.5038645958306863,
+      -0.10808617850273174
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  }
+]

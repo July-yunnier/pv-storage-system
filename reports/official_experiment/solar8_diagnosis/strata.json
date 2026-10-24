@@ -1,0 +1,482 @@
+[
+  {
+    "task": "15min",
+    "feature": "past_tsi_ramp_mean",
+    "stratum": "lower75",
+    "cutoff": 50.152499999999996,
+    "origins": 5585,
+    "days": 147,
+    "mae_kw": 2565.5284816282556,
+    "day_persistence_mae_kw": 2368.997314234557,
+    "skill": -0.08295964128486122,
+    "delta_ci95_kw": [
+      -573.5920112091972,
+      197.23354150046868
+    ],
+    "skill_ci95": [
+      -0.2964169190285892,
+      0.08040834497638115
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "feature": "past_tsi_ramp_mean",
+    "stratum": "upper25",
+    "cutoff": 50.152499999999996,
+    "origins": 1862,
+    "days": 113,
+    "mae_kw": 3661.665135075275,
+    "day_persistence_mae_kw": 3454.53276047261,
+    "skill": -0.05995959192302691,
+    "delta_ci95_kw": [
+      -926.5995914927148,
+      491.38410977712823
+    ],
+    "skill_ci95": [
+      -0.29843465401642605,
+      0.12439892019151742
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "feature": "past_temp_ramp_mean",
+    "stratum": "lower75",
+    "cutoff": 2.2881076250000008,
+    "origins": 5585,
+    "days": 146,
+    "mae_kw": 2946.0793975155966,
+    "day_persistence_mae_kw": 2781.770814682184,
+    "skill": -0.05906618257916563,
+    "delta_ci95_kw": [
+      -667.9330260121743,
+      218.96835754586994
+    ],
+    "skill_ci95": [
+      -0.27878900931103706,
+      0.07446524051207765
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "feature": "past_temp_ramp_mean",
+    "stratum": "upper25",
+    "cutoff": 2.2881076250000008,
+    "origins": 1862,
+    "days": 123,
+    "mae_kw": 2520.2167649190997,
+    "day_persistence_mae_kw": 2216.433941997852,
+    "skill": -0.1370592721781836,
+    "delta_ci95_kw": [
+      -637.3074675549939,
+      368.16553254561285
+    ],
+    "skill_ci95": [
+      -0.30671558563025814,
+      0.13915539700824722
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "feature": "future_power_ramp_max_pu",
+    "stratum": "lower75",
+    "cutoff": 0.04633333333333333,
+    "origins": 5596,
+    "days": 147,
+    "mae_kw": 2617.7116528806505,
+    "day_persistence_mae_kw": 2427.810936383131,
+    "skill": -0.07821890644434903,
+    "delta_ci95_kw": [
+      -573.8416887708895,
+      248.4401414277555
+    ],
+    "skill_ci95": [
+      -0.2802724247629966,
+      0.09707017755326378
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "feature": "future_power_ramp_max_pu",
+    "stratum": "upper25",
+    "cutoff": 0.04633333333333333,
+    "origins": 1851,
+    "days": 124,
+    "mae_kw": 3510.4174186298487,
+    "day_persistence_mae_kw": 3283.1766612641813,
+    "skill": -0.06921368564985131,
+    "delta_ci95_kw": [
+      -484.5549762241355,
+      707.0347320503365
+    ],
+    "skill_ci95": [
+      -0.14071647071879173,
+      0.1707565083427584
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "feature": "future_tsi_ramp_mean",
+    "stratum": "lower75",
+    "cutoff": 50.42999999999998,
+    "origins": 5585,
+    "days": 147,
+    "mae_kw": 2570.1932066417903,
+    "day_persistence_mae_kw": 2363.308863025962,
+    "skill": -0.0875401209095179,
+    "delta_ci95_kw": [
+      -608.4645728119201,
+      186.87142444220123
+    ],
+    "skill_ci95": [
+      -0.2976492398721616,
+      0.07566736255930048
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "15min",
+    "feature": "future_tsi_ramp_mean",
+    "stratum": "upper25",
+    "cutoff": 50.42999999999998,
+    "origins": 1862,
+    "days": 130,
+    "mae_kw": 3647.6734652575565,
+    "day_persistence_mae_kw": 3471.5950590762623,
+    "skill": -0.050719742131487555,
+    "delta_ci95_kw": [
+      -774.099597121567,
+      419.5088047723512
+    ],
+    "skill_ci95": [
+      -0.24038262381435346,
+      0.1075919038911704
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "feature": "past_tsi_ramp_mean",
+    "stratum": "lower75",
+    "cutoff": 51.376875,
+    "origins": 5250,
+    "days": 146,
+    "mae_kw": 2750.4348882718755,
+    "day_persistence_mae_kw": 2614.4061904761907,
+    "skill": -0.05203043746270675,
+    "delta_ci95_kw": [
+      -532.5950130929407,
+      265.42151034693126
+    ],
+    "skill_ci95": [
+      -0.23890488799304682,
+      0.09614784612593366
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "feature": "past_tsi_ramp_mean",
+    "stratum": "upper25",
+    "cutoff": 51.376875,
+    "origins": 1750,
+    "days": 109,
+    "mae_kw": 3529.453046336821,
+    "day_persistence_mae_kw": 3380.2185714285715,
+    "skill": -0.04414935654447305,
+    "delta_ci95_kw": [
+      -770.7845920548828,
+      450.54354678114305
+    ],
+    "skill_ci95": [
+      -0.2576986469944208,
+      0.11925459567955873
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "feature": "past_temp_ramp_mean",
+    "stratum": "lower75",
+    "cutoff": 2.3063821906250013,
+    "origins": 5250,
+    "days": 146,
+    "mae_kw": 3104.9129494830354,
+    "day_persistence_mae_kw": 2987.054761904762,
+    "skill": -0.03945631967695107,
+    "delta_ci95_kw": [
+      -620.3991022063545,
+      275.2459044304315
+    ],
+    "skill_ci95": [
+      -0.2396265713925224,
+      0.08825242788770926
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "feature": "past_temp_ramp_mean",
+    "stratum": "upper25",
+    "cutoff": 2.3063821906250013,
+    "origins": 1750,
+    "days": 121,
+    "mae_kw": 2466.0188627033403,
+    "day_persistence_mae_kw": 2262.272857142857,
+    "skill": -0.09006252491479083,
+    "delta_ci95_kw": [
+      -560.4354440595205,
+      380.68514649871776
+    ],
+    "skill_ci95": [
+      -0.27530915117858895,
+      0.14093762391406622
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "feature": "future_power_ramp_max_pu",
+    "stratum": "lower75",
+    "cutoff": 0.087,
+    "origins": 5263,
+    "days": 146,
+    "mae_kw": 2770.441194841157,
+    "day_persistence_mae_kw": 2601.939008170245,
+    "skill": -0.06476023693937671,
+    "delta_ci95_kw": [
+      -527.6035427553469,
+      250.39187111163088
+    ],
+    "skill_ci95": [
+      -0.23912986291992772,
+      0.09153020597386433
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "feature": "future_power_ramp_max_pu",
+    "stratum": "upper25",
+    "cutoff": 0.087,
+    "origins": 1737,
+    "days": 99,
+    "mae_kw": 3474.665507235332,
+    "day_persistence_mae_kw": 3423.724812895797,
+    "skill": -0.014878735039586477,
+    "delta_ci95_kw": [
+      -783.0310234414375,
+      574.1208129154058
+    ],
+    "skill_ci95": [
+      -0.25344830678250174,
+      0.14823546168241875
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "feature": "future_tsi_ramp_mean",
+    "stratum": "lower75",
+    "cutoff": 51.329374999999985,
+    "origins": 5250,
+    "days": 146,
+    "mae_kw": 2712.825993917827,
+    "day_persistence_mae_kw": 2558.9214285714284,
+    "skill": -0.06014431065682202,
+    "delta_ci95_kw": [
+      -537.5136982457044,
+      243.37522236407654
+    ],
+    "skill_ci95": [
+      -0.24774464197111662,
+      0.09097074471086009
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "1h",
+    "feature": "future_tsi_ramp_mean",
+    "stratum": "upper25",
+    "cutoff": 51.329374999999985,
+    "origins": 1750,
+    "days": 110,
+    "mae_kw": 3642.2797293989656,
+    "day_persistence_mae_kw": 3546.672857142857,
+    "skill": -0.02695677783293715,
+    "delta_ci95_kw": [
+      -766.7852364077512,
+      521.6527709030928
+    ],
+    "skill_ci95": [
+      -0.2346600111441637,
+      0.1275385822789876
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "4h",
+    "feature": "past_tsi_ramp_mean",
+    "stratum": "lower75",
+    "cutoff": 52.04625,
+    "origins": 3919,
+    "days": 146,
+    "mae_kw": 3683.581043993446,
+    "day_persistence_mae_kw": 3481.263874712937,
+    "skill": -0.058116010897677706,
+    "delta_ci95_kw": [
+      -670.401920650156,
+      397.8575277360101
+    ],
+    "skill_ci95": [
+      -0.21683768297841943,
+      0.10296489092413996
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "4h",
+    "feature": "past_tsi_ramp_mean",
+    "stratum": "upper25",
+    "cutoff": 52.04625,
+    "origins": 1307,
+    "days": 105,
+    "mae_kw": 3612.3305054674383,
+    "day_persistence_mae_kw": 3256.0477237949503,
+    "skill": -0.10942185492823109,
+    "delta_ci95_kw": [
+      -1099.4583030827541,
+      310.62510261794966
+    ],
+    "skill_ci95": [
+      -0.39374063668381787,
+      0.08683199482176181
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "4h",
+    "feature": "past_temp_ramp_mean",
+    "stratum": "lower75",
+    "cutoff": 2.306072812500001,
+    "origins": 3919,
+    "days": 146,
+    "mae_kw": 3879.171678728643,
+    "day_persistence_mae_kw": 3684.7953878540443,
+    "skill": -0.052750904844081514,
+    "delta_ci95_kw": [
+      -832.7881899678916,
+      297.00393767098274
+    ],
+    "skill_ci95": [
+      -0.26155219304873467,
+      0.07760376916312034
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "4h",
+    "feature": "past_temp_ramp_mean",
+    "stratum": "upper25",
+    "cutoff": 2.306072812500001,
+    "origins": 1307,
+    "days": 119,
+    "mae_kw": 3025.857898331067,
+    "day_persistence_mae_kw": 2645.7646327467482,
+    "skill": -0.1436610274700505,
+    "delta_ci95_kw": [
+      -674.4001187997765,
+      201.14985932334508
+    ],
+    "skill_ci95": [
+      -0.2721980942227801,
+      0.06343507493988204
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "4h",
+    "feature": "future_power_ramp_max_pu",
+    "stratum": "lower75",
+    "cutoff": 0.127,
+    "origins": 3935,
+    "days": 145,
+    "mae_kw": 3596.4477825065137,
+    "day_persistence_mae_kw": 3443.5027001270646,
+    "skill": -0.044415554654220424,
+    "delta_ci95_kw": [
+      -690.0289056977996,
+      422.330738604526
+    ],
+    "skill_ci95": [
+      -0.230858515408391,
+      0.1199596141538676
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "4h",
+    "feature": "future_power_ramp_max_pu",
+    "stratum": "upper25",
+    "cutoff": 0.127,
+    "origins": 1291,
+    "days": 60,
+    "mae_kw": 3877.031803170509,
+    "day_persistence_mae_kw": 3368.353505034857,
+    "skill": -0.15101689812999264,
+    "delta_ci95_kw": [
+      -1245.0268784011978,
+      504.100312565569
+    ],
+    "skill_ci95": [
+      -0.4353110663529785,
+      0.12043095538835132
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "4h",
+    "feature": "future_tsi_ramp_mean",
+    "stratum": "lower75",
+    "cutoff": 53.66546875,
+    "origins": 3919,
+    "days": 144,
+    "mae_kw": 3695.2230607659267,
+    "day_persistence_mae_kw": 3311.327825976014,
+    "skill": -0.1159339258947456,
+    "delta_ci95_kw": [
+      -783.7776574971816,
+      255.46850511588852
+    ],
+    "skill_ci95": [
+      -0.2799686460300213,
+      0.0777817659233888
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "task": "4h",
+    "feature": "future_tsi_ramp_mean",
+    "stratum": "upper25",
+    "cutoff": 53.66546875,
+    "origins": 1307,
+    "days": 74,
+    "mae_kw": 3577.4222700188157,
+    "day_persistence_mae_kw": 3765.595830145371,
+    "skill": 0.0499717889583734,
+    "delta_ci95_kw": [
+      -909.0421180418983,
+      962.2037787626658
+    ],
+    "skill_ci95": [
+      -0.29349164264554506,
+      0.22392766663210426
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  }
+]

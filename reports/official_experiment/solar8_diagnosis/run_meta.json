@@ -1,0 +1,37 @@
+{
+  "generated_at": "2026-10-24T07:15:53.988025+00:00",
+  "git_commit": "d3048a07f6d4874981ccf64f528c236ee2ac2402",
+  "script_sha256": "59c88ceacedd0d247a963f91796960a2e2437362f8990faf4ea817d6fb929bb4",
+  "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:14:06) [Clang 20.1.8 ]",
+  "torch": "2.14.1",
+  "platform": "macOS-26.1-arm64-arm-64bit-Mach-O",
+  "device": "cpu",
+  "threads": 1,
+  "bootstrap": {
+    "seed": 42,
+    "replicates": 2000,
+    "unit": "local calendar day"
+  },
+  "input_sha256": {
+    "reports/official_experiment/p0a_ampdnet/data/Solar1_processed_3.csv": "37b9f61d6286e77aebf53884adf915b36b8466941c16b7cfd70fe74931905d5e",
+    "reports/official_experiment/p0a_ampdnet/data/Solar2_processed_3.csv": "6488ff3335894cc9b8d134007d28f77a99187c07c35489a778785be421ea6b69",
+    "reports/official_experiment/p0a_ampdnet/data/Solar6_processed_3.csv": "24653e0fefb037f6b7bd46ce322004ffb0c863e0d2e6d7841f30727bb3898aa4",
+    "reports/official_experiment/p0a_ampdnet/data/Solar7_processed_3.csv": "4cf18b03c885411bea72870be0d3dd3d6ec3cce1f0e6591f04bd05849bda12ba",
+    "reports/official_experiment/p0a_ampdnet/data/Solar8_processed_3.csv": "83ad806a1975cf694896e4a1be1f8ce93c516489be550bf474ed84e61c189497"
+  },
+  "scope": "post-hoc diagnosis, no retraining; original P0-A not overwritten",
+  "split": "last 20% of original overlapping windows; purge steps-1 to avoid val-target overlap",
+  "weather": "only scalar irradiance and temperature; no sky images/cloud motion/clear-sky index",
+  "strata": "exploratory test-period quartiles, descriptive only; no confirmatory causal claim",
+  "diagnostic_script_sha256": {
+    "summarize_solar8_diagnosis.py": "73cf16a41df3f6d25eae4e07d56035752e5907ef91eebb246ae8654a1fb246ac",
+    "diagnose_solar8.py": "59c88ceacedd0d247a963f91796960a2e2437362f8990faf4ea817d6fb929bb4",
+    "audit_solar8_source.py": "29fe7f13879a3ea75b772cc92f2a6123a6a5200357d9a112e52834ce225176f6"
+  },
+  "raw_source_audit": "raw_source_audit.json (source hash and presence flags)",
+  "single_vs_batch_norm_max_abs": {
+    "15min": 0.0,
+    "1h": 1.4901161193847656e-08,
+    "4h": 4.6193599700927734e-07
+  }
+}

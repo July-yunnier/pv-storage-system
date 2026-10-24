@@ -1,0 +1,13 @@
+task,feature,rho_error_disadvantage
+15min,past_tsi_ramp_mean,0.020427985271368757
+15min,past_temp_ramp_mean,0.03077276271695122
+15min,future_power_ramp_max_pu,0.006060497146284273
+15min,future_tsi_ramp_mean,0.022855142386600177
+1h,past_tsi_ramp_mean,-0.008778383726533279
+1h,past_temp_ramp_mean,0.01580105814007475
+1h,future_power_ramp_max_pu,-0.048047418473449614
+1h,future_tsi_ramp_mean,-0.008657753870175183
+4h,past_tsi_ramp_mean,0.022349539640100478
+4h,past_temp_ramp_mean,0.01259586276975466
+4h,future_power_ramp_max_pu,-0.04134378636885552
+4h,future_tsi_ramp_mean,-0.03396599714038145
