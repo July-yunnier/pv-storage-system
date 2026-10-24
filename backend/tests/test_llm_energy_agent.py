@@ -172,10 +172,10 @@ def test_dotenv_loads_file_values(monkeypatch,tmp_path):
 
 
 def test_executor_body_is_unchanged():
-    import ast,hashlib,inspect
+    import hashlib,inspect
     from scripts import run_official_experiment as runner
-    # Frozen AST digest of execute at 6486d75; remains meaningful after commits
-    # and works in source distributions without a .git checkout.
-    current=ast.parse(inspect.getsource(runner.execute)).body[0]
-    digest=hashlib.sha256(ast.dump(current,include_attributes=False).encode()).hexdigest()
-    assert digest=='ff518e5a8415bf5b773ea600271e45bffbae2458e772e2a1402bf6c1cfade9a1'
+    # Frozen source digest of execute at 6486d75. AST dumps vary across Python
+    # versions; source hashing keeps this guard portable and requires no .git.
+    current=inspect.getsource(runner.execute).strip()
+    digest=hashlib.sha256(current.encode()).hexdigest()
+    assert digest=='f8f3afa1bb7c1bd1892677718e61029abede572b992e36a0de1da0e255d29cca'
