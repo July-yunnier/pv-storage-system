@@ -7,6 +7,47 @@ import pandas as pd
 from agents.llm_energy_agent import clamp_policy
 
 
+def is_event_day(event: dict | None) -> bool:
+    """Events are selected from issue-time data; ordinary days stay on E2."""
+    return bool(event and str(event.get("kind", "none")) != "none")
+
+
+def actions_formulator_guided(forecast_pv, forecast_load, prices, policy, *, initial_soc=.5, deg=1.0):
+    """Translate high-level constraints into actions through the existing rule planner."""
+    from agents.llm_energy_agent import clamp_formulator_policy
+    high = clamp_formulator_policy(policy)
+    effective = dict(high)
+    effective["soc_min_safe"] = max(
+        high["soc_min_safe"], min(.95, high["soc_min_safe"] + .05 * high["reserve_weight"])
+    )
+    actions = actions_llm_guided(forecast_pv, forecast_load, prices, effective,
+                                 initial_soc=initial_soc, deg=deg)
+    start, end = high["discharge_window_start"], high["discharge_window_end"]
+    return [(a, kw) if not (a == "discharge" and not (start <= i <= end)) else ("idle", 0.)
+            for i, (a, kw) in enumerate(actions)]
+
+
+def tail_metrics(costs, alpha=.90):
+    """Return fixed daily-cost VaR/CVaR and worst-day metrics in yuan."""
+    values = np.asarray(costs, dtype=float)
+    if values.ndim != 1 or not len(values) or not np.isfinite(values).all():
+        raise ValueError("finite daily costs are required")
+    if not 0 < alpha < 1:
+        raise ValueError("alpha must be between 0 and 1")
+    var = float(np.quantile(values, alpha, method="linear"))
+    tail = values[values >= var]
+    return {"alpha": alpha, "var_cost_yuan": var,
+            "cvar_cost_yuan": float(tail.mean()),
+            "worst_day_cost_yuan": float(values.max()),
+            "worst_day_index": int(values.argmax()), "n_days": int(len(values))}
+
+
+def count_manual_interventions(records) -> int:
+    """Count auditable human review/fallback/safety changes, never model calls."""
+    return int(sum(bool(r.get("manual_review_required")) or r.get("fallback", False)
+                   or r.get("policy_changed_by_safety_layer", False) for r in records))
+
+
 def actions_llm_guided(forecast_pv, forecast_load, prices, policy, *, initial_soc=.5, deg=1.0):
     """Plan from forecasts only; safe reserve is advisory, executor keeps hard bounds.
 
@@ -191,3 +232,92 @@ def extend_experiment(df, out: Path, advisor):
     meta['p2_prediction_sha256']=sha(ROOT/'reports/price_forecast/t3_price_benchmark/predictions.csv')
     meta['policy_archive_sha256']=sha(archive_path)
     (out/'run_meta.json').write_text(json.dumps(meta,ensure_ascii=False,indent=2),encoding='utf-8')
+
+
+def extend_formulator_experiment(df, out: Path, advisor, *, event_mode="events_only"):
+    """Run the isolated event-day formulator arm beside the sealed E2 cohort.
+
+    The default event fixture is explicitly synthetic because the demo site has
+    no dated Guangdong event feed. Event labels are assigned before settlement,
+    and ordinary days never call the advisor.
+    """
+    from scripts.run_official_experiment import execute, actions_rule, ci_bootstrap
+    baseline = pd.read_csv(out / "p0_replay/day_results.csv")
+    dates = sorted(df.date.unique())[-30:]
+    event_positions = {5: "maintenance", 12: "cold_wave", 19: "curtailment", 26: "negative_price"}
+    rows, records = [], []
+    soc = .5
+    for index, day in enumerate(dates):
+        actual = df[df.date == day].sort_values("slot")
+        hist = df[df.date < day].sort_values("ts")
+        pv = hist.groupby("slot").pv.mean().reindex(range(96)).fillna(0).to_numpy()
+        load = hist.groupby("slot").load.mean().reindex(range(96)).fillna(0).to_numpy()
+        prices = actual.price.to_numpy()
+        kind = event_positions.get(index, "none")
+        event = {"kind": kind, "severity": .8 if kind != "none" else 0.0,
+                 "available_at": (actual.ts.iloc[0] - pd.Timedelta(minutes=15)).isoformat(),
+                 "source": "synthetic_demo_fixture"}
+        issue = event["available_at"]
+        forecast = {"issued_at": issue, "target_timestamps": [t.isoformat() for t in actual.ts],
+                    "pv_forecast_kw": list(map(float, pv)), "load_forecast_kw": list(map(float, load)),
+                    "price_forecast_cny_per_kwh": list(map(float, prices)),
+                    "initial_soc": soc, "resolution_minutes": 15}
+        history = {"history_end": hist.ts.iloc[-1].isoformat(),
+                   "history_days": int(hist.date.nunique()), "event_source": event["source"]}
+        use_formulator = event_mode == "all_days" or is_event_day(event)
+        policy = {"scenario": "none", "mode": "rule", "soc_min_safe": .10,
+                  "peak_discharge_offset": 0, "reserve_weight": 0.0,
+                  "discharge_window_start": 0, "discharge_window_end": 95,
+                  "manual_review_required": False}
+        if use_formulator:
+            policy = advisor.formulate(forecast, history, event)
+        diagnostics = dict(advisor.last_diagnostics) if use_formulator else {"mode": "rule", "status": "not_called"}
+        actions = (actions_formulator_guided(pv, load, prices, policy, initial_soc=soc)
+                   if use_formulator else actions_rule(actual.pv.to_numpy(), actual.load.to_numpy(), prices, pv, load))
+        result = execute(actions, actual.pv.to_numpy(), actual.load.to_numpy(), prices, soc=soc)
+        if result["soc_violations"] or not .10 - 1e-9 <= result["end_soc"] <= .95 + 1e-9:
+            raise RuntimeError("formulator execution safety check failed")
+        fallback = diagnostics.get("status") == "fallback"
+        row = {"date": str(day), "arm": "E_LLM_FORMULATOR", "event_day": use_formulator,
+               "event_kind": kind, "formulator_mode": policy.get("mode", "rule"),
+               "manual_review_required": bool(policy.get("manual_review_required", False)),
+               "fallback": fallback, "policy_changed_by_safety_layer": False, **result}
+        rows.append(row)
+        records.append({**row, "diagnostics": diagnostics})
+        soc = result["end_soc"]
+    frame = pd.DataFrame(rows)
+    frame.to_csv(out / "p0_replay/formulator_day_results.csv", index=False)
+    costs = frame.cost_yuan.to_numpy()
+    e2 = baseline[baseline.arm == "E2"].set_index("date").loc[frame.date].cost_yuan.to_numpy()
+    deltas = e2 - costs
+    p0_path = out / "p0_replay/summary.json"
+    p0 = json.loads(p0_path.read_text())
+    p0.setdefault("totals_yuan", {})["E_LLM_FORMULATOR"] = float(costs.sum())
+    p0.setdefault("saving_vs_e2_yuan", {})["E_LLM_FORMULATOR"] = float(deltas.sum())
+    p0["E_LLM_FORMULATOR"] = {
+        "arm": "E_LLM_FORMULATOR", "event_mode": event_mode, "n_days": len(frame),
+        "event_day_count": int(frame.event_day.sum()), "event_source": "synthetic_demo_fixture",
+        "total_cost_yuan": float(costs.sum()), "total_saving_vs_e2_yuan": float(deltas.sum()),
+        "manual_intervention_count": count_manual_interventions(records),
+        "soc_violations": int(frame.soc_violations.sum()),
+        "worst_day_cost_yuan": tail_metrics(costs, .90)["worst_day_cost_yuan"],
+        "cvar_90": tail_metrics(costs, .90), "cvar_95": tail_metrics(costs, .95),
+        "event_day_cost_yuan": float(frame.loc[frame.event_day, "cost_yuan"].sum()),
+        "event_day_increment_vs_e2_yuan": float(deltas[frame.event_day.to_numpy()].sum()),
+        "vs_e2_daily_bootstrap_ci95_yuan": ci_bootstrap(deltas),
+        "conclusion_boundary": "synthetic event fixture; protocol validation, not Guangdong event-effect evidence",
+    }
+    p0_path.write_text(json.dumps(p0, ensure_ascii=False, indent=2), encoding="utf-8")
+    # Add the same arm's declared scope to each stage summary without rewriting prior values.
+    for folder in ("p1_demand_charge", "p2_spot_price", "p3_lp", "p4_annual"):
+        path = out / folder / "summary.json"
+        if path.exists():
+            summary = json.loads(path.read_text())
+            summary["E_LLM_FORMULATOR"] = {"source": "P0 event-day cohort", "event_day_count": int(frame.event_day.sum()),
+                                            "manual_intervention_count": count_manual_interventions(records),
+                                            "soc_violations": int(frame.soc_violations.sum()),
+                                            "scope": "summary linkage only; no stage-specific rerun"}
+            path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    (out / "formulator_policy_archive.jsonl").write_text(
+        "\n".join(json.dumps(r, ensure_ascii=False, allow_nan=False) for r in records) + "\n", encoding="utf-8")
+    return p0["E_LLM_FORMULATOR"]

@@ -37,6 +37,7 @@
 | 双电价模型对比 | 算法、后端、负责人 | July MQ-RNN 与林 LightGBM 对比、组合方案与 AMPDNet 现状（18-price-model-comparison） | 对决已完成；后续诊断待排期 |
 | 事件数据契约 | 算法、后端、数据维护 | 来源归档、定期导入、按发布时间回放及成对实验（19-price-event-data） | 工程就绪，真实验收待补数据 |
 | LLM 调度消融 | 算法、调度、实验 | 真实 LLM P0 结果边界与下一轮角色/评价协议（20-llm-dispatch-ablation） | 已完成一次消融；后续协议待执行 |
+| LLM-as-formulator 事件日实验 | 算法、调度、实验 | 高层约束建模、事件日接管与 CVaR/最差日评价（21-llm-formulator-event-arm） | 离线协议验证；真实事件收益待补数据 |
 
 ## 3. 变更规则
 
