@@ -3,9 +3,13 @@
 
 This runner is deliberately offline and dependency-light (pandas/numpy/scipy).
 It records the data provenance and clearly labels synthetic/demo inputs.
+
+--agent llm --mock-offline runs a deterministic bounded policy experiment.
+--agent llm --no-mock-offline calls the OpenAI-compatible endpoint from .env.
+Agent results default to separate llm_mock/ or llm_api/ output directories.
 """
 from __future__ import annotations
-import argparse, hashlib, json, math, subprocess
+import argparse, hashlib, json, math, subprocess, sys
 from pathlib import Path
 from datetime import datetime, timezone
 import numpy as np
@@ -13,6 +17,7 @@ import pandas as pd
 from scipy.optimize import linprog, brentq
 
 ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'backend'))
 DEFAULT_DATA=ROOT/'reports/official_experiment/data/full_scene.csv'
 OUT=ROOT/'reports/official_experiment'
 PRICES={'sharp':1.25+0.21,'peak':1.05+0.21,'flat':0.65+0.21,'valley':0.28+0.21}
@@ -78,8 +83,13 @@ def lp_actions(pv,load,prices,forecast_pv,forecast_load,initial_soc=.5):
  return [('charge',float(res.x[off_c+i])) if res.x[off_c+i]>1e-6 else ('discharge',float(res.x[off_d+i])) if res.x[off_d+i]>1e-6 else ('idle',0.) for i in range(n)]
 
 def main():
- ap=argparse.ArgumentParser(); ap.add_argument('--data',type=Path,default=DEFAULT_DATA); args=ap.parse_args()
- out=OUT; out.mkdir(parents=True,exist_ok=True)
+ ap=argparse.ArgumentParser(); ap.add_argument('--data',type=Path,default=DEFAULT_DATA)
+ ap.add_argument('--agent',choices=['llm'])
+ ap.add_argument('--mock-offline',action=argparse.BooleanOptionalAction,default=True,help='Default: deterministic no-network mock; --no-mock-offline calls configured API')
+ ap.add_argument('--output-dir',type=Path)
+ args=ap.parse_args()
+ out=args.output_dir or (OUT/'llm_mock' if args.agent and args.mock_offline else OUT/'llm_api' if args.agent else OUT)
+ out.mkdir(parents=True,exist_ok=True)
  df=pd.read_csv(args.data); df['ts']=pd.to_datetime(df['ts']); df['date']=pd.to_datetime(df['date']).dt.date
  df['pv']=(df.pv_power_kw/50.0).clip(0,CAP); df['load']=df.load_power_kw.clip(0,800); df['price']=df.tariff_period.map(PRICES)
  dates=sorted(df.date.unique()); test=dates[-30:]; hist=set(dates[:-30]);
@@ -139,5 +149,14 @@ def main():
  if p2src.exists(): (out/'p2_spot_price/metrics.csv').write_bytes(p2src.read_bytes())
  meta={'generated_at':datetime.now(timezone.utc).isoformat(),'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'python':subprocess.check_output([__import__('sys').executable,'--version'],text=True).strip(),'data_sha256':sha(args.data),'data_window':[str(dates[0]),str(dates[-1])],'test_window':[str(test[0]),str(test[-1])],'site_id':'S-DONGGUAN-DEMO','units':'CNY/kWh, kW, kWh','timezone':'Asia/Shanghai','data_provenance':{'pv':'public/scenario observed proxy','load':'synthetic two-shift factory','tariff':'synthetic Guangdong policy template','p2':'GEFCom2014-P PJM Zone1 demo'},'bootstrap':{'n':BOOT,'seed':SEED}}
  (out/'run_meta.json').write_text(json.dumps(meta,ensure_ascii=False,indent=2))
+ if args.agent=='llm':
+  from agents.llm_energy_agent import LLMStrategicAdvisor
+  from scripts.llm_experiment import extend_experiment
+  extend_experiment(df,out,LLMStrategicAdvisor(mock_offline=args.mock_offline))
+  p0_summary=json.loads((out/'p0_replay/summary.json').read_text())
+  p1=json.loads((out/'p1_demand_charge/summary.json').read_text())
+  p3summary=json.loads((out/'p3_lp/summary.json').read_text())
  print(json.dumps({'p0':p0_summary,'p1':p1,'p3':p3summary,'p4':json.loads((out/'p4_annual/summary.json').read_text())},ensure_ascii=False,indent=2))
+from scripts.llm_experiment import actions_llm_guided
+
 if __name__=='__main__':main()
