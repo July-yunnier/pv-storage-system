@@ -1,0 +1,19 @@
+{
+  "E_LLM": {
+    "mode": "mock_offline",
+    "n_days": 90,
+    "soc_violations": 0,
+    "vs_E2": {
+      "total_increment_yuan": 0.0,
+      "daily_mean_increment_yuan": 0.0,
+      "daily_increment_bootstrap_ci95_yuan": [
+        0.0,
+        0.0
+      ],
+      "n_days": 90,
+      "positive_means": "E_LLM costs less than comparator"
+    },
+    "scope": "PJM Zone1 calibrated forecasts/actual settlement + synthetic PV/load alignment; demo only",
+    "limitation": "Fixed TOU charge/discharge thresholds retained; PJM price scale may never reach peak threshold. Equal costs do not establish LLM effectiveness."
+  }
+}

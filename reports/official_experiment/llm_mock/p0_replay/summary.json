@@ -1,0 +1,99 @@
+{
+  "window": [
+    "2019-04-01",
+    "2019-04-30"
+  ],
+  "n_days": 30,
+  "totals_yuan": {
+    "E0": 215434.30118955,
+    "E1": 195794.6555467153,
+    "E2": 196922.257407201,
+    "E3": 190500.18489705352,
+    "E_LLM": 202842.434975036
+  },
+  "saving_vs_e0_yuan": {
+    "E0": 0.0,
+    "E1": 19639.645642834686,
+    "E2": 18512.043782349007,
+    "E3": 24934.116292496474,
+    "E_LLM": 12591.8662145139
+  },
+  "E2_minus_E1_daily_mean_yuan": -37.58672868285521,
+  "E2_minus_E1_bootstrap_ci95_yuan": [
+    -106.50467124149016,
+    41.61278229671977
+  ],
+  "E2_vs_E3_upper_bound_attainment": 0.7424383348977928,
+  "E_LLM": {
+    "mode": "mock_offline",
+    "soc_violations": 0,
+    "end_soc": 0.9072602750902276,
+    "comparisons": {
+      "E0": {
+        "total_increment_yuan": 12591.8662145139,
+        "daily_mean_increment_yuan": 419.72887381713,
+        "daily_increment_bootstrap_ci95_yuan": [
+          335.97491215688075,
+          500.0210723365579
+        ],
+        "n_days": 30,
+        "positive_means": "E_LLM costs less than comparator"
+      },
+      "E1": {
+        "total_increment_yuan": -7047.779428320786,
+        "daily_mean_increment_yuan": -234.9259809440262,
+        "daily_increment_bootstrap_ci95_yuan": [
+          -307.35769832090483,
+          -166.4399763996528
+        ],
+        "n_days": 30,
+        "positive_means": "E_LLM costs less than comparator"
+      },
+      "E2": {
+        "total_increment_yuan": -5920.177567835131,
+        "daily_mean_increment_yuan": -197.33925226117105,
+        "daily_increment_bootstrap_ci95_yuan": [
+          -296.99206199370275,
+          -101.94339786746308
+        ],
+        "n_days": 30,
+        "positive_means": "E_LLM costs less than comparator"
+      },
+      "E3": {
+        "total_increment_yuan": -12342.250077982517,
+        "daily_mean_increment_yuan": -411.40833593275056,
+        "daily_increment_bootstrap_ci95_yuan": [
+          -529.5881122852259,
+          -294.86716683109955
+        ],
+        "n_days": 30,
+        "positive_means": "E_LLM costs less than comparator"
+      }
+    },
+    "conclusion_boundary": "mock is deterministic policy plumbing, not evidence of LLM economic advantage",
+    "offset_unit": "signed 15-minute slots; -4..4; positive delays discharge",
+    "reserve_scope": "forecast-side discharge floor; physical execution remains 10%..95%",
+    "stages": {
+      "P0": {
+        "summary": "p0_replay/summary.json",
+        "status": "executed"
+      },
+      "P1": {
+        "summary": "p1_demand_charge/summary.json",
+        "status": "executed"
+      },
+      "P2": {
+        "summary": "p2_spot_price/summary.json",
+        "status": "executed"
+      },
+      "P3": {
+        "summary": "p3_lp/summary.json",
+        "status": "executed"
+      },
+      "P4": {
+        "summary": "p4_annual/summary.json",
+        "status": "executed"
+      }
+    }
+  }
+}

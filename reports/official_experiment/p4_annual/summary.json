@@ -1,0 +1,11 @@
+{
+  "days_simulated": 365,
+  "source_days": 120,
+  "annual_saving_yuan": 206296.2078322414,
+  "capex_yuan": 1200000.0,
+  "annual_opex_yuan": 12000.0,
+  "degradation_assumption": "2%/year",
+  "npv_10y_yuan": 1686.6899799459643,
+  "irr": 0.0803228780135104,
+  "status": "synthetic_annual_protocol_validation"
+}

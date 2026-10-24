@@ -1,0 +1,10 @@
+{
+  "n_days": 30,
+  "E2_saving_yuan": 18512.04378234903,
+  "LP_saving_yuan": 18867.36167864938,
+  "LP_increment_vs_E2_yuan": 355.3178963003479,
+  "LP_increment_bootstrap_ci95_yuan": [
+    -78.68165400403085,
+    89.18469113978672
+  ]
+}

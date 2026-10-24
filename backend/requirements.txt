@@ -8,3 +8,6 @@ reportlab>=4
 httpx>=0.27
 pvlib>=0.11
 pandas>=2.2
+# Optional strategic advisor (OpenAI-compatible hosted API or local Ollama).
+openai>=1.40,<3
+python-dotenv>=1.0,<2

@@ -1,0 +1,51 @@
+{
+  "demand_rate_yuan_per_kw_month": 35.0,
+  "n_days": 30,
+  "arms": [
+    {
+      "arm": "E0",
+      "energy_cost_yuan": 215434.30118955,
+      "max_demand_kw": 800.0,
+      "demand_charge_yuan": 28000.0,
+      "total_cost_yuan": 243434.30118955,
+      "saving_vs_e0_yuan": 0.0
+    },
+    {
+      "arm": "E1",
+      "energy_cost_yuan": 195794.6555467153,
+      "max_demand_kw": 915.048,
+      "demand_charge_yuan": 32026.68,
+      "total_cost_yuan": 227821.3355467153,
+      "saving_vs_e0_yuan": 15612.965642834693
+    },
+    {
+      "arm": "E2",
+      "energy_cost_yuan": 196922.257407201,
+      "max_demand_kw": 915.048,
+      "demand_charge_yuan": 32026.68,
+      "total_cost_yuan": 228948.93740720098,
+      "saving_vs_e0_yuan": 14485.363782349013
+    },
+    {
+      "arm": "E3",
+      "energy_cost_yuan": 190500.18489705352,
+      "max_demand_kw": 1261.984,
+      "demand_charge_yuan": 44169.439999999995,
+      "total_cost_yuan": 234669.62489705352,
+      "saving_vs_e0_yuan": 8764.676292496471
+    },
+    {
+      "arm": "E_LLM",
+      "energy_cost_yuan": 202842.434975036,
+      "max_demand_kw": 915.048,
+      "demand_charge_yuan": 32026.68,
+      "total_cost_yuan": 234869.114975036,
+      "saving_vs_e0_yuan": 8565.18621451399
+    }
+  ],
+  "status": "protocol_validation_assumption",
+  "E_LLM": {
+    "mode": "mock_offline",
+    "scope": "same P0 plan with assumed demand settlement; not demand-aware optimization"
+  }
+}

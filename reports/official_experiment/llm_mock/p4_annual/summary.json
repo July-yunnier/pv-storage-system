@@ -1,0 +1,29 @@
+{
+  "days_simulated": 365,
+  "source_days": 120,
+  "annual_saving_yuan": 206296.2078322414,
+  "capex_yuan": 1200000.0,
+  "annual_opex_yuan": 12000.0,
+  "degradation_assumption": "2%/year",
+  "npv_10y_yuan": 1686.6899799459643,
+  "irr": 0.0803228780135104,
+  "status": "synthetic_annual_protocol_validation",
+  "E_LLM": {
+    "mode": "mock_offline",
+    "days": 365,
+    "soc_violations": 0,
+    "annual_saving_yuan": 140788.87040329934,
+    "same_cohort_E2_annual_saving_yuan": 224209.55506073937,
+    "vs_E2": {
+      "total_increment_yuan": -83420.68465744001,
+      "daily_mean_increment_yuan": -228.54982097928772,
+      "daily_increment_bootstrap_ci95_yuan": [
+        -256.1340539439586,
+        -201.51477381998498
+      ],
+      "n_days": 365,
+      "positive_means": "E_LLM costs less than comparator"
+    },
+    "scope": "independent synthetic cohort with causal 30-day warmup; not comparable to legacy annual total; no real investment claim"
+  }
+}

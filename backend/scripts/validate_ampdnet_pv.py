@@ -38,7 +38,7 @@ def _make_input(frame: pd.DataFrame, start: int, length: int, station: str, task
     return AmpdnetInput.model_validate({"station": station, "task": task, "observations": observations})
 
 
-def evaluate(csv_path: Path, station: str, task: str) -> dict:
+def evaluate(csv_path: Path, station: str, task: str, origin_stride: int = 52) -> dict:
     frame = pd.read_csv(csv_path)
     required = {"ts", "tsi", "dni", "ghi", "temperature_c", "power_kw"}
     missing = required - set(frame.columns)
@@ -49,8 +49,9 @@ def evaluate(csv_path: Path, station: str, task: str) -> dict:
     length, steps = TASKS[task]
     model, metadata = load_ampdnet_artifact(station, task)
     predictions, actuals, baselines = [], [], []
+    daily_deltas = []
     ts_to_power = dict(zip(frame.ts, frame.power_kw))
-    for start in range(0, len(frame) - length - steps + 1):
+    for start in range(0, len(frame) - length - steps + 1, origin_stride):
         origin = frame.iloc[start + length - 1].ts
         targets = [origin + timedelta(minutes=15 * index) for index in range(1, steps + 1)]
         if not _daylight(origin) or any(ts.date() != origin.date() or not _daylight(ts) for ts in targets):
@@ -64,20 +65,29 @@ def evaluate(csv_path: Path, station: str, task: str) -> dict:
         )
         target_values = [float(ts_to_power[ts]) for ts in targets]
         yesterday = [float(ts_to_power.get(ts - timedelta(days=1), np.nan)) for ts in targets]
-        if any(not np.isfinite(yesterday)):
+        if not np.isfinite(np.asarray(yesterday, dtype=float)).all():
             continue
-        predictions.extend(point.value for point in result.points)
+        pred_values = [point.value for point in result.points]
+        predictions.extend(pred_values)
         actuals.extend(target_values)
         baselines.extend(yesterday)
+        daily_deltas.append(float(np.mean(np.abs(np.asarray(yesterday) - target_values)) - np.mean(np.abs(np.asarray(pred_values) - target_values))))
     if not actuals:
         raise ValueError("no complete same-day daylight rolling origins found")
     mae = float(np.mean(np.abs(np.asarray(predictions) - actuals)))
+    rng = np.random.default_rng(42)
+    draws = rng.integers(0, len(daily_deltas), size=(2000, len(daily_deltas)))
+    means = np.mean(np.asarray(daily_deltas)[draws], axis=1)
+    delta_ci = [float(np.quantile(means, 0.025)), float(np.quantile(means, 0.975))]
     baseline_mae = float(np.mean(np.abs(np.asarray(baselines) - actuals)))
     return {
         "station": station, "task": task, "origins": len(actuals) // steps,
         "points": len(actuals), "mae_kw": mae, "day_persistence_mae_kw": baseline_mae,
         "skill_vs_day_persistence": (1.0 - mae / baseline_mae) if baseline_mae else None,
-        "caliber": {"baseline": "day_persistence", "target": "same-day daylight rolling origin", "unit": "kW"},
+        "daily_mae_delta_baseline_minus_ampdnet_kw": float(np.mean(daily_deltas)),
+        "daily_mae_delta_bootstrap_ci95_kw": delta_ci,
+        "bootstrap": {"n": 2000, "seed": 42, "unit": "daily MAE baseline minus AMPDNet (kW)"},
+        "caliber": {"baseline": "day_persistence", "target": "same-day daylight rolling origin", "unit": "kW", "origin_stride_rows": origin_stride},
     }
 
 
@@ -87,8 +97,9 @@ def main() -> None:
     parser.add_argument("--station", default="Solar1")
     parser.add_argument("--task", choices=sorted(TASKS), default="15min")
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--origin-stride", type=int, default=52)
     args = parser.parse_args()
-    report = evaluate(args.csv, args.station, args.task)
+    report = evaluate(args.csv, args.station, args.task, args.origin_stride)
     rendered = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
     if args.output:
         args.output.write_text(rendered)

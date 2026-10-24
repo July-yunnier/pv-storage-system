@@ -1,0 +1,992 @@
+[
+  {
+    "station": "Solar1",
+    "task": "15min",
+    "protocol": "all_history_stride52",
+    "start": "2020-08-08T18:00:00+08:00",
+    "end": "2020-12-31T18:00:00+08:00",
+    "origin_times": "17:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 2376.8771804525295,
+    "day_persistence_mae_kw": 2118.7337671232876,
+    "skill": -0.1218385326815914,
+    "delta_ci95_kw": [
+      -880.1905105430293,
+      361.62481772254034
+    ],
+    "skill_ci95": [
+      -0.5478555200669599,
+      0.1360846858272755
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar1",
+    "task": "15min",
+    "protocol": "test_purged_stride52",
+    "start": "2020-08-08T18:00:00+08:00",
+    "end": "2020-12-31T18:00:00+08:00",
+    "origin_times": "17:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 2376.8771804525295,
+    "day_persistence_mae_kw": 2118.7337671232876,
+    "skill": -0.1218385326815914,
+    "delta_ci95_kw": [
+      -880.1905105430293,
+      361.62481772254034
+    ],
+    "skill_ci95": [
+      -0.5478555200669599,
+      0.1360846858272755
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar1",
+    "task": "15min",
+    "protocol": "test_purged_all_origins",
+    "start": "2020-08-07T18:45:00+08:00",
+    "end": "2020-12-31T18:45:00+08:00",
+    "origin_times": "06:00,06:15,06:30,06:45,07:00,07:15,07:30,07:45,08:00,08:15,08:30,08:45,09:00,09:15,09:30,09:45,10:00,10:15,10:30,10:45,11:00,11:15,11:30,11:45,12:00,12:15,12:30,12:45,13:00,13:15,13:30,13:45,14:00,14:15,14:30,14:45,15:00,15:15,15:30,15:45,16:00,16:15,16:30,16:45,17:00,17:15,17:30,17:45,18:00,18:15,18:30",
+    "origins": 7447,
+    "days": 147,
+    "mae_kw": 3389.2756734634413,
+    "day_persistence_mae_kw": 5466.67622747415,
+    "skill": 0.380011631852315,
+    "delta_ci95_kw": [
+      1342.1030193205129,
+      2797.087502634946
+    ],
+    "skill_ci95": [
+      0.2661282326091993,
+      0.47434456363755945
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar1",
+    "task": "1h",
+    "protocol": "all_history_stride52",
+    "start": "2020-08-08T17:00:00+08:00",
+    "end": "2020-12-31T17:00:00+08:00",
+    "origin_times": "16:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 3847.7088437286798,
+    "day_persistence_mae_kw": 3558.416184931507,
+    "skill": -0.08129815169518784,
+    "delta_ci95_kw": [
+      -1018.0884566750407,
+      474.127103856397
+    ],
+    "skill_ci95": [
+      -0.34056914669575866,
+      0.1133845698621892
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar1",
+    "task": "1h",
+    "protocol": "test_purged_stride52",
+    "start": "2020-08-08T17:00:00+08:00",
+    "end": "2020-12-31T17:00:00+08:00",
+    "origin_times": "16:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 3847.7088437286798,
+    "day_persistence_mae_kw": 3558.416184931507,
+    "skill": -0.08129815169518784,
+    "delta_ci95_kw": [
+      -1018.0884566750407,
+      474.127103856397
+    ],
+    "skill_ci95": [
+      -0.34056914669575866,
+      0.1133845698621892
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar1",
+    "task": "1h",
+    "protocol": "test_purged_all_origins",
+    "start": "2020-08-08T08:15:00+08:00",
+    "end": "2020-12-31T18:00:00+08:00",
+    "origin_times": "06:00,06:15,06:30,06:45,07:00,07:15,07:30,07:45,08:00,08:15,08:30,08:45,09:00,09:15,09:30,09:45,10:00,10:15,10:30,10:45,11:00,11:15,11:30,11:45,12:00,12:15,12:30,12:45,13:00,13:15,13:30,13:45,14:00,14:15,14:30,14:45,15:00,15:15,15:30,15:45,16:00,16:15,16:30,16:45,17:00,17:15,17:30,17:45",
+    "origins": 7000,
+    "days": 146,
+    "mae_kw": 3831.962591399658,
+    "day_persistence_mae_kw": 5778.323245142858,
+    "skill": 0.33683831297933553,
+    "delta_ci95_kw": [
+      1174.7106075548697,
+      2672.394932618106
+    ],
+    "skill_ci95": [
+      0.22440813863625664,
+      0.43046789582322703
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar1",
+    "task": "4h",
+    "protocol": "all_history_stride52",
+    "start": "2020-08-08T15:00:00+08:00",
+    "end": "2020-12-31T15:00:00+08:00",
+    "origin_times": "14:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 3712.4053721134105,
+    "day_persistence_mae_kw": 4806.46988484589,
+    "skill": 0.22762329504693413,
+    "delta_ci95_kw": [
+      395.379592877527,
+      1780.7654237997267
+    ],
+    "skill_ci95": [
+      0.08924953351456792,
+      0.3421859440694952
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar1",
+    "task": "4h",
+    "protocol": "test_purged_stride52",
+    "start": "2020-08-08T15:00:00+08:00",
+    "end": "2020-12-31T15:00:00+08:00",
+    "origin_times": "14:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 3712.4053721134105,
+    "day_persistence_mae_kw": 4806.46988484589,
+    "skill": 0.22762329504693413,
+    "delta_ci95_kw": [
+      395.379592877527,
+      1780.7654237997267
+    ],
+    "skill_ci95": [
+      0.08924953351456792,
+      0.3421859440694952
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar1",
+    "task": "4h",
+    "protocol": "test_purged_all_origins",
+    "start": "2020-08-08T13:45:00+08:00",
+    "end": "2020-12-31T15:00:00+08:00",
+    "origin_times": "06:00,06:15,06:30,06:45,07:00,07:15,07:30,07:45,08:00,08:15,08:30,08:45,09:00,09:15,09:30,09:45,10:00,10:15,10:30,10:45,11:00,11:15,11:30,11:45,12:00,12:15,12:30,12:45,13:00,13:15,13:30,13:45,14:00,14:15,14:30,14:45",
+    "origins": 5226,
+    "days": 146,
+    "mae_kw": 5190.708211127427,
+    "day_persistence_mae_kw": 6973.145412540663,
+    "skill": 0.2556145176906336,
+    "delta_ci95_kw": [
+      909.3980114277551,
+      2623.7602423916633
+    ],
+    "skill_ci95": [
+      0.13886812799348464,
+      0.34985985187727603
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar2",
+    "task": "15min",
+    "protocol": "all_history_stride52",
+    "start": "2020-08-08T18:00:00+08:00",
+    "end": "2020-12-31T18:00:00+08:00",
+    "origin_times": "17:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 6158.871513859161,
+    "day_persistence_mae_kw": 8499.922308219177,
+    "skill": 0.27542025791180325,
+    "delta_ci95_kw": [
+      717.0795460850538,
+      3967.6563015196907
+    ],
+    "skill_ci95": [
+      0.09672565244594933,
+      0.41259696742279195
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar2",
+    "task": "15min",
+    "protocol": "test_purged_stride52",
+    "start": "2020-08-08T18:00:00+08:00",
+    "end": "2020-12-31T18:00:00+08:00",
+    "origin_times": "17:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 6158.871513859161,
+    "day_persistence_mae_kw": 8499.922308219177,
+    "skill": 0.27542025791180325,
+    "delta_ci95_kw": [
+      717.0795460850538,
+      3967.6563015196907
+    ],
+    "skill_ci95": [
+      0.09672565244594933,
+      0.41259696742279195
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar2",
+    "task": "15min",
+    "protocol": "test_purged_all_origins",
+    "start": "2020-08-07T18:45:00+08:00",
+    "end": "2020-12-31T18:45:00+08:00",
+    "origin_times": "06:00,06:15,06:30,06:45,07:00,07:15,07:30,07:45,08:00,08:15,08:30,08:45,09:00,09:15,09:30,09:45,10:00,10:15,10:30,10:45,11:00,11:15,11:30,11:45,12:00,12:15,12:30,12:45,13:00,13:15,13:30,13:45,14:00,14:15,14:30,14:45,15:00,15:15,15:30,15:45,16:00,16:15,16:30,16:45,17:00,17:15,17:30,17:45,18:00,18:15,18:30",
+    "origins": 7447,
+    "days": 147,
+    "mae_kw": 8784.087684332559,
+    "day_persistence_mae_kw": 9134.795438968713,
+    "skill": 0.038392513218199475,
+    "delta_ci95_kw": [
+      -898.1301034372913,
+      1616.4480012381075
+    ],
+    "skill_ci95": [
+      -0.10771925154634827,
+      0.1619597605690024
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar2",
+    "task": "1h",
+    "protocol": "all_history_stride52",
+    "start": "2020-08-08T17:00:00+08:00",
+    "end": "2020-12-31T17:00:00+08:00",
+    "origin_times": "16:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 10294.310556627248,
+    "day_persistence_mae_kw": 11699.97713869863,
+    "skill": 0.12014267766575593,
+    "delta_ci95_kw": [
+      -575.3098371147258,
+      3334.075332067368
+    ],
+    "skill_ci95": [
+      -0.05362247494170998,
+      0.26321369888005575
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar2",
+    "task": "1h",
+    "protocol": "test_purged_stride52",
+    "start": "2020-08-08T17:00:00+08:00",
+    "end": "2020-12-31T17:00:00+08:00",
+    "origin_times": "16:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 10294.310556627248,
+    "day_persistence_mae_kw": 11699.97713869863,
+    "skill": 0.12014267766575593,
+    "delta_ci95_kw": [
+      -575.3098371147258,
+      3334.075332067368
+    ],
+    "skill_ci95": [
+      -0.05362247494170998,
+      0.26321369888005575
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar2",
+    "task": "1h",
+    "protocol": "test_purged_all_origins",
+    "start": "2020-08-08T08:15:00+08:00",
+    "end": "2020-12-31T18:00:00+08:00",
+    "origin_times": "06:00,06:15,06:30,06:45,07:00,07:15,07:30,07:45,08:00,08:15,08:30,08:45,09:00,09:15,09:30,09:45,10:00,10:15,10:30,10:45,11:00,11:15,11:30,11:45,12:00,12:15,12:30,12:45,13:00,13:15,13:30,13:45,14:00,14:15,14:30,14:45,15:00,15:15,15:30,15:45,16:00,16:15,16:30,16:45,17:00,17:15,17:30,17:45",
+    "origins": 7000,
+    "days": 146,
+    "mae_kw": 9834.934676990339,
+    "day_persistence_mae_kw": 9532.098332035714,
+    "skill": -0.0317701658549665,
+    "delta_ci95_kw": [
+      -1521.076309565188,
+      1004.9841295780511
+    ],
+    "skill_ci95": [
+      -0.17354805302217527,
+      0.09599275082865502
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar2",
+    "task": "4h",
+    "protocol": "all_history_stride52",
+    "start": "2020-08-08T15:00:00+08:00",
+    "end": "2020-12-31T15:00:00+08:00",
+    "origin_times": "14:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 13277.505376194731,
+    "day_persistence_mae_kw": 11863.06817208904,
+    "skill": -0.11923030227825238,
+    "delta_ci95_kw": [
+      -3238.0292902524548,
+      465.9980805634662
+    ],
+    "skill_ci95": [
+      -0.30027432894666134,
+      0.03532688313426836
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar2",
+    "task": "4h",
+    "protocol": "test_purged_stride52",
+    "start": "2020-08-08T15:00:00+08:00",
+    "end": "2020-12-31T15:00:00+08:00",
+    "origin_times": "14:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 13277.505376194731,
+    "day_persistence_mae_kw": 11863.06817208904,
+    "skill": -0.11923030227825238,
+    "delta_ci95_kw": [
+      -3238.0292902524548,
+      465.9980805634662
+    ],
+    "skill_ci95": [
+      -0.30027432894666134,
+      0.03532688313426836
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar2",
+    "task": "4h",
+    "protocol": "test_purged_all_origins",
+    "start": "2020-08-08T13:45:00+08:00",
+    "end": "2020-12-31T15:00:00+08:00",
+    "origin_times": "06:00,06:15,06:30,06:45,07:00,07:15,07:30,07:45,08:00,08:15,08:30,08:45,09:00,09:15,09:30,09:45,10:00,10:15,10:30,10:45,11:00,11:15,11:30,11:45,12:00,12:15,12:30,12:45,13:00,13:15,13:30,13:45,14:00,14:15,14:30,14:45",
+    "origins": 5226,
+    "days": 146,
+    "mae_kw": 11464.071241831296,
+    "day_persistence_mae_kw": 10860.234508658632,
+    "skill": -0.05560070850138987,
+    "delta_ci95_kw": [
+      -1842.0258197985552,
+      668.1406098443729
+    ],
+    "skill_ci95": [
+      -0.18610874887309867,
+      0.05683840270594313
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar6",
+    "task": "15min",
+    "protocol": "all_history_stride52",
+    "start": "2020-08-08T18:00:00+08:00",
+    "end": "2020-12-31T18:00:00+08:00",
+    "origin_times": "17:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 1264.4590555598563,
+    "day_persistence_mae_kw": 1412.0003314616438,
+    "skill": 0.10449096407014213,
+    "delta_ci95_kw": [
+      -212.58115522801342,
+      495.1732396448083
+    ],
+    "skill_ci95": [
+      -0.16982414789172065,
+      0.30191226208262034
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar6",
+    "task": "15min",
+    "protocol": "test_purged_stride52",
+    "start": "2020-08-08T18:00:00+08:00",
+    "end": "2020-12-31T18:00:00+08:00",
+    "origin_times": "17:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 1264.4590555598563,
+    "day_persistence_mae_kw": 1412.0003314616438,
+    "skill": 0.10449096407014213,
+    "delta_ci95_kw": [
+      -212.58115522801342,
+      495.1732396448083
+    ],
+    "skill_ci95": [
+      -0.16982414789172065,
+      0.30191226208262034
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar6",
+    "task": "15min",
+    "protocol": "test_purged_all_origins",
+    "start": "2020-08-07T18:45:00+08:00",
+    "end": "2020-12-31T18:45:00+08:00",
+    "origin_times": "06:00,06:15,06:30,06:45,07:00,07:15,07:30,07:45,08:00,08:15,08:30,08:45,09:00,09:15,09:30,09:45,10:00,10:15,10:30,10:45,11:00,11:15,11:30,11:45,12:00,12:15,12:30,12:45,13:00,13:15,13:30,13:45,14:00,14:15,14:30,14:45,15:00,15:15,15:30,15:45,16:00,16:15,16:30,16:45,17:00,17:15,17:30,17:45,18:00,18:15,18:30",
+    "origins": 7447,
+    "days": 147,
+    "mae_kw": 1355.0090487589168,
+    "day_persistence_mae_kw": 3582.4477163239158,
+    "skill": 0.6217644593709961,
+    "delta_ci95_kw": [
+      1835.7893299429825,
+      2681.0311117784245
+    ],
+    "skill_ci95": [
+      0.5737490381834092,
+      0.6679332161032454
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar6",
+    "task": "1h",
+    "protocol": "all_history_stride52",
+    "start": "2020-08-08T17:00:00+08:00",
+    "end": "2020-12-31T17:00:00+08:00",
+    "origin_times": "16:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 1824.9793489290512,
+    "day_persistence_mae_kw": 2881.8835401027395,
+    "skill": 0.3667407709112387,
+    "delta_ci95_kw": [
+      646.1530397890073,
+      1481.1256771024096
+    ],
+    "skill_ci95": [
+      0.24727574683347636,
+      0.46986134557445114
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar6",
+    "task": "1h",
+    "protocol": "test_purged_stride52",
+    "start": "2020-08-08T17:00:00+08:00",
+    "end": "2020-12-31T17:00:00+08:00",
+    "origin_times": "16:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 1824.9793489290512,
+    "day_persistence_mae_kw": 2881.8835401027395,
+    "skill": 0.3667407709112387,
+    "delta_ci95_kw": [
+      646.1530397890073,
+      1481.1256771024096
+    ],
+    "skill_ci95": [
+      0.24727574683347636,
+      0.46986134557445114
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar6",
+    "task": "1h",
+    "protocol": "test_purged_all_origins",
+    "start": "2020-08-08T08:15:00+08:00",
+    "end": "2020-12-31T18:00:00+08:00",
+    "origin_times": "06:00,06:15,06:30,06:45,07:00,07:15,07:30,07:45,08:00,08:15,08:30,08:45,09:00,09:15,09:30,09:45,10:00,10:15,10:30,10:45,11:00,11:15,11:30,11:45,12:00,12:15,12:30,12:45,13:00,13:15,13:30,13:45,14:00,14:15,14:30,14:45,15:00,15:15,15:30,15:45,16:00,16:15,16:30,16:45,17:00,17:15,17:30,17:45",
+    "origins": 7000,
+    "days": 146,
+    "mae_kw": 1743.2776501375758,
+    "day_persistence_mae_kw": 3789.7218299767715,
+    "skill": 0.5399985201161159,
+    "delta_ci95_kw": [
+      1626.3031705290568,
+      2490.3020605716865
+    ],
+    "skill_ci95": [
+      0.47925935414933224,
+      0.5909508860843098
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar6",
+    "task": "4h",
+    "protocol": "all_history_stride52",
+    "start": "2020-08-08T15:00:00+08:00",
+    "end": "2020-12-31T15:00:00+08:00",
+    "origin_times": "14:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 2210.961962438682,
+    "day_persistence_mae_kw": 3486.1548383313357,
+    "skill": 0.3657877905684278,
+    "delta_ci95_kw": [
+      867.3625672959897,
+      1695.8622210166566
+    ],
+    "skill_ci95": [
+      0.27857158056500625,
+      0.44366822614104373
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar6",
+    "task": "4h",
+    "protocol": "test_purged_stride52",
+    "start": "2020-08-08T15:00:00+08:00",
+    "end": "2020-12-31T15:00:00+08:00",
+    "origin_times": "14:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 2210.961962438682,
+    "day_persistence_mae_kw": 3486.1548383313357,
+    "skill": 0.3657877905684278,
+    "delta_ci95_kw": [
+      867.3625672959897,
+      1695.8622210166566
+    ],
+    "skill_ci95": [
+      0.27857158056500625,
+      0.44366822614104373
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar6",
+    "task": "4h",
+    "protocol": "test_purged_all_origins",
+    "start": "2020-08-08T13:45:00+08:00",
+    "end": "2020-12-31T15:00:00+08:00",
+    "origin_times": "06:00,06:15,06:30,06:45,07:00,07:15,07:30,07:45,08:00,08:15,08:30,08:45,09:00,09:15,09:30,09:45,10:00,10:15,10:30,10:45,11:00,11:15,11:30,11:45,12:00,12:15,12:30,12:45,13:00,13:15,13:30,13:45,14:00,14:15,14:30,14:45",
+    "origins": 5226,
+    "days": 146,
+    "mae_kw": 2996.706405685685,
+    "day_persistence_mae_kw": 4471.096868208453,
+    "skill": 0.3297603487426899,
+    "delta_ci95_kw": [
+      968.3258718859385,
+      1954.1125385605415
+    ],
+    "skill_ci95": [
+      0.24576583165817792,
+      0.3947048801996992
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar7",
+    "task": "15min",
+    "protocol": "all_history_stride52",
+    "start": "2020-08-08T18:00:00+08:00",
+    "end": "2020-12-31T18:00:00+08:00",
+    "origin_times": "17:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 1301.7249095358652,
+    "day_persistence_mae_kw": 1569.6780547945204,
+    "skill": 0.17070579819868337,
+    "delta_ci95_kw": [
+      -43.643155659463865,
+      592.7196495498863
+    ],
+    "skill_ci95": [
+      -0.03208971438458834,
+      0.33238620708483446
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar7",
+    "task": "15min",
+    "protocol": "test_purged_stride52",
+    "start": "2020-08-08T18:00:00+08:00",
+    "end": "2020-12-31T18:00:00+08:00",
+    "origin_times": "17:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 1301.7249095358652,
+    "day_persistence_mae_kw": 1569.6780547945204,
+    "skill": 0.17070579819868337,
+    "delta_ci95_kw": [
+      -43.643155659463865,
+      592.7196495498863
+    ],
+    "skill_ci95": [
+      -0.03208971438458834,
+      0.33238620708483446
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar7",
+    "task": "15min",
+    "protocol": "test_purged_all_origins",
+    "start": "2020-08-07T18:45:00+08:00",
+    "end": "2020-12-31T18:45:00+08:00",
+    "origin_times": "06:00,06:15,06:30,06:45,07:00,07:15,07:30,07:45,08:00,08:15,08:30,08:45,09:00,09:15,09:30,09:45,10:00,10:15,10:30,10:45,11:00,11:15,11:30,11:45,12:00,12:15,12:30,12:45,13:00,13:15,13:30,13:45,14:00,14:15,14:30,14:45,15:00,15:15,15:30,15:45,16:00,16:15,16:30,16:45,17:00,17:15,17:30,17:45,18:00,18:15,18:30",
+    "origins": 7447,
+    "days": 147,
+    "mae_kw": 2791.813005477108,
+    "day_persistence_mae_kw": 3395.06978447697,
+    "skill": 0.17768612054988941,
+    "delta_ci95_kw": [
+      -142.9227700414426,
+      1329.0287158843714
+    ],
+    "skill_ci95": [
+      -0.046943988061702406,
+      0.3665393913469369
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar7",
+    "task": "1h",
+    "protocol": "all_history_stride52",
+    "start": "2020-08-08T17:00:00+08:00",
+    "end": "2020-12-31T17:00:00+08:00",
+    "origin_times": "16:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 2581.7846728842746,
+    "day_persistence_mae_kw": 2933.106470890411,
+    "skill": 0.11977805834627087,
+    "delta_ci95_kw": [
+      -193.06800840167182,
+      913.7055244359238
+    ],
+    "skill_ci95": [
+      -0.07441303378464106,
+      0.28409993519871624
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar7",
+    "task": "1h",
+    "protocol": "test_purged_stride52",
+    "start": "2020-08-08T17:00:00+08:00",
+    "end": "2020-12-31T17:00:00+08:00",
+    "origin_times": "16:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 2581.7846728842746,
+    "day_persistence_mae_kw": 2933.106470890411,
+    "skill": 0.11977805834627087,
+    "delta_ci95_kw": [
+      -193.06800840167182,
+      913.7055244359238
+    ],
+    "skill_ci95": [
+      -0.07441303378464106,
+      0.28409993519871624
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar7",
+    "task": "1h",
+    "protocol": "test_purged_all_origins",
+    "start": "2020-08-08T08:15:00+08:00",
+    "end": "2020-12-31T18:00:00+08:00",
+    "origin_times": "06:00,06:15,06:30,06:45,07:00,07:15,07:30,07:45,08:00,08:15,08:30,08:45,09:00,09:15,09:30,09:45,10:00,10:15,10:30,10:45,11:00,11:15,11:30,11:45,12:00,12:15,12:30,12:45,13:00,13:15,13:30,13:45,14:00,14:15,14:30,14:45,15:00,15:15,15:30,15:45,16:00,16:15,16:30,16:45,17:00,17:15,17:30,17:45",
+    "origins": 7000,
+    "days": 146,
+    "mae_kw": 3283.5843326034324,
+    "day_persistence_mae_kw": 3591.571944857143,
+    "skill": 0.0857528728318322,
+    "delta_ci95_kw": [
+      -454.6239497676985,
+      1083.1354902690525
+    ],
+    "skill_ci95": [
+      -0.13642532034860635,
+      0.2791763945553088
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar7",
+    "task": "4h",
+    "protocol": "all_history_stride52",
+    "start": "2020-08-08T15:00:00+08:00",
+    "end": "2020-12-31T15:00:00+08:00",
+    "origin_times": "14:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 3515.6611392181767,
+    "day_persistence_mae_kw": 3391.300750856164,
+    "skill": -0.03667040982154601,
+    "delta_ci95_kw": [
+      -847.7251657091551,
+      552.0578881776821
+    ],
+    "skill_ci95": [
+      -0.2666969958899173,
+      0.15040044034628
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar7",
+    "task": "4h",
+    "protocol": "test_purged_stride52",
+    "start": "2020-08-08T15:00:00+08:00",
+    "end": "2020-12-31T15:00:00+08:00",
+    "origin_times": "14:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 3515.6611392181767,
+    "day_persistence_mae_kw": 3391.300750856164,
+    "skill": -0.03667040982154601,
+    "delta_ci95_kw": [
+      -847.7251657091551,
+      552.0578881776821
+    ],
+    "skill_ci95": [
+      -0.2666969958899173,
+      0.15040044034628
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar7",
+    "task": "4h",
+    "protocol": "test_purged_all_origins",
+    "start": "2020-08-08T13:45:00+08:00",
+    "end": "2020-12-31T15:00:00+08:00",
+    "origin_times": "06:00,06:15,06:30,06:45,07:00,07:15,07:30,07:45,08:00,08:15,08:30,08:45,09:00,09:15,09:30,09:45,10:00,10:15,10:30,10:45,11:00,11:15,11:30,11:45,12:00,12:15,12:30,12:45,13:00,13:15,13:30,13:45,14:00,14:15,14:30,14:45",
+    "origins": 5226,
+    "days": 146,
+    "mae_kw": 4552.5678081408705,
+    "day_persistence_mae_kw": 4216.268859931113,
+    "skill": -0.07976221616361823,
+    "delta_ci95_kw": [
+      -1214.6145293376123,
+      561.1367321845756
+    ],
+    "skill_ci95": [
+      -0.3174558532831046,
+      0.12473351963979336
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar8",
+    "task": "15min",
+    "protocol": "all_history_stride52",
+    "start": "2019-01-02T18:00:00+08:00",
+    "end": "2020-12-31T18:00:00+08:00",
+    "origin_times": "17:45",
+    "origins": 730,
+    "days": 730,
+    "mae_kw": 250.5949578971079,
+    "day_persistence_mae_kw": 207.78082191780823,
+    "skill": -0.20605432004805357,
+    "delta_ci95_kw": [
+      -66.95555061498732,
+      -16.427410109745303
+    ],
+    "skill_ci95": [
+      -0.35319957408837793,
+      -0.07316652788321244
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar8",
+    "task": "15min",
+    "protocol": "test_purged_stride52",
+    "start": "2020-08-08T18:00:00+08:00",
+    "end": "2020-12-31T18:00:00+08:00",
+    "origin_times": "17:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 151.96950954280487,
+    "day_persistence_mae_kw": 57.87671232876713,
+    "skill": -1.6257453719821906,
+    "delta_ci95_kw": [
+      -128.54945424288917,
+      -61.82182675502073
+    ],
+    "skill_ci95": [
+      -2.9016445114501894,
+      -0.8823024041252113
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar8",
+    "task": "15min",
+    "protocol": "test_purged_all_origins",
+    "start": "2020-08-07T18:45:00+08:00",
+    "end": "2020-12-31T18:45:00+08:00",
+    "origin_times": "06:00,06:15,06:30,06:45,07:00,07:15,07:30,07:45,08:00,08:15,08:30,08:45,09:00,09:15,09:30,09:45,10:00,10:15,10:30,10:45,11:00,11:15,11:30,11:45,12:00,12:15,12:30,12:45,13:00,13:15,13:30,13:45,14:00,14:15,14:30,14:45,15:00,15:15,15:30,15:45,16:00,16:15,16:30,16:45,17:00,17:15,17:30,17:45,18:00,18:15,18:30",
+    "origins": 7447,
+    "days": 147,
+    "mae_kw": 2839.5994429171437,
+    "day_persistence_mae_kw": 2640.4176178326843,
+    "skill": -0.07543572794668463,
+    "delta_ci95_kw": [
+      -634.9455143485244,
+      246.90410120331018
+    ],
+    "skill_ci95": [
+      -0.2734141129637686,
+      0.08520268952594282
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar8",
+    "task": "1h",
+    "protocol": "all_history_stride52",
+    "start": "2019-01-02T17:00:00+08:00",
+    "end": "2020-12-31T17:00:00+08:00",
+    "origin_times": "16:45",
+    "origins": 730,
+    "days": 730,
+    "mae_kw": 684.1319538529197,
+    "day_persistence_mae_kw": 669.7123287671233,
+    "skill": -0.021531073068852713,
+    "delta_ci95_kw": [
+      -79.52032932312122,
+      51.32290649731154
+    ],
+    "skill_ci95": [
+      -0.12440976468970918,
+      0.07284247952089506
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar8",
+    "task": "1h",
+    "protocol": "test_purged_stride52",
+    "start": "2020-08-08T17:00:00+08:00",
+    "end": "2020-12-31T17:00:00+08:00",
+    "origin_times": "16:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 612.1559656109304,
+    "day_persistence_mae_kw": 360.9931506849315,
+    "skill": -0.6957550702816779,
+    "delta_ci95_kw": [
+      -348.6205004450801,
+      -155.04213258362805
+    ],
+    "skill_ci95": [
+      -1.0813656635993647,
+      -0.39644849024491363
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar8",
+    "task": "1h",
+    "protocol": "test_purged_all_origins",
+    "start": "2020-08-08T08:15:00+08:00",
+    "end": "2020-12-31T18:00:00+08:00",
+    "origin_times": "06:00,06:15,06:30,06:45,07:00,07:15,07:30,07:45,08:00,08:15,08:30,08:45,09:00,09:15,09:30,09:45,10:00,10:15,10:30,10:45,11:00,11:15,11:30,11:45,12:00,12:15,12:30,12:45,13:00,13:15,13:30,13:45,14:00,14:15,14:30,14:45,15:00,15:15,15:30,15:45,16:00,16:15,16:30,16:45,17:00,17:15,17:30,17:45",
+    "origins": 7000,
+    "days": 146,
+    "mae_kw": 2945.189427788112,
+    "day_persistence_mae_kw": 2805.8592857142858,
+    "skill": -0.049656852994449885,
+    "delta_ci95_kw": [
+      -578.9524509156782,
+      287.9054276767972
+    ],
+    "skill_ci95": [
+      -0.22969283228332052,
+      0.09334577525482307
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar8",
+    "task": "4h",
+    "protocol": "all_history_stride52",
+    "start": "2019-01-04T15:00:00+08:00",
+    "end": "2020-12-31T15:00:00+08:00",
+    "origin_times": "14:45",
+    "origins": 728,
+    "days": 728,
+    "mae_kw": 1263.704064692391,
+    "day_persistence_mae_kw": 1499.89010989011,
+    "skill": 0.15746889964827027,
+    "delta_ci95_kw": [
+      126.47391949505756,
+      345.48073001617297
+    ],
+    "skill_ci95": [
+      0.0875764292178667,
+      0.22144367983746263
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar8",
+    "task": "4h",
+    "protocol": "test_purged_stride52",
+    "start": "2020-08-08T15:00:00+08:00",
+    "end": "2020-12-31T15:00:00+08:00",
+    "origin_times": "14:45",
+    "origins": 146,
+    "days": 146,
+    "mae_kw": 1407.1464009780998,
+    "day_persistence_mae_kw": 1162.0719178082193,
+    "skill": -0.2108944200563032,
+    "delta_ci95_kw": [
+      -440.2476449900549,
+      -52.337199542309264
+    ],
+    "skill_ci95": [
+      -0.4135273724910353,
+      -0.04187089596870547
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  },
+  {
+    "station": "Solar8",
+    "task": "4h",
+    "protocol": "test_purged_all_origins",
+    "start": "2020-08-08T13:45:00+08:00",
+    "end": "2020-12-31T15:00:00+08:00",
+    "origin_times": "06:00,06:15,06:30,06:45,07:00,07:15,07:30,07:45,08:00,08:15,08:30,08:45,09:00,09:15,09:30,09:45,10:00,10:15,10:30,10:45,11:00,11:15,11:30,11:45,12:00,12:15,12:30,12:45,13:00,13:15,13:30,13:45,14:00,14:15,14:30,14:45",
+    "origins": 5226,
+    "days": 146,
+    "mae_kw": 3665.7615924332677,
+    "day_persistence_mae_kw": 3424.9382893226175,
+    "skill": -0.07031464008021016,
+    "delta_ci95_kw": [
+      -781.4597782139836,
+      293.46915683814296
+    ],
+    "skill_ci95": [
+      -0.2509555757149535,
+      0.07748931172353649
+    ],
+    "daily_weighting": "equal days; per-origin point estimates; days can have different counts"
+  }
+]

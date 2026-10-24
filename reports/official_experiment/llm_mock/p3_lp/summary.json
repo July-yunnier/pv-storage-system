@@ -1,0 +1,34 @@
+{
+  "n_days": 30,
+  "E2_saving_yuan": 18512.04378234903,
+  "LP_saving_yuan": 18867.36167864938,
+  "LP_increment_vs_E2_yuan": 355.3178963003479,
+  "LP_increment_bootstrap_ci95_yuan": [
+    -78.68165400403085,
+    89.18469113978672
+  ],
+  "E_LLM": {
+    "mode": "mock_offline",
+    "soc_violations": 0,
+    "vs_E2": {
+      "total_increment_yuan": -5920.177567835131,
+      "daily_mean_increment_yuan": -197.33925226117105,
+      "daily_increment_bootstrap_ci95_yuan": [
+        -296.99206199370275,
+        -101.94339786746308
+      ],
+      "n_days": 30,
+      "positive_means": "E_LLM costs less than comparator"
+    },
+    "vs_LP": {
+      "total_increment_yuan": -6275.495464135479,
+      "daily_mean_increment_yuan": -209.1831821378493,
+      "daily_increment_bootstrap_ci95_yuan": [
+        -287.4808738217124,
+        -134.23650448914694
+      ],
+      "n_days": 30,
+      "positive_means": "E_LLM costs less than comparator"
+    }
+  }
+}

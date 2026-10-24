@@ -1,0 +1,377 @@
+[
+  {
+    "station": "Solar1",
+    "task": "15min",
+    "origins": 730,
+    "points": 730,
+    "mae_kw": 1598.8499287931506,
+    "day_persistence_mae_kw": 2951.902367123288,
+    "skill_vs_day_persistence": 0.4583662567569011,
+    "daily_mae_delta_baseline_minus_ampdnet_kw": 1353.052438330137,
+    "daily_mae_delta_bootstrap_ci95_kw": [
+      1062.215851467637,
+      1633.1030221414721
+    ],
+    "bootstrap": {
+      "n": 2000,
+      "seed": 42,
+      "unit": "daily MAE baseline minus AMPDNet (kW)"
+    },
+    "caliber": {
+      "baseline": "day_persistence",
+      "target": "same-day daylight rolling origin",
+      "unit": "kW",
+      "origin_stride_rows": 52
+    }
+  },
+  {
+    "station": "Solar1",
+    "task": "1h",
+    "origins": 730,
+    "points": 2920,
+    "mae_kw": 2753.169446779452,
+    "day_persistence_mae_kw": 4572.104953082192,
+    "skill_vs_day_persistence": 0.3978332791937642,
+    "daily_mae_delta_baseline_minus_ampdnet_kw": 1818.93550630274,
+    "daily_mae_delta_bootstrap_ci95_kw": [
+      1474.80925967131,
+      2171.608627387586
+    ],
+    "bootstrap": {
+      "n": 2000,
+      "seed": 42,
+      "unit": "daily MAE baseline minus AMPDNet (kW)"
+    },
+    "caliber": {
+      "baseline": "day_persistence",
+      "target": "same-day daylight rolling origin",
+      "unit": "kW",
+      "origin_stride_rows": 52
+    }
+  },
+  {
+    "station": "Solar1",
+    "task": "4h",
+    "origins": 728,
+    "points": 11648,
+    "mae_kw": 3775.774935107058,
+    "day_persistence_mae_kw": 5718.74260989011,
+    "skill_vs_day_persistence": 0.33975434939541505,
+    "daily_mae_delta_baseline_minus_ampdnet_kw": 1942.9676747830529,
+    "daily_mae_delta_bootstrap_ci95_kw": [
+      1576.1631886173122,
+      2283.195452309379
+    ],
+    "bootstrap": {
+      "n": 2000,
+      "seed": 42,
+      "unit": "daily MAE baseline minus AMPDNet (kW)"
+    },
+    "caliber": {
+      "baseline": "day_persistence",
+      "target": "same-day daylight rolling origin",
+      "unit": "kW",
+      "origin_stride_rows": 52
+    }
+  },
+  {
+    "station": "Solar2",
+    "task": "15min",
+    "origins": 730,
+    "points": 730,
+    "mae_kw": 6785.981985680823,
+    "day_persistence_mae_kw": 12865.65532739726,
+    "skill_vs_day_persistence": 0.4725506153401954,
+    "daily_mae_delta_baseline_minus_ampdnet_kw": 6079.673341716438,
+    "daily_mae_delta_bootstrap_ci95_kw": [
+      5061.811625790787,
+      7068.386374198902
+    ],
+    "bootstrap": {
+      "n": 2000,
+      "seed": 42,
+      "unit": "daily MAE baseline minus AMPDNet (kW)"
+    },
+    "caliber": {
+      "baseline": "day_persistence",
+      "target": "same-day daylight rolling origin",
+      "unit": "kW",
+      "origin_stride_rows": 52
+    }
+  },
+  {
+    "station": "Solar2",
+    "task": "1h",
+    "origins": 730,
+    "points": 2920,
+    "mae_kw": 10319.183337848632,
+    "day_persistence_mae_kw": 15817.435370890413,
+    "skill_vs_day_persistence": 0.3476070490643811,
+    "daily_mae_delta_baseline_minus_ampdnet_kw": 5498.25203304178,
+    "daily_mae_delta_bootstrap_ci95_kw": [
+      4426.467681635814,
+      6539.013631078894
+    ],
+    "bootstrap": {
+      "n": 2000,
+      "seed": 42,
+      "unit": "daily MAE baseline minus AMPDNet (kW)"
+    },
+    "caliber": {
+      "baseline": "day_persistence",
+      "target": "same-day daylight rolling origin",
+      "unit": "kW",
+      "origin_stride_rows": 52
+    }
+  },
+  {
+    "station": "Solar2",
+    "task": "4h",
+    "origins": 728,
+    "points": 11648,
+    "mae_kw": 12606.133911629026,
+    "day_persistence_mae_kw": 15292.108908868848,
+    "skill_vs_day_persistence": 0.1756445113781565,
+    "daily_mae_delta_baseline_minus_ampdnet_kw": 2685.9749972398217,
+    "daily_mae_delta_bootstrap_ci95_kw": [
+      1888.4716429257564,
+      3527.7174237069853
+    ],
+    "bootstrap": {
+      "n": 2000,
+      "seed": 42,
+      "unit": "daily MAE baseline minus AMPDNet (kW)"
+    },
+    "caliber": {
+      "baseline": "day_persistence",
+      "target": "same-day daylight rolling origin",
+      "unit": "kW",
+      "origin_stride_rows": 52
+    }
+  },
+  {
+    "station": "Solar6",
+    "task": "15min",
+    "origins": 730,
+    "points": 730,
+    "mae_kw": 1197.8571793680821,
+    "day_persistence_mae_kw": 2201.4763300539726,
+    "skill_vs_day_persistence": 0.4558845975242828,
+    "daily_mae_delta_baseline_minus_ampdnet_kw": 1003.6191506858905,
+    "daily_mae_delta_bootstrap_ci95_kw": [
+      822.5194487341884,
+      1185.5599619026711
+    ],
+    "bootstrap": {
+      "n": 2000,
+      "seed": 42,
+      "unit": "daily MAE baseline minus AMPDNet (kW)"
+    },
+    "caliber": {
+      "baseline": "day_persistence",
+      "target": "same-day daylight rolling origin",
+      "unit": "kW",
+      "origin_stride_rows": 52
+    }
+  },
+  {
+    "station": "Solar6",
+    "task": "1h",
+    "origins": 730,
+    "points": 2920,
+    "mae_kw": 1842.0678211239729,
+    "day_persistence_mae_kw": 3235.8921246890413,
+    "skill_vs_day_persistence": 0.4307388039701757,
+    "daily_mae_delta_baseline_minus_ampdnet_kw": 1393.8243035650687,
+    "daily_mae_delta_bootstrap_ci95_kw": [
+      1188.1634928596488,
+      1609.063940363245
+    ],
+    "bootstrap": {
+      "n": 2000,
+      "seed": 42,
+      "unit": "daily MAE baseline minus AMPDNet (kW)"
+    },
+    "caliber": {
+      "baseline": "day_persistence",
+      "target": "same-day daylight rolling origin",
+      "unit": "kW",
+      "origin_stride_rows": 52
+    }
+  },
+  {
+    "station": "Solar6",
+    "task": "4h",
+    "origins": 728,
+    "points": 11648,
+    "mae_kw": 2362.857882202009,
+    "day_persistence_mae_kw": 3751.3275348897146,
+    "skill_vs_day_persistence": 0.3701275454553251,
+    "daily_mae_delta_baseline_minus_ampdnet_kw": 1388.469652687706,
+    "daily_mae_delta_bootstrap_ci95_kw": [
+      1190.9526151574441,
+      1584.7389209022667
+    ],
+    "bootstrap": {
+      "n": 2000,
+      "seed": 42,
+      "unit": "daily MAE baseline minus AMPDNet (kW)"
+    },
+    "caliber": {
+      "baseline": "day_persistence",
+      "target": "same-day daylight rolling origin",
+      "unit": "kW",
+      "origin_stride_rows": 52
+    }
+  },
+  {
+    "station": "Solar7",
+    "task": "15min",
+    "origins": 730,
+    "points": 730,
+    "mae_kw": 1263.0695203849316,
+    "day_persistence_mae_kw": 2247.853865753425,
+    "skill_vs_day_persistence": 0.4380998072748017,
+    "daily_mae_delta_baseline_minus_ampdnet_kw": 984.7843453684931,
+    "daily_mae_delta_bootstrap_ci95_kw": [
+      808.0322491659247,
+      1170.2863719690408
+    ],
+    "bootstrap": {
+      "n": 2000,
+      "seed": 42,
+      "unit": "daily MAE baseline minus AMPDNet (kW)"
+    },
+    "caliber": {
+      "baseline": "day_persistence",
+      "target": "same-day daylight rolling origin",
+      "unit": "kW",
+      "origin_stride_rows": 52
+    }
+  },
+  {
+    "station": "Solar7",
+    "task": "1h",
+    "origins": 730,
+    "points": 2920,
+    "mae_kw": 2179.866764331507,
+    "day_persistence_mae_kw": 3627.481339041096,
+    "skill_vs_day_persistence": 0.3990687861380584,
+    "daily_mae_delta_baseline_minus_ampdnet_kw": 1447.614574709589,
+    "daily_mae_delta_bootstrap_ci95_kw": [
+      1219.7135959755992,
+      1674.3338568996746
+    ],
+    "bootstrap": {
+      "n": 2000,
+      "seed": 42,
+      "unit": "daily MAE baseline minus AMPDNet (kW)"
+    },
+    "caliber": {
+      "baseline": "day_persistence",
+      "target": "same-day daylight rolling origin",
+      "unit": "kW",
+      "origin_stride_rows": 52
+    }
+  },
+  {
+    "station": "Solar7",
+    "task": "4h",
+    "origins": 728,
+    "points": 11648,
+    "mae_kw": 2952.6593358433206,
+    "day_persistence_mae_kw": 4012.2034478880487,
+    "skill_vs_day_persistence": 0.26408035529764895,
+    "daily_mae_delta_baseline_minus_ampdnet_kw": 1059.5441120447288,
+    "daily_mae_delta_bootstrap_ci95_kw": [
+      837.9801533529146,
+      1279.2184629220121
+    ],
+    "bootstrap": {
+      "n": 2000,
+      "seed": 42,
+      "unit": "daily MAE baseline minus AMPDNet (kW)"
+    },
+    "caliber": {
+      "baseline": "day_persistence",
+      "target": "same-day daylight rolling origin",
+      "unit": "kW",
+      "origin_stride_rows": 52
+    }
+  },
+  {
+    "station": "Solar8",
+    "task": "15min",
+    "origins": 730,
+    "points": 730,
+    "mae_kw": 250.59497049726028,
+    "day_persistence_mae_kw": 207.78082191780823,
+    "skill_vs_day_persistence": -0.2060543806896098,
+    "daily_mae_delta_baseline_minus_ampdnet_kw": -42.814148579452045,
+    "daily_mae_delta_bootstrap_ci95_kw": [
+      -66.95554803976026,
+      -16.427424230616435
+    ],
+    "bootstrap": {
+      "n": 2000,
+      "seed": 42,
+      "unit": "daily MAE baseline minus AMPDNet (kW)"
+    },
+    "caliber": {
+      "baseline": "day_persistence",
+      "target": "same-day daylight rolling origin",
+      "unit": "kW",
+      "origin_stride_rows": 52
+    }
+  },
+  {
+    "station": "Solar8",
+    "task": "1h",
+    "origins": 730,
+    "points": 2920,
+    "mae_kw": 684.1320022688357,
+    "day_persistence_mae_kw": 669.7123287671233,
+    "skill_vs_day_persistence": -0.02153114536245382,
+    "daily_mae_delta_baseline_minus_ampdnet_kw": -14.419673501712342,
+    "daily_mae_delta_bootstrap_ci95_kw": [
+      -79.52044591300513,
+      51.322831776755024
+    ],
+    "bootstrap": {
+      "n": 2000,
+      "seed": 42,
+      "unit": "daily MAE baseline minus AMPDNet (kW)"
+    },
+    "caliber": {
+      "baseline": "day_persistence",
+      "target": "same-day daylight rolling origin",
+      "unit": "kW",
+      "origin_stride_rows": 52
+    }
+  },
+  {
+    "station": "Solar8",
+    "task": "4h",
+    "origins": 728,
+    "points": 11648,
+    "mae_kw": 1263.704050367445,
+    "day_persistence_mae_kw": 1499.89010989011,
+    "skill_vs_day_persistence": 0.15746890919893397,
+    "daily_mae_delta_baseline_minus_ampdnet_kw": 236.18605952266483,
+    "daily_mae_delta_bootstrap_ci95_kw": [
+      126.4740030887706,
+      345.4806107487852
+    ],
+    "bootstrap": {
+      "n": 2000,
+      "seed": 42,
+      "unit": "daily MAE baseline minus AMPDNet (kW)"
+    },
+    "caliber": {
+      "baseline": "day_persistence",
+      "target": "same-day daylight rolling origin",
+      "unit": "kW",
+      "origin_stride_rows": 52
+    }
+  }
+]

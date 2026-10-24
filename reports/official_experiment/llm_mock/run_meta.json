@@ -1,0 +1,43 @@
+{
+  "generated_at": "2026-10-24T07:38:04.168028+00:00",
+  "git_commit": "50a7015a17dcdfcfb74c8c385d880c29e95e1185",
+  "python": "Python 3.13.13",
+  "data_sha256": "7680c323c5f49f951dddacfab0414eb292d023a384f48183c8726779bff7ff13",
+  "data_window": [
+    "2019-01-01",
+    "2019-04-30"
+  ],
+  "test_window": [
+    "2019-04-01",
+    "2019-04-30"
+  ],
+  "site_id": "S-DONGGUAN-DEMO",
+  "units": "CNY/kWh, kW, kWh",
+  "timezone": "Asia/Shanghai",
+  "data_provenance": {
+    "pv": "public/scenario observed proxy",
+    "load": "synthetic two-shift factory",
+    "tariff": "synthetic Guangdong policy template",
+    "p2": "GEFCom2014-P PJM Zone1 demo"
+  },
+  "bootstrap": {
+    "n": 2000,
+    "seed": 42
+  },
+  "agent": {
+    "arm": "E_LLM",
+    "mode": "mock_offline",
+    "calls": 485,
+    "fallback_calls": 0,
+    "safety_executor": "execute unchanged; SOC_MIN=.10 SOC_MAX=.95",
+    "policy_archive": "agent_policy_archive.jsonl",
+    "env_secrets": "not archived"
+  },
+  "implementation_sha256": {
+    "backend/agents/llm_energy_agent.py": "53764b2e364c982c6c0acb34b5974e76238ded74880bc800db3bd79f3f06c17d",
+    "backend/scripts/run_official_experiment.py": "79d0fe8265b71ad1b90cfbeaa2cd3cf6c34429ed66518226198f88b599d80c77",
+    "backend/scripts/llm_experiment.py": "428953fca1fec82f89da824ec7808cabb599fd77a4b62988b5ce8d349f0f458f"
+  },
+  "p2_prediction_sha256": "de510c0a12adb5f84aaadd81d58f5c5873e1ef3d56c57710b8bcf44a36b72f0f",
+  "policy_archive_sha256": "1fa71ed426a8e84fba4ef800355072481d70458952da36fa0ce31392658f2afc"
+}
