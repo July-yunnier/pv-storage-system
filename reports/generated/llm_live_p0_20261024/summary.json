@@ -1,0 +1,112 @@
+{
+  "mode": "llm_api",
+  "model": "qwen2.5:7b",
+  "prompt_version": "local-pilot-v1",
+  "window": [
+    "2019-04-01",
+    "2019-04-30"
+  ],
+  "n_days": 30,
+  "totals_yuan": {
+    "E0": 215434.30118955,
+    "E1": 195794.6555467153,
+    "E2": 196922.25740720096,
+    "E3": 190500.18489705358,
+    "E_LLM": 206479.2753217963
+  },
+  "soc_violations": 0,
+  "successful_calls": 30,
+  "fallback_calls": 0,
+  "comparisons": {
+    "E0": {
+      "total_increment_yuan": 8955.025867753613,
+      "daily_mean_increment_yuan": 298.50086225845376,
+      "daily_increment_bootstrap_ci95_yuan": [
+        215.90974526524266,
+        377.9385637064769
+      ],
+      "n_days": 30,
+      "positive_means": "E_LLM costs less than comparator"
+    },
+    "E1": {
+      "total_increment_yuan": -10684.619775081075,
+      "daily_mean_increment_yuan": -356.1539925027025,
+      "daily_increment_bootstrap_ci95_yuan": [
+        -451.8750778749737,
+        -264.33622258728843
+      ],
+      "n_days": 30,
+      "positive_means": "E_LLM costs less than comparator"
+    },
+    "E2": {
+      "total_increment_yuan": -9557.017914595419,
+      "daily_mean_increment_yuan": -318.5672638198473,
+      "daily_increment_bootstrap_ci95_yuan": [
+        -410.7387068691757,
+        -226.6870023604971
+      ],
+      "n_days": 30,
+      "positive_means": "E_LLM costs less than comparator"
+    },
+    "E3": {
+      "total_increment_yuan": -15979.090424742804,
+      "daily_mean_increment_yuan": -532.6363474914268,
+      "daily_increment_bootstrap_ci95_yuan": [
+        -653.0708352515724,
+        -413.8558699355893
+      ],
+      "n_days": 30,
+      "positive_means": "E_LLM costs less than comparator"
+    }
+  },
+  "policies": {
+    "{\"peak_discharge_offset\": 0, \"soc_min_safe\": 0.5}": 16,
+    "{\"peak_discharge_offset\": 0, \"soc_min_safe\": 0.1}": 14
+  },
+  "scope": "30-day demo P0 pilot only; revised prompt, no real Guangdong saving promise; planning confounds remain",
+  "matched_planner_controls": {
+    "fixed_10pct": {
+      "total_cost_yuan": 201770.50296817356,
+      "comparison": {
+        "total_increment_yuan": -4708.772353622804,
+        "daily_mean_increment_yuan": -156.95907845409346,
+        "daily_increment_bootstrap_ci95_yuan": [
+          -243.42991529005477,
+          -80.96121293772168
+        ],
+        "n_days": 30,
+        "positive_means": "E_LLM costs less than comparator"
+      }
+    },
+    "fixed_15pct": {
+      "total_cost_yuan": 202842.43497503607,
+      "comparison": {
+        "total_increment_yuan": -3636.840346760286,
+        "daily_mean_increment_yuan": -121.2280115586762,
+        "daily_increment_bootstrap_ci95_yuan": [
+          -203.44202442822225,
+          -48.80433698324471
+        ],
+        "n_days": 30,
+        "positive_means": "E_LLM costs less than comparator"
+      }
+    },
+    "fixed_50pct": {
+      "total_cost_yuan": 209926.26379539614,
+      "comparison": {
+        "total_increment_yuan": 3446.9884735997925,
+        "daily_mean_increment_yuan": 114.89961578665975,
+        "daily_increment_bootstrap_ci95_yuan": [
+          51.843846946747526,
+          177.63374188180583
+        ],
+        "n_days": 30,
+        "positive_means": "E_LLM costs less than comparator"
+      }
+    }
+  },
+  "latency_seconds": {
+    "mean": 4.2620967320011305,
+    "max": 4.535545166989323
+  }
+}
