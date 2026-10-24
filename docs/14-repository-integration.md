@@ -1,5 +1,7 @@
 # 仓库内容整合记录与待确认项
 
+> 历史记录说明：本文记录 2026-10-06 的仓库整合状态，不代表当前实验执行状态。正式主实验已完成并发布，当前状态请以 [`docs/17-experiment-plan.md`](17-experiment-plan.md) 和 [`reports/official_experiment/official_experiment_report.md`](../reports/official_experiment/official_experiment_report.md) 为准。
+
 核查日期：2026-10-06。远程初始main为`7a81696`，特性分支为`c6d0832`，光伏发布分支为`f680b05`。
 
 ## 权威目录
@@ -23,10 +25,10 @@ main已含高级MES负荷、政策PDF/LLM/人工确认、前端产品界面、�
 
 1. **在线AI负荷/电价接口与主动削峰预留策略**：旧分支改动`models.py`、`dispatch_service.py`等；main新增回放、观测、计划解释、MES构造。需以main为底做组合适配与回归，不能整文件覆盖。离线原生概率权重尚未支持当前在线ML加载契约。
 2. **光伏发布分支**：建议只迁入10份已验证joblib及推理必需代码、清单和科研说明，到根目录backend。保持冻结权重、不重新训练，不覆盖在线默认光伏算法。需要确认发布路径、推理注册与依赖策略。
-3. **历史光伏权重和第三方源码**：fusion两份权重协议兼容性未验证，AMPDNet只有2轮且未完成测试；官方源码目录许可未核实。建议留分支作为历史/参考，不直接纳入主交付模型。公开源码不等于允许任意再分发。
+3. **历史光伏权重和第三方源码**：fusion两份权重协议兼容性未验证，AMPDNet历史交付阶段曾只有2轮且未完成严格测试；P0-A 已按独立 rolling-origin 完成，但官方源码目录许可仍未核实。建议留分支作为历史/参考，不直接纳入主交付模型。公开源码不等于允许任意再分发。
 4. **分支清理**：暂不删除任何远程分支，也不宣称特性分支所有内容已合入。完整合并后再确认是否归档/删除。
 
-本记录不是正式主实验结果或工程性能证明。本机最新GEFCom报告、Excel、预测和权重仍在独立输出目录，未随本次整合上传。
+本记录不是正式主实验结果或工程性能证明。正式主实验已在后续提交中完成并发布，结果与边界以 [`docs/17-experiment-plan.md`](17-experiment-plan.md) 和 [`reports/official_experiment/official_experiment_report.md`](../reports/official_experiment/official_experiment_report.md) 为准；GEFCom 仍仅作为现货演示数据，不作为真实广东收益承诺。
 
 ## 核验结果
 

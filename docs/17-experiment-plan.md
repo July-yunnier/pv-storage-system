@@ -2,7 +2,8 @@
 
 > 目的：用统计上站得住的实验回答一个问题——**这套系统到底能省多少钱**。
 > 本文是实验协议：先定口径和验收标准，再跑实验，不接受事后移动球门。
-> 状态：P0 已可执行（现有回放框架）；AMPDNet 已完成工程接入，但其日内效果仍按独立 rolling-origin 协议验证（见 §7、§8）。
+> 状态：正式主实验 P0、P0-A、P1、P2、P3、P4 已执行并完成结果封存；正式报告见 [`reports/official_experiment/official_experiment_report.md`](../reports/official_experiment/official_experiment_report.md)。
+> 本状态表示实验执行完成，不表示全部验收标准通过；未通过项和演示数据边界以正式报告为准。
 
 ## 1. 实验要回答的问题
 
@@ -114,12 +115,12 @@
 
 | 阶段 | 内容 | 前置 | 产物 |
 |---|---|---|---|
-| P0 | 现链路 30 天回放：E0/E1/E2×全 PV 方法/E3 | 无（已可跑） | 基线报告 + 逐日明细 CSV |
-| P0-A | AMPDNet 日内 rolling-origin 验证：15min/1h/4h 分任务，对比 day persistence | 显式天气观测窗口、对应站点 CPU 工件 | 分任务 MAE、skill、样本量、置信区间及可否进入调度候选的结论 |
-| P1 | 需量电费接入后重跑：结算加需量项，E2 加放电侧削减 | 五议题①实现 | 需量收益拆分报告 |
-| P2 | 现货场景：GEFCom 演示序列 + 电价三模型消融 | 现货序列导入 | 现货下收益结构对比 |
-| P3 | LP 优化器接入：E2 vs LP 同协议对比 | D3 工作包 | LP 增量收益报告 |
-| P4 | 一年期仿真：跨季节典型日加权 + 衰减因子，算 NPV/IRR | 五议题②③实现 | sizing 投资报告 |
+| P0 | 现链路 30 天回放：E0/E1/E2×全 PV 方法/E3 | 无 | **已完成**：基线报告 + 逐日明细 CSV；C1 未通过，C3 的光伏自用率门槛未通过 |
+| P0-A | AMPDNet 日内 rolling-origin 验证：15min/1h/4h 分任务，对比 day persistence | 显式天气观测窗口、对应站点 CPU 工件 | **已完成**：5 站点 × 3 任务指标、样本量、CI；Solar8 15min 未通过，1h CI 跨 0 |
+| P1 | 需量电费接入后重跑：结算加需量项，E2 加放电侧削减 | 五议题①实现 | **已完成**：需量收益拆分报告；35 元/kW·月为协议验证假设 |
+| P2 | 现货场景：GEFCom 演示序列 + 电价三模型消融 | 现货序列导入 | **已完成**：现货下收益结构对比；GEFCom/PJM 仅作演示，不代表广东现货 |
+| P3 | LP 优化器接入：E2 vs LP 同协议对比 | D3 工作包 | **已完成**：LP 增量收益报告，增量 CI 包含 0 |
+| P4 | 一年期仿真：跨季节典型日加权 + 衰减因子，算 NPV/IRR | 五议题②③实现 | **已完成**：合成年仿真投资报告，不作现场投资承诺 |
 
 P0 命令（backend/ 下）：
 
@@ -145,16 +146,17 @@ set HTTPS_PROXY=http://127.0.0.1:7897
 
 | 缺口 | 影响阶段 | 说明 |
 |---|---|---|
-| 需量电费字段/结算/放电侧削减 | P1 | 政策解析已能读出字段，转换时被丢弃，接回成本低 |
-| 现货结算 provider | P2 | 现仅有 TOU；P2 先用演示序列，报告注明 |
-| 电池衰减现金流因子 | P4 | cashflow 层线性衰减（~2%/年），十几行改动 |
-| sizing 单日评估期末 SOC=期初 | P4 | 回放已跨日连续；sizing 需加循环边界保证可比 |
-| AMPDNet 光伏深度模型 | P0-A | 工程接入已完成：注册表、forecast service、CPU 工件加载、fallback、API/集成测试均已具备；仍需按白昼压缩协议完成 15min/1h/4h rolling-origin，验证显式天气输入、站点规模适配及相对 day persistence 的 skill。它仍定位为日内短临候选，不作为默认日前全天模型，当前不能把机制就绪写成效果已验证 |
+| 真实需量账单与现场削峰 | P1 | 协议验证已完成（35 元/kW·月假设）；真实账单和现场尖峰仍未覆盖 |
+| 广东真实现货结算 provider | P2 | 演示序列消融已完成；GEFCom/PJM 非广东，真实广东连续现货仍待接入 |
+| 电池衰减现金流因子 | P4 | 合成年仿真已按 2%/年执行；真实寿命曲线与现场循环数据仍待补充 |
+| sizing 单日评估期末 SOC=期初 | P4 | 主实验回放已跨日连续；sizing 的循环边界仍需单独保证可比 |
+| AMPDNet 光伏深度模型 | P0-A | 工程接入与独立 rolling-origin 已完成。结果按站点/任务拆分：Solar1/2/6/7 多数任务及 Solar8 4h 通过正 skill 口径，Solar8 15min 未通过、1h CI 跨 0。仍定位为日内短临候选，不作为默认日前全天模型，不将其局部预测效果扩展为全链路收益提升 |
 | July MQ-RNN 电价模型 | P2 | 工件在 feat/product-mvp-impl 的 product/ 旧树；对比结论与同协议对决设计见 docs/18 |
 
 ## 9. 可复现性
 
-- 回放：`backend/scripts/run_replay.py`（CLI 见 §6），结果封存 `backend/data/replay/{run_id}/`
+- 正式主实验：`cd backend && python scripts/run_official_experiment.py`；结果封存 `reports/official_experiment/`
+- 在线回放：`backend/scripts/run_replay.py`（CLI 见 §6），结果封存 `backend/data/replay/{run_id}/`
 - 电价基准：`backend/scripts/run_price_benchmark.py`（GEFCom 协议，见 docs/15 §4）
 - AMPDNet 训练：`backend/scripts/train_ampdnet_pv.py`；CPU 工件目录：`backend/data/model_releases/ampdnet_delivery20/`
 - AMPDNet 验证：`cd backend && python scripts/validate_ampdnet_pv.py <csv> --station Solar1 --task 15min`；将 `--task` 分别设为 `15min`、`1h`、`4h`，按 rolling-origin 与 day-persistence 基线对账。输入观测的时间戳必须带时区，功率单位为 kW。

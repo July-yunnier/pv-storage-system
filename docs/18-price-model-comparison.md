@@ -1,6 +1,7 @@
 # 18 · 双电价模型对比与组合方案（July MQ-RNN × 林 LightGBM）
 
 > 背景：2026-10-21 July 与林各自上传了一个电价预测模型，要求评估"哪个好、怎么组合"。
+> 当前状态：电价同协议对决已完成；AMPDNet 的 P0-A 独立 rolling-origin 也已完成，正式 P0-P4 结果见 [`reports/official_experiment/official_experiment_report.md`](../reports/official_experiment/official_experiment_report.md)。本文保留模型组合决策和后续待排期项，不替代正式主实验报告。
 > 本文档是评估结论与落地决策。**2026-10-22 更新：同协议对决已执行（§5），
 > §1/§4 的初步结论已按对决结果修正——以修正后为准。**
 
@@ -170,5 +171,5 @@ docs/18 §4 的"MQ-RNN 重训后作第二臂"暂缓：当前 calendar-only 口�
 | 3 | 同协议对决实验（§5） | 系统侧 | **已完成（2026-10-22），结果见 §5** |
 | 4 | MQ-RNN 补日前负荷协变量 → 重跑对决 | July / 系统侧配合 | 待排期（P2，对决的明确下一步） |
 | 5 | MQ-RNN 本站现货数据重训 + 生产臂注册 | 系统侧（需本站数据积累） | 待排期（前置：#4 达标） |
-| 6 | AMPDNet 移植评估（日内短临臂） | 系统侧 | 待排期（P3，需先解决 TSI 数据源问题） |
+| 6 | AMPDNet 移植评估（日内短临臂） | 系统侧 | **已完成 P0-A 独立 rolling-origin**；Solar8 15min 未通过、1h CI 跨 0；生产化仍待本站数据与 TSI 数据源 |
 | 7 | 林的区间偏窄 conformal 校准（两臂都需要） | 林 or 系统侧 | docs/15 已记录，未做 |
