@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-10-24T07:53:49.387531+00:00",
+  "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:14:06) [Clang 20.1.8 ]",
+  "implementation_sha256": {
+    "backend/scripts/evaluate_llm_live_p0.py": "e761fd3736d37ae04b4f4ba517956ff23c3b78f5d0e6fcb7091cf362a1273c2c",
+    "backend/agents/llm_energy_agent.py": "bf6817c3d7b70604a124bc11d1c8626a6f67c792c7bbeaf32367188350b34a9c",
+    "backend/scripts/llm_experiment.py": "428953fca1fec82f89da824ec7808cabb599fd77a4b62988b5ce8d349f0f458f",
+    "backend/scripts/run_official_experiment.py": "79d0fe8265b71ad1b90cfbeaa2cd3cf6c34429ed66518226198f88b599d80c77"
+  },
+  "bootstrap": {
+    "n": 2000,
+    "seed": 42
+  },
+  "max_tokens": 96,
+  "timeout_seconds": 120,
+  "data_sha256": "7680c323c5f49f951dddacfab0414eb292d023a384f48183c8726779bff7ff13",
+  "ollama_model": [
+    {
+      "name": "qwen2.5:7b",
+      "model": "qwen2.5:7b",
+      "modified_at": "2026-10-03T20:11:09.408364213+08:00",
+      "size": 4683087332,
+      "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "qwen2",
+        "families": [
+          "qwen2"
+        ],
+        "parameter_size": "7.6B",
+        "quantization_level": "Q4_K_M",
+        "context_length": 32768,
+        "embedding_length": 3584,
+        "runner": "ggml"
+      },
+      "capabilities": [
+        "completion",
+        "tools"
+      ]
+    }
+  ],
+  "policy_archive_sha256": "9c70cc4681dce835cd0e618dde42085fb1d675011ce254155d9fa7b23c494374",
+  "postprocessor_sha256": "981dad500f381cca34cf7e9de3c930e21c0823700541f71fc000f4726c099670"
+}

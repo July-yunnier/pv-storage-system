@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-10-24T08:13:59.999914+00:00",
+  "python": "3.13.13 | packaged by Anaconda, Inc. | (main, Apr 14 2026, 06:14:06) [Clang 20.1.8 ]",
+  "input_and_script_sha256": {
+    "backend/scripts/analyze_llm_live_p1_p3.py": "80d7edb9cdf756e35791a5ab8e6023f52c3ae1b04e4896457ef9906a99b0f621",
+    "reports/generated/llm_live_p0_20261024/policy_archive.jsonl": "9c70cc4681dce835cd0e618dde42085fb1d675011ce254155d9fa7b23c494374",
+    "reports/generated/llm_live_p0_20261024/day_results.csv": "c1fa8def1281f87d92cf85e5016c1a3784a71e724101abc4ff37dbbafcf75d5e",
+    "reports/generated/llm_live_p0_20261024/run_meta.json": "6e12a7cb5f450bfb2c9331efd8301c1afb3c27571fda553f00a534bf3e6723c3",
+    "reports/official_experiment/data/full_scene.csv": "7680c323c5f49f951dddacfab0414eb292d023a384f48183c8726779bff7ff13",
+    "backend/scripts/run_official_experiment.py": "79d0fe8265b71ad1b90cfbeaa2cd3cf6c34429ed66518226198f88b599d80c77",
+    "backend/scripts/llm_experiment.py": "428953fca1fec82f89da824ec7808cabb599fd77a4b62988b5ce8d349f0f458f",
+    "reports/official_experiment/llm_mock/p0_replay/day_results.csv": "56f5fc5db235b4310f1d3a1298fec5557233ab671eed8a5853d72ce8ddad831c",
+    "reports/official_experiment/llm_mock/p3_lp/day_results.csv": "053ec956cba234fa7f71fcf826a0bed8e11aa333ea5ee5a08e21e0939f172e29",
+    "reports/official_experiment/llm_mock/p1_demand_charge/summary.json": "d9fd0a5b3902a9fa2a749aca792948b80ebfb7e2f60837e942fc0a69e3222eb4"
+  },
+  "bootstrap": {
+    "n": 2000,
+    "seed": 42,
+    "block_sensitivity_days": 7
+  },
+  "new_llm_calls": 0,
+  "policy_tuning": false,
+  "units": "CNY/kWh; demand CNY/kW/month; SOC fraction",
+  "scope": "post-hoc diagnostics only; no update to sealed model/prompt/results or original PR"
+}

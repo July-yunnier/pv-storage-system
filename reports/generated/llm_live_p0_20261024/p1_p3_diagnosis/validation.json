@@ -1,0 +1,11 @@
+{
+  "validated_at": "2026-10-24T08:17:25.652203+00:00",
+  "command": "cd backend && python -m pytest -q",
+  "result": "390 passed",
+  "duration_seconds": 12.29,
+  "warnings": 361,
+  "git_diff_check": "passed",
+  "new_llm_calls": 0,
+  "tests_sha256": "f93751d4dd40d1f3642faae8838adb463e4ad70b8e923e1545b44f9ead3a7386",
+  "report_sha256": "bb18994aa58640cd7864d7c285d305e2721f330a457363d80b43d10ceddf09a6"
+}

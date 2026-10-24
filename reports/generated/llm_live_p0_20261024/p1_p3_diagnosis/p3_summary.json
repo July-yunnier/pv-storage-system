@@ -1,0 +1,94 @@
+{
+  "window": [
+    "2019-04-01",
+    "2019-04-30"
+  ],
+  "n_days": 30,
+  "scope": "same historical forecasts, physical limits and continuous SOC; LP energy-only objective",
+  "comparisons": {
+    "E0": {
+      "total_increment_yuan": 8955.025867753615,
+      "daily_mean_increment_yuan": 298.5008622584538,
+      "daily_increment_bootstrap_ci95_yuan": [
+        215.90974526524283,
+        377.9385637064769
+      ],
+      "daily_increment_circular_block7_ci95_yuan": [
+        219.5755131780542,
+        370.01804821592935
+      ]
+    },
+    "E1": {
+      "total_increment_yuan": -10684.619775081075,
+      "daily_mean_increment_yuan": -356.1539925027025,
+      "daily_increment_bootstrap_ci95_yuan": [
+        -451.8750778749737,
+        -264.33622258728843
+      ],
+      "daily_increment_circular_block7_ci95_yuan": [
+        -426.94109827793216,
+        -290.6238824270843
+      ]
+    },
+    "E2": {
+      "total_increment_yuan": -9557.017914595419,
+      "daily_mean_increment_yuan": -318.5672638198473,
+      "daily_increment_bootstrap_ci95_yuan": [
+        -410.7387068691757,
+        -226.687002360497
+      ],
+      "daily_increment_circular_block7_ci95_yuan": [
+        -402.77652441826945,
+        -240.14861335448316
+      ]
+    },
+    "E3": {
+      "total_increment_yuan": -15979.090424742804,
+      "daily_mean_increment_yuan": -532.6363474914268,
+      "daily_increment_bootstrap_ci95_yuan": [
+        -653.0708352515724,
+        -413.8558699355893
+      ],
+      "daily_increment_circular_block7_ci95_yuan": [
+        -643.6343950973463,
+        -434.24393499479714
+      ]
+    },
+    "LP": {
+      "total_increment_yuan": -9912.335810895767,
+      "daily_mean_increment_yuan": -330.4111936965256,
+      "daily_increment_bootstrap_ci95_yuan": [
+        -442.04582028050567,
+        -221.6337309107411
+      ],
+      "daily_increment_circular_block7_ci95_yuan": [
+        -401.17565966517975,
+        -264.0644681889104
+      ]
+    },
+    "fixed_10pct": {
+      "total_increment_yuan": -4708.772353622805,
+      "daily_mean_increment_yuan": -156.9590784540935,
+      "daily_increment_bootstrap_ci95_yuan": [
+        -243.4299152900548,
+        -80.96121293772171
+      ],
+      "daily_increment_circular_block7_ci95_yuan": [
+        -219.68289954276133,
+        -103.80066796719845
+      ]
+    },
+    "fixed_15pct": {
+      "total_increment_yuan": -3636.840346760287,
+      "daily_mean_increment_yuan": -121.22801155867623,
+      "daily_increment_bootstrap_ci95_yuan": [
+        -203.4420244282223,
+        -48.80433698324471
+      ],
+      "daily_increment_circular_block7_ci95_yuan": [
+        -182.3736776917431,
+        -69.68401563660804
+      ]
+    }
+  }
+}

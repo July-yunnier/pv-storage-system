@@ -1,0 +1,171 @@
+{
+  "window": [
+    "2019-04-01",
+    "2019-04-30"
+  ],
+  "n_days": 30,
+  "demand_rate_cny_per_kw_month": 35.0,
+  "arms": {
+    "E0": {
+      "energy_cost_yuan": 215434.30118955,
+      "max_import_kw": 800.0,
+      "demand_charge_yuan": 28000.0,
+      "total_bill_yuan": 243434.30118955
+    },
+    "E1": {
+      "energy_cost_yuan": 195794.6555467153,
+      "max_import_kw": 915.048,
+      "demand_charge_yuan": 32026.68,
+      "total_bill_yuan": 227821.3355467153
+    },
+    "E2": {
+      "energy_cost_yuan": 196922.25740720096,
+      "max_import_kw": 915.048,
+      "demand_charge_yuan": 32026.68,
+      "total_bill_yuan": 228948.93740720095
+    },
+    "E3": {
+      "energy_cost_yuan": 190500.18489705358,
+      "max_import_kw": 1261.984,
+      "demand_charge_yuan": 44169.439999999995,
+      "total_bill_yuan": 234669.62489705358
+    },
+    "LP": {
+      "energy_cost_yuan": 196566.9395109006,
+      "max_import_kw": 1261.984,
+      "demand_charge_yuan": 44169.439999999995,
+      "total_bill_yuan": 240736.37951090062
+    },
+    "E_LLM": {
+      "energy_cost_yuan": 206479.2753217963,
+      "max_import_kw": 910.648,
+      "demand_charge_yuan": 31872.68,
+      "total_bill_yuan": 238351.9553217963
+    },
+    "fixed_10pct": {
+      "energy_cost_yuan": 201770.5029681735,
+      "max_import_kw": 915.048,
+      "demand_charge_yuan": 32026.68,
+      "total_bill_yuan": 233797.1829681735
+    },
+    "fixed_15pct": {
+      "energy_cost_yuan": 202842.434975036,
+      "max_import_kw": 915.048,
+      "demand_charge_yuan": 32026.68,
+      "total_bill_yuan": 234869.114975036
+    },
+    "fixed_50pct": {
+      "energy_cost_yuan": 209926.26379539617,
+      "max_import_kw": 910.648,
+      "demand_charge_yuan": 31872.68,
+      "total_bill_yuan": 241798.94379539616
+    }
+  },
+  "scope": "same P0 policies settled with assumed monthly demand rate; no demand-aware optimization",
+  "comparisons": {
+    "E0": {
+      "energy_increment_yuan": 8955.025867753691,
+      "demand_increment_yuan": -3872.6800000000003,
+      "total_increment_yuan": 5082.345867753698,
+      "monthly_total_increment_bootstrap_ci95_yuan": [
+        2609.4581079572845,
+        7465.601161194379
+      ],
+      "monthly_total_increment_circular_block7_ci95_yuan": [
+        2714.709645341646,
+        7227.861446477943
+      ]
+    },
+    "E1": {
+      "energy_increment_yuan": -10684.619775080995,
+      "demand_increment_yuan": 154.0,
+      "total_increment_yuan": -10530.619775080995,
+      "monthly_total_increment_bootstrap_ci95_yuan": [
+        -13512.40977589782,
+        -7768.309469833769
+      ],
+      "monthly_total_increment_circular_block7_ci95_yuan": [
+        -12654.200397462067,
+        -8617.098616054229
+      ]
+    },
+    "E2": {
+      "energy_increment_yuan": -9557.017914595344,
+      "demand_increment_yuan": 154.0,
+      "total_increment_yuan": -9403.017914595344,
+      "monthly_total_increment_bootstrap_ci95_yuan": [
+        -12181.593513896365,
+        -6696.608842808247
+      ],
+      "monthly_total_increment_circular_block7_ci95_yuan": [
+        -11924.383538586004,
+        -7100.053400634504
+      ]
+    },
+    "E3": {
+      "energy_increment_yuan": -15979.090424742724,
+      "demand_increment_yuan": 12296.759999999995,
+      "total_increment_yuan": -3682.330424742715,
+      "monthly_total_increment_bootstrap_ci95_yuan": [
+        -7502.564400889797,
+        -157.5895124904156
+      ],
+      "monthly_total_increment_circular_block7_ci95_yuan": [
+        -7127.91215834387,
+        -745.6647408243973
+      ]
+    },
+    "LP": {
+      "energy_increment_yuan": -9912.335810895689,
+      "demand_increment_yuan": 12296.759999999995,
+      "total_increment_yuan": 2384.4241891043202,
+      "monthly_total_increment_bootstrap_ci95_yuan": [
+        -1070.7639940948363,
+        5550.075765364036
+      ],
+      "monthly_total_increment_circular_block7_ci95_yuan": [
+        121.96819778588907,
+        4344.903152288679
+      ]
+    },
+    "fixed_10pct": {
+      "energy_increment_yuan": -4708.7723536228,
+      "demand_increment_yuan": 154.0,
+      "total_increment_yuan": -4554.7723536228,
+      "monthly_total_increment_bootstrap_ci95_yuan": [
+        -7158.507933276302,
+        -2290.480612187382
+      ],
+      "monthly_total_increment_circular_block7_ci95_yuan": [
+        -6431.516986282882,
+        -3009.9429469404868
+      ]
+    },
+    "fixed_15pct": {
+      "energy_increment_yuan": -3636.840346760291,
+      "demand_increment_yuan": 154.0,
+      "total_increment_yuan": -3482.840346760291,
+      "monthly_total_increment_bootstrap_ci95_yuan": [
+        -5949.2607328466165,
+        -1330.9494543104681
+      ],
+      "monthly_total_increment_circular_block7_ci95_yuan": [
+        -5316.0552576431965,
+        -1983.2966572624532
+      ]
+    },
+    "fixed_50pct": {
+      "energy_increment_yuan": 3446.988473599864,
+      "demand_increment_yuan": 0.0,
+      "total_increment_yuan": 3446.988473599864,
+      "monthly_total_increment_bootstrap_ci95_yuan": [
+        1555.3154084024281,
+        5320.1911611973455
+      ],
+      "monthly_total_increment_circular_block7_ci95_yuan": [
+        1497.1370910112223,
+        5081.565624803148
+      ]
+    }
+  }
+}

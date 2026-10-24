@@ -1,0 +1,434 @@
+{
+  "p1": {
+    "window": [
+      "2019-04-01",
+      "2019-04-30"
+    ],
+    "n_days": 30,
+    "demand_rate_cny_per_kw_month": 35.0,
+    "arms": {
+      "E0": {
+        "energy_cost_yuan": 215434.30118955,
+        "max_import_kw": 800.0,
+        "demand_charge_yuan": 28000.0,
+        "total_bill_yuan": 243434.30118955
+      },
+      "E1": {
+        "energy_cost_yuan": 195794.6555467153,
+        "max_import_kw": 915.048,
+        "demand_charge_yuan": 32026.68,
+        "total_bill_yuan": 227821.3355467153
+      },
+      "E2": {
+        "energy_cost_yuan": 196922.25740720096,
+        "max_import_kw": 915.048,
+        "demand_charge_yuan": 32026.68,
+        "total_bill_yuan": 228948.93740720095
+      },
+      "E3": {
+        "energy_cost_yuan": 190500.18489705358,
+        "max_import_kw": 1261.984,
+        "demand_charge_yuan": 44169.439999999995,
+        "total_bill_yuan": 234669.62489705358
+      },
+      "LP": {
+        "energy_cost_yuan": 196566.9395109006,
+        "max_import_kw": 1261.984,
+        "demand_charge_yuan": 44169.439999999995,
+        "total_bill_yuan": 240736.37951090062
+      },
+      "E_LLM": {
+        "energy_cost_yuan": 206479.2753217963,
+        "max_import_kw": 910.648,
+        "demand_charge_yuan": 31872.68,
+        "total_bill_yuan": 238351.9553217963
+      },
+      "fixed_10pct": {
+        "energy_cost_yuan": 201770.5029681735,
+        "max_import_kw": 915.048,
+        "demand_charge_yuan": 32026.68,
+        "total_bill_yuan": 233797.1829681735
+      },
+      "fixed_15pct": {
+        "energy_cost_yuan": 202842.434975036,
+        "max_import_kw": 915.048,
+        "demand_charge_yuan": 32026.68,
+        "total_bill_yuan": 234869.114975036
+      },
+      "fixed_50pct": {
+        "energy_cost_yuan": 209926.26379539617,
+        "max_import_kw": 910.648,
+        "demand_charge_yuan": 31872.68,
+        "total_bill_yuan": 241798.94379539616
+      }
+    },
+    "scope": "same P0 policies settled with assumed monthly demand rate; no demand-aware optimization",
+    "comparisons": {
+      "E0": {
+        "energy_increment_yuan": 8955.025867753691,
+        "demand_increment_yuan": -3872.6800000000003,
+        "total_increment_yuan": 5082.345867753698,
+        "monthly_total_increment_bootstrap_ci95_yuan": [
+          2609.4581079572845,
+          7465.601161194379
+        ],
+        "monthly_total_increment_circular_block7_ci95_yuan": [
+          2714.709645341646,
+          7227.861446477943
+        ]
+      },
+      "E1": {
+        "energy_increment_yuan": -10684.619775080995,
+        "demand_increment_yuan": 154.0,
+        "total_increment_yuan": -10530.619775080995,
+        "monthly_total_increment_bootstrap_ci95_yuan": [
+          -13512.40977589782,
+          -7768.309469833769
+        ],
+        "monthly_total_increment_circular_block7_ci95_yuan": [
+          -12654.200397462067,
+          -8617.098616054229
+        ]
+      },
+      "E2": {
+        "energy_increment_yuan": -9557.017914595344,
+        "demand_increment_yuan": 154.0,
+        "total_increment_yuan": -9403.017914595344,
+        "monthly_total_increment_bootstrap_ci95_yuan": [
+          -12181.593513896365,
+          -6696.608842808247
+        ],
+        "monthly_total_increment_circular_block7_ci95_yuan": [
+          -11924.383538586004,
+          -7100.053400634504
+        ]
+      },
+      "E3": {
+        "energy_increment_yuan": -15979.090424742724,
+        "demand_increment_yuan": 12296.759999999995,
+        "total_increment_yuan": -3682.330424742715,
+        "monthly_total_increment_bootstrap_ci95_yuan": [
+          -7502.564400889797,
+          -157.5895124904156
+        ],
+        "monthly_total_increment_circular_block7_ci95_yuan": [
+          -7127.91215834387,
+          -745.6647408243973
+        ]
+      },
+      "LP": {
+        "energy_increment_yuan": -9912.335810895689,
+        "demand_increment_yuan": 12296.759999999995,
+        "total_increment_yuan": 2384.4241891043202,
+        "monthly_total_increment_bootstrap_ci95_yuan": [
+          -1070.7639940948363,
+          5550.075765364036
+        ],
+        "monthly_total_increment_circular_block7_ci95_yuan": [
+          121.96819778588907,
+          4344.903152288679
+        ]
+      },
+      "fixed_10pct": {
+        "energy_increment_yuan": -4708.7723536228,
+        "demand_increment_yuan": 154.0,
+        "total_increment_yuan": -4554.7723536228,
+        "monthly_total_increment_bootstrap_ci95_yuan": [
+          -7158.507933276302,
+          -2290.480612187382
+        ],
+        "monthly_total_increment_circular_block7_ci95_yuan": [
+          -6431.516986282882,
+          -3009.9429469404868
+        ]
+      },
+      "fixed_15pct": {
+        "energy_increment_yuan": -3636.840346760291,
+        "demand_increment_yuan": 154.0,
+        "total_increment_yuan": -3482.840346760291,
+        "monthly_total_increment_bootstrap_ci95_yuan": [
+          -5949.2607328466165,
+          -1330.9494543104681
+        ],
+        "monthly_total_increment_circular_block7_ci95_yuan": [
+          -5316.0552576431965,
+          -1983.2966572624532
+        ]
+      },
+      "fixed_50pct": {
+        "energy_increment_yuan": 3446.988473599864,
+        "demand_increment_yuan": 0.0,
+        "total_increment_yuan": 3446.988473599864,
+        "monthly_total_increment_bootstrap_ci95_yuan": [
+          1555.3154084024281,
+          5320.1911611973455
+        ],
+        "monthly_total_increment_circular_block7_ci95_yuan": [
+          1497.1370910112223,
+          5081.565624803148
+        ]
+      }
+    }
+  },
+  "p3": {
+    "window": [
+      "2019-04-01",
+      "2019-04-30"
+    ],
+    "n_days": 30,
+    "scope": "same historical forecasts, physical limits and continuous SOC; LP energy-only objective",
+    "comparisons": {
+      "E0": {
+        "total_increment_yuan": 8955.025867753615,
+        "daily_mean_increment_yuan": 298.5008622584538,
+        "daily_increment_bootstrap_ci95_yuan": [
+          215.90974526524283,
+          377.9385637064769
+        ],
+        "daily_increment_circular_block7_ci95_yuan": [
+          219.5755131780542,
+          370.01804821592935
+        ]
+      },
+      "E1": {
+        "total_increment_yuan": -10684.619775081075,
+        "daily_mean_increment_yuan": -356.1539925027025,
+        "daily_increment_bootstrap_ci95_yuan": [
+          -451.8750778749737,
+          -264.33622258728843
+        ],
+        "daily_increment_circular_block7_ci95_yuan": [
+          -426.94109827793216,
+          -290.6238824270843
+        ]
+      },
+      "E2": {
+        "total_increment_yuan": -9557.017914595419,
+        "daily_mean_increment_yuan": -318.5672638198473,
+        "daily_increment_bootstrap_ci95_yuan": [
+          -410.7387068691757,
+          -226.687002360497
+        ],
+        "daily_increment_circular_block7_ci95_yuan": [
+          -402.77652441826945,
+          -240.14861335448316
+        ]
+      },
+      "E3": {
+        "total_increment_yuan": -15979.090424742804,
+        "daily_mean_increment_yuan": -532.6363474914268,
+        "daily_increment_bootstrap_ci95_yuan": [
+          -653.0708352515724,
+          -413.8558699355893
+        ],
+        "daily_increment_circular_block7_ci95_yuan": [
+          -643.6343950973463,
+          -434.24393499479714
+        ]
+      },
+      "LP": {
+        "total_increment_yuan": -9912.335810895767,
+        "daily_mean_increment_yuan": -330.4111936965256,
+        "daily_increment_bootstrap_ci95_yuan": [
+          -442.04582028050567,
+          -221.6337309107411
+        ],
+        "daily_increment_circular_block7_ci95_yuan": [
+          -401.17565966517975,
+          -264.0644681889104
+        ]
+      },
+      "fixed_10pct": {
+        "total_increment_yuan": -4708.772353622805,
+        "daily_mean_increment_yuan": -156.9590784540935,
+        "daily_increment_bootstrap_ci95_yuan": [
+          -243.4299152900548,
+          -80.96121293772171
+        ],
+        "daily_increment_circular_block7_ci95_yuan": [
+          -219.68289954276133,
+          -103.80066796719845
+        ]
+      },
+      "fixed_15pct": {
+        "total_increment_yuan": -3636.840346760287,
+        "daily_mean_increment_yuan": -121.22801155867623,
+        "daily_increment_bootstrap_ci95_yuan": [
+          -203.4420244282223,
+          -48.80433698324471
+        ],
+        "daily_increment_circular_block7_ci95_yuan": [
+          -182.3736776917431,
+          -69.68401563660804
+        ]
+      }
+    }
+  },
+  "operations": {
+    "E0": {
+      "min_soc": 0.5,
+      "hours_soc_at_or_below_15pct": 0.0,
+      "hours_soc_at_or_below_10pct": 0.0,
+      "soc_violations": 0,
+      "power_violations": 0,
+      "discharge_kwh": 0.0,
+      "equivalent_full_cycles_discharge_over_usable_capacity": 0.0,
+      "pv_self_use_ratio": 0.9537428169008322,
+      "max_import_kw": 800.0
+    },
+    "E1": {
+      "min_soc": 0.1,
+      "hours_soc_at_or_below_15pct": 96.5,
+      "hours_soc_at_or_below_10pct": 78.5,
+      "soc_violations": 0,
+      "power_violations": 0,
+      "discharge_kwh": 21784.881565059695,
+      "equivalent_full_cycles_discharge_over_usable_capacity": 25.629272429481993,
+      "pv_self_use_ratio": 0.9537428169008322,
+      "max_import_kw": 915.048
+    },
+    "E2": {
+      "min_soc": 0.1,
+      "hours_soc_at_or_below_15pct": 163.0,
+      "hours_soc_at_or_below_10pct": 160.0,
+      "soc_violations": 0,
+      "power_violations": 0,
+      "discharge_kwh": 23921.12037509949,
+      "equivalent_full_cycles_discharge_over_usable_capacity": 28.142494558940577,
+      "pv_self_use_ratio": 0.9537428169008322,
+      "max_import_kw": 915.048
+    },
+    "E3": {
+      "min_soc": 0.1,
+      "hours_soc_at_or_below_15pct": 317.5,
+      "hours_soc_at_or_below_10pct": 311.25,
+      "soc_violations": 0,
+      "power_violations": 0,
+      "discharge_kwh": 28253.05230909949,
+      "equivalent_full_cycles_discharge_over_usable_capacity": 33.23888506952881,
+      "pv_self_use_ratio": 0.9871540556202999,
+      "max_import_kw": 1261.984
+    },
+    "LP": {
+      "min_soc": 0.1,
+      "hours_soc_at_or_below_15pct": 136.75,
+      "hours_soc_at_or_below_10pct": 40.0,
+      "soc_violations": 0,
+      "power_violations": 0,
+      "discharge_kwh": 20700.731800430625,
+      "equivalent_full_cycles_discharge_over_usable_capacity": 24.353802118153677,
+      "pv_self_use_ratio": 0.9537428169008322,
+      "max_import_kw": 1261.984
+    },
+    "E_LLM": {
+      "min_soc": 0.10798070473762664,
+      "hours_soc_at_or_below_15pct": 21.0,
+      "hours_soc_at_or_below_10pct": 0.0,
+      "soc_violations": 0,
+      "power_violations": 0,
+      "discharge_kwh": 11910.637354913018,
+      "equivalent_full_cycles_discharge_over_usable_capacity": 14.012514535191787,
+      "pv_self_use_ratio": 0.9537428169008322,
+      "max_import_kw": 910.648
+    },
+    "fixed_10pct": {
+      "min_soc": 0.10723268273706762,
+      "hours_soc_at_or_below_15pct": 52.5,
+      "hours_soc_at_or_below_10pct": 0.0,
+      "soc_violations": 0,
+      "power_violations": 0,
+      "discharge_kwh": 17128.560698082976,
+      "equivalent_full_cycles_discharge_over_usable_capacity": 20.151247880097618,
+      "pv_self_use_ratio": 0.9537428169008322,
+      "max_import_kw": 915.048
+    },
+    "fixed_15pct": {
+      "min_soc": 0.15723268273706761,
+      "hours_soc_at_or_below_15pct": 0.0,
+      "hours_soc_at_or_below_10pct": 0.0,
+      "soc_violations": 0,
+      "power_violations": 0,
+      "discharge_kwh": 15968.097163719478,
+      "equivalent_full_cycles_discharge_over_usable_capacity": 18.785996663199384,
+      "pv_self_use_ratio": 0.9537428169008322,
+      "max_import_kw": 915.048
+    },
+    "fixed_50pct": {
+      "min_soc": 0.5,
+      "hours_soc_at_or_below_15pct": 0.0,
+      "hours_soc_at_or_below_10pct": 0.0,
+      "soc_violations": 0,
+      "power_violations": 0,
+      "discharge_kwh": 8137.987742301027,
+      "equivalent_full_cycles_discharge_over_usable_capacity": 9.574103226236502,
+      "pv_self_use_ratio": 0.9537428169008322,
+      "max_import_kw": 910.648
+    }
+  },
+  "reserve_diagnosis": {
+    "n_high_reserve_days": 16,
+    "one_day_same_start_50_vs_10": {
+      "extra_energy_cost_yuan_sum": 6411.163362007637,
+      "extra_energy_cost_daily_mean_yuan": 400.69771012547733,
+      "extra_energy_cost_daily_bootstrap_ci95_yuan": [
+        325.4565598060486,
+        467.77307173892814
+      ],
+      "days_50pct_more_expensive": 16,
+      "days_lower_peak_import": 9,
+      "mean_peak_import_reduction_kw": 7.715396249999991,
+      "mean_min_soc_increase": 0.3451730345521541,
+      "hours_at_or_below_15pct_10": 31.5,
+      "hours_at_or_below_15pct_50": 0.0,
+      "soc_violations_10": 0,
+      "soc_violations_50": 0,
+      "discharge_reduction_kwh": 5217.923343169958,
+      "extra_forecast_cost_yuan_sum": 8595.957176027783,
+      "days_forecast_cost_50pct_higher": 16,
+      "scope": "16 post-hoc one-day interventions; each uses actual LLM start SOC, not a continuous counterfactual month"
+    },
+    "policy_feature_group_means": [
+      {
+        "reserve": 0.1,
+        "initial_soc": 0.7797876224102873,
+        "forecast_pv_kwh": 4732.430202926379,
+        "forecast_load_kwh": 13254.116051118079,
+        "forecast_net_energy_kwh": 8521.685848191699,
+        "forecast_peak_net_kw": 686.1324871081604,
+        "actual_net_minus_forecast_net_mae_kw": 134.55289960865204,
+        "history_days": 107.92857142857143
+      },
+      {
+        "reserve": 0.5,
+        "initial_soc": 0.921875,
+        "forecast_pv_kwh": 4684.161279106242,
+        "forecast_load_kwh": 13234.401719979707,
+        "forecast_net_energy_kwh": 8550.240440873466,
+        "forecast_peak_net_kw": 686.805680945483,
+        "actual_net_minus_forecast_net_mae_kw": 105.29508770242575,
+        "history_days": 101.5
+      }
+    ],
+    "motivation_boundary": "no contemporaneous rationale or uncertainty/outage/wear objective archived; model reasoning cannot be identified from numeric policies"
+  },
+  "reconciliation": {
+    "sealed_costs_match": true,
+    "interval_and_batch_execution_match": true,
+    "new_llm_calls": 0
+  },
+  "ci_scope": "descriptive post-hoc: 30 dependent days, one synthetic/demo month; block7 sensitivity is exploratory",
+  "break_even": {
+    "fixed_10pct": {
+      "avoided_discharge_kwh": 5217.923343169958,
+      "additional_wear_value_cny_per_kwh_discharged_needed": 0.872909020326028,
+      "demand_rate_cny_per_kw_month_needed": 1070.1755349142784,
+      "same_terminal_soc": true
+    },
+    "fixed_15pct": {
+      "avoided_discharge_kwh": 4057.4598088064595,
+      "additional_wear_value_cny_per_kwh_discharged_needed": 0.8583795061139008,
+      "demand_rate_cny_per_kw_month_needed": 826.5546242637068,
+      "same_terminal_soc": false
+    }
+  }
+}
