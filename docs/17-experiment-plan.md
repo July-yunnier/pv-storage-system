@@ -2,7 +2,7 @@
 
 > 目的：用统计上站得住的实验回答一个问题——**这套系统到底能省多少钱**。
 > 本文是实验协议：先定口径和验收标准，再跑实验，不接受事后移动球门。
-> 状态：P0 已可执行（现有回放框架），P1+ 依赖缺口补齐（见 §8）。
+> 状态：P0 已可执行（现有回放框架）；AMPDNet 已完成工程接入，但其日内效果仍按独立 rolling-origin 协议验证（见 §7、§8）。
 
 ## 1. 实验要回答的问题
 
@@ -50,9 +50,11 @@
 | E2 | 预测驱动规则（现网 rule_v1） | **被试对象** |
 | E3 | 事后最优（实测驱动，理论上界） | 天花板（Q3），仅回放，不是产品能力 |
 
-### 3.2 预测源矩阵（注册表口径）
+### 3.2 预测源矩阵（注册表与调度选择口径）
 
-- **光伏**：blend（默认融合）/ slot_mean / day_persistence / physics / oracle（oracle 仅用于上界实验，不进产品链路）
+- **光伏**：blend（默认融合）/ slot_mean / day_persistence / physics / **ampdnet** / oracle（oracle 仅用于上界实验，不进产品链路）
+- **AMPDNet 调度选择边界**：`pv_model="ampdnet"` 是已接入的可选光伏预测源，定位为白昼压缩协议下的日内短临候选，支持 `15min`、`1h`、`4h` 三个任务。它需要请求中显式提供 `ampdnet_input`（站点、任务以及带时区的 TSI/DNI/GHI/温度观测窗口），使用 CPU TorchScript 工件推理；工件不可用时默认回退现有日内统计预测，也可显式设置为错误模式。
+- **日前边界**：AMPDNet 不等同于日前 96 点全天模型，不进入默认日前回放的全天预测源矩阵。只有在调度请求具备显式日内观测窗口、且预测时段仍处于白昼协议范围内时，才允许把它作为局部日内调度候选；其效果必须与日前模型分开统计。
 - **负荷**：diurnal_mean（统计）/ mes_attention（高级工件，需 torch + LOAD_MODEL_PATH）
 - **电价**：tou（政策表）/ statistical（14 天中位数画像）/ lgbm（分位工件，需站点训练件）
 
@@ -71,6 +73,7 @@
 
 在 E2 固定规则引擎上，逐条线换预测源：
 - 光伏：blend vs slot_mean vs day_persistence（现有 PV_METHODS 矩阵直接覆盖）
+- AMPDNet：单独进行日内 rolling-origin 验证，按 15min/1h/4h 分任务与 day persistence 对比；不与日前全天模型直接混合排名，也不据此直接宣称整体调度收益改善。
 - 负荷：统计 vs mes_attention
 - 电价：tou vs statistical vs lgbm（需现货序列场景，见 P2）
 - 气象：有气象（物理链）vs 无气象（纯统计）——量化 Open-Meteo 接入的价值
@@ -112,6 +115,7 @@
 | 阶段 | 内容 | 前置 | 产物 |
 |---|---|---|---|
 | P0 | 现链路 30 天回放：E0/E1/E2×全 PV 方法/E3 | 无（已可跑） | 基线报告 + 逐日明细 CSV |
+| P0-A | AMPDNet 日内 rolling-origin 验证：15min/1h/4h 分任务，对比 day persistence | 显式天气观测窗口、对应站点 CPU 工件 | 分任务 MAE、skill、样本量、置信区间及可否进入调度候选的结论 |
 | P1 | 需量电费接入后重跑：结算加需量项，E2 加放电侧削减 | 五议题①实现 | 需量收益拆分报告 |
 | P2 | 现货场景：GEFCom 演示序列 + 电价三模型消融 | 现货序列导入 | 现货下收益结构对比 |
 | P3 | LP 优化器接入：E2 vs LP 同协议对比 | D3 工作包 | LP 增量收益报告 |
@@ -132,7 +136,8 @@ set HTTPS_PROXY=http://127.0.0.1:7897
 | C1 | E2 的 30 天总节省 > E1，配对 bootstrap 95% CI 不含 0 | 预测驱动确实优于定时（Q2） |
 | C2 | E2 上限达成率 ≥ 70% | 规则链路吃到大头；LP 上线后目标 ≥ 85% |
 | C3 | SOC 违规 = 0 且光伏自用率 ≥ 95% | 调度物理可行、不浪费光伏 |
-| C4 | 光伏 blend skill > 昨日延续；现货场景 lgbm skill > naive_daily | 预测线各自成立 |
+| C4 | 光伏 blend skill > 昨日延续；现货场景 lgbm skill > naive_daily | 日前光伏与现货电价预测线各自成立 |
+| C5 | AMPDNet 完成 15min/1h/4h 独立 rolling-origin，对每个任务报告 MAE、skill vs day persistence、样本量与 95% CI；只有对应任务 skill > 0 且 CI 不含 0 时，才允许将该任务纳入调度收益对比 | 日内候选模型的效果边界可审计；未满足时仅报告“机制已接入/候选能力”，不得写成“效果已验证” |
 
 任何一条不达标：报告如实呈现并进入诊断，不算实验失败，算发现。
 
@@ -144,13 +149,15 @@ set HTTPS_PROXY=http://127.0.0.1:7897
 | 现货结算 provider | P2 | 现仅有 TOU；P2 先用演示序列，报告注明 |
 | 电池衰减现金流因子 | P4 | cashflow 层线性衰减（~2%/年），十几行改动 |
 | sizing 单日评估期末 SOC=期初 | P4 | 回放已跨日连续；sizing 需加循环边界保证可比 |
-| AMPDNet 光伏深度模型 | P3 | 20 轮交付工件已到位（15 权重数值验证全过），但白昼压缩协议/大站量级/仅日内，定位日内短临臂候选，接入方案见 docs/18 §6 |
+| AMPDNet 光伏深度模型 | P0-A | 工程接入已完成：注册表、forecast service、CPU 工件加载、fallback、API/集成测试均已具备；仍需按白昼压缩协议完成 15min/1h/4h rolling-origin，验证显式天气输入、站点规模适配及相对 day persistence 的 skill。它仍定位为日内短临候选，不作为默认日前全天模型，当前不能把机制就绪写成效果已验证 |
 | July MQ-RNN 电价模型 | P2 | 工件在 feat/product-mvp-impl 的 product/ 旧树；对比结论与同协议对决设计见 docs/18 |
 
 ## 9. 可复现性
 
 - 回放：`backend/scripts/run_replay.py`（CLI 见 §6），结果封存 `backend/data/replay/{run_id}/`
 - 电价基准：`backend/scripts/run_price_benchmark.py`（GEFCom 协议，见 docs/15 §4）
+- AMPDNet 训练：`backend/scripts/train_ampdnet_pv.py`；CPU 工件目录：`backend/data/model_releases/ampdnet_delivery20/`
+- AMPDNet 验证：`cd backend && python scripts/validate_ampdnet_pv.py <csv> --station Solar1 --task 15min`；将 `--task` 分别设为 `15min`、`1h`、`4h`，按 rolling-origin 与 day-persistence 基线对账。输入观测的时间戳必须带时区，功率单位为 kW。
 - 预测封存与对账：`forecast_archive` 表 + `/api/v1/sites/{id}/accuracy`
 - 环境：主后端 `backend/requirements.txt`；侧车 `requirements-infer.lock.txt`；
   所有实验报告必须附 `run_meta.json`（commit、参数、数据窗口）
