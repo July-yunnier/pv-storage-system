@@ -4,6 +4,7 @@
 > 本文是实验协议：先定口径和验收标准，再跑实验，不接受事后移动球门。
 > 状态：正式主实验 P0、P0-A、P1、P2、P3、P4 已执行并完成结果封存；正式报告见 [`reports/official_experiment/official_experiment_report.md`](../reports/official_experiment/official_experiment_report.md)。
 > 本状态表示实验执行完成，不表示全部验收标准通过；未通过项和演示数据边界以正式报告为准。
+> LLM 调度消融的结果边界与后续协议见 [20-llm-dispatch-ablation.md](20-llm-dispatch-ablation.md)。
 
 ## 1. 实验要回答的问题
 

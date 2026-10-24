@@ -33,6 +33,7 @@
 - [正式主实验规划与验收协议](docs/17-experiment-plan.md)
 - [正式主实验报告（P0-P4）](reports/official_experiment/official_experiment_report.md)
 - [侧边聊天 LLM 试运行归档](reports/generated/llm_live_p0_20261024/README.md)
+- [LLM 调度消融解释与后续协议](docs/20-llm-dispatch-ablation.md)
 
 ## 首版 MVP
 
