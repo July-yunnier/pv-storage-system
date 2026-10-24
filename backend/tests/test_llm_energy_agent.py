@@ -5,8 +5,9 @@ from unittest.mock import Mock
 import numpy as np
 import pandas as pd
 import pytest
-from agents.llm_energy_agent import LLMStrategicAdvisor
+from agents.llm_energy_agent import LLMStrategicAdvisor, clamp_formulator_policy
 from scripts.run_official_experiment import execute, actions_llm_guided
+from scripts.llm_experiment import tail_metrics, count_manual_interventions
 
 
 def reply(content):
@@ -37,6 +38,37 @@ def test_bad_response_fallback(content):
     advisor=LLMStrategicAdvisor(mock_offline=False,client=client)
     assert advisor.advise({}, {})=={'soc_min_safe':.1,'peak_discharge_offset':0}
     assert advisor.last_diagnostics['status']=='fallback'
+
+
+def test_formulator_high_level_policy_is_clamped_and_has_no_actions():
+    policy = clamp_formulator_policy({'scenario': 'cold_wave', 'soc_min_safe': 2,
+        'peak_discharge_offset': -99, 'reserve_weight': 9,
+        'discharge_window_start': -4, 'discharge_window_end': 120,
+        'manual_review_required': True})
+    assert policy['soc_min_safe'] == .95
+    assert policy['reserve_weight'] == 1.5
+    assert policy['discharge_window_start'] == 0
+    assert policy['discharge_window_end'] == 95
+    assert 'actions' not in policy
+
+
+def test_formulator_mock_event_policy_and_invalid_event_fallback():
+    advisor = LLMStrategicAdvisor()
+    result = advisor.formulate({}, {}, {'kind': 'cold_wave', 'severity': .8})
+    assert result['scenario'] == 'cold_wave'
+    assert result['mode'] == 'event_formulator'
+    assert advisor.formulate({}, {}, {'kind': 'unknown'})['scenario'] == 'none'
+    assert advisor.last_diagnostics['status'] == 'fallback'
+
+
+def test_tail_metrics_and_manual_intervention_definition():
+    result = tail_metrics([1., 2., 3., 4.], .75)
+    assert result['var_cost_yuan'] == 3.25
+    assert result['cvar_cost_yuan'] == 4.
+    assert result['worst_day_cost_yuan'] == 4.
+    assert count_manual_interventions([{'manual_review_required': False, 'fallback': False},
+                                       {'manual_review_required': True},
+                                       {'policy_changed_by_safety_layer': True}]) == 2
 
 
 def test_network_failure_and_remote_missing_key(monkeypatch):

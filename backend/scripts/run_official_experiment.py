@@ -84,11 +84,12 @@ def lp_actions(pv,load,prices,forecast_pv,forecast_load,initial_soc=.5):
 
 def main():
  ap=argparse.ArgumentParser(); ap.add_argument('--data',type=Path,default=DEFAULT_DATA)
- ap.add_argument('--agent',choices=['llm'])
+ ap.add_argument('--agent',choices=['llm','llm-formulator'])
  ap.add_argument('--mock-offline',action=argparse.BooleanOptionalAction,default=True,help='Default: deterministic no-network mock; --no-mock-offline calls configured API')
+ ap.add_argument('--event-mode',choices=['events-only','all-days'],default='events-only',help='Formulator invocation policy; applies to --agent llm-formulator')
  ap.add_argument('--output-dir',type=Path)
  args=ap.parse_args()
- out=args.output_dir or (OUT/'llm_mock' if args.agent and args.mock_offline else OUT/'llm_api' if args.agent else OUT)
+ out=args.output_dir or (OUT/('llm_formulator_mock' if args.agent=='llm-formulator' and args.mock_offline else 'llm_formulator_api' if args.agent=='llm-formulator' else 'llm_mock' if args.mock_offline else 'llm_api') if args.agent else OUT)
  out.mkdir(parents=True,exist_ok=True)
  df=pd.read_csv(args.data); df['ts']=pd.to_datetime(df['ts']); df['date']=pd.to_datetime(df['date']).dt.date
  df['pv']=(df.pv_power_kw/50.0).clip(0,CAP); df['load']=df.load_power_kw.clip(0,800); df['price']=df.tariff_period.map(PRICES)
@@ -153,6 +154,20 @@ def main():
   from agents.llm_energy_agent import LLMStrategicAdvisor
   from scripts.llm_experiment import extend_experiment
   extend_experiment(df,out,LLMStrategicAdvisor(mock_offline=args.mock_offline))
+  p0_summary=json.loads((out/'p0_replay/summary.json').read_text())
+  p1=json.loads((out/'p1_demand_charge/summary.json').read_text())
+  p3summary=json.loads((out/'p3_lp/summary.json').read_text())
+ if args.agent=='llm-formulator':
+  from agents.llm_energy_agent import LLMStrategicAdvisor
+  from scripts.llm_experiment import extend_formulator_experiment
+  result=extend_formulator_experiment(df,out,LLMStrategicAdvisor(mock_offline=args.mock_offline),
+                                      event_mode=args.event_mode)
+  meta=json.loads((out/'run_meta.json').read_text())
+  meta['agent']={'arm':'E_LLM_FORMULATOR','mode':'mock_offline' if args.mock_offline else 'llm_api',
+                 'event_mode':args.event_mode,'event_source':'synthetic_demo_fixture',
+                 'safety_executor':'execute unchanged; SOC_MIN=.10 SOC_MAX=.95',
+                 'metrics':['cvar_90','cvar_95','worst_day_cost_yuan','manual_intervention_count']}
+  (out/'run_meta.json').write_text(json.dumps(meta,ensure_ascii=False,indent=2))
   p0_summary=json.loads((out/'p0_replay/summary.json').read_text())
   p1=json.loads((out/'p1_demand_charge/summary.json').read_text())
   p3summary=json.loads((out/'p3_lp/summary.json').read_text())
