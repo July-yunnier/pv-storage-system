@@ -31,10 +31,10 @@
 | 开发计划 | 项目负责人、研发 | 定义任务、依赖和交付物 | 初稿 |
 | 算法契约 | 算法、后端 | 算法分工界面与新增算法三步走 | 初稿 |
 | 电价预测 | 算法、后端、产品 | 电价预测方法与 GEFCom 基准实验（15-price-forecast） | 已落地 |
-| 实验规划 | 全体成员 | 省钱能力验证协议与验收标准（17-experiment-plan） | 初稿 |
+| 实验规划 | 全体成员 | 省钱能力验证协议、验收标准与执行状态（17-experiment-plan） | 协议已执行；结果见正式报告 |
 | 仓库整合记录 | 全体成员 | 分支迁入口径与待确认项（14-repository-integration） | 初稿 |
 | PV 推理部署 | 部署、后端、算法 | 冻结推理包的平台化接入与运维（16-pv-inference-deployment） | 已落地 |
-| 双电价模型对比 | 算法、后端、负责人 | July MQ-RNN 与林 LightGBM 对比、组合方案与 AMPDNet 现状（18-price-model-comparison） | 初稿 |
+| 双电价模型对比 | 算法、后端、负责人 | July MQ-RNN 与林 LightGBM 对比、组合方案与 AMPDNet 现状（18-price-model-comparison） | 对决已完成；后续诊断待排期 |
 | 事件数据契约 | 算法、后端、数据维护 | 来源归档、定期导入、按发布时间回放及成对实验（19-price-event-data） | 工程就绪，真实验收待补数据 |
 
 ## 3. 变更规则

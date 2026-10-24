@@ -2,7 +2,7 @@
 
 面向工商业用户的光伏发电预测、负荷预测、电价分析、储能容量配置与日充放电策略系统。
 
-> 当前状态：系统本体位于根目录 `backend/` 与 `frontend/`，已有实现与测试；离线 GEFCom 预实验和线上回放须分开解释。正式参赛主实验尚未开展。
+> 当前状态：系统本体位于根目录 `backend/` 与 `frontend/`，已有实现与测试；正式主实验 P0、P0-A、P1、P2、P3、P4 已执行并完成产物封存。实验结果仍需按公开光伏代理、仿真负荷、政策电价和 GEFCom 现货演示口径解释，不能直接作为真实广东现场收益承诺。
 
 ## 项目目标
 
@@ -30,6 +30,9 @@
 - [测试与验收计划](docs/09-test-acceptance.md)
 - [决策记录与待确认项](docs/10-open-decisions.md)
 - [从 0 开发计划](docs/11-development-plan.md)
+- [正式主实验规划与验收协议](docs/17-experiment-plan.md)
+- [正式主实验报告（P0-P4）](reports/official_experiment/official_experiment_report.md)
+- [侧边聊天 LLM 试运行归档](reports/generated/llm_live_p0_20261024/README.md)
 
 ## 首版 MVP
 
@@ -37,7 +40,7 @@
 
 ## 当前开发状态
 
-后端闭环 + 前端看板已完成，当前处于算法增强阶段（学习类负荷模型、观测/回放体系已上线）：
+后端闭环 + 前端看板已完成，正式主实验已执行完毕，当前进入结果审计、未通过项诊断和真实数据补强阶段：
 
 - FastAPI 服务骨架、统一错误结构（含 request_id）和健康检查
 - SQLite 列式存储（站点/价目/测量，时间戳统一 UTC 规范化）
@@ -59,7 +62,7 @@
 - 容量规划 `POST /api/v1/storage/sizing`（同一调度引擎跑代表日折算全年，NPV/IRR/回本 + 价差/电池单价敏感性，全量 assumptions；`GET /sites/{id}/sizing-runs[/{run_id}]` 追溯）
 - Sizing PDF 报告 `POST/GET /api/v1/reports[/{id}[/download]]`（reportlab，中文 CID 字体）
 - 前端（React + Vite + AntD + ECharts）：总览 / 算法观测（光伏、负荷、电价、调度、储能）/ 投资 / 数据管理 / 测评中心
-- pytest 测试套件（170+ 用例）
+- pytest 测试套件；正式实验报告记录 353 passed，侧边 LLM 归档发布分支验证 383 passed。依赖平台相关的测试结果以当前环境复核为准。
 
 本地运行：
 
@@ -84,6 +87,8 @@ AI 增强（可选）：`pip install -r requirements-ai.txt` 后，负荷 MES �
 （`/api/v1/policy-tariffs/*`）默认指向本地 Ollama，未配置时接口优雅报错、不影响主链路。
 
 启动后访问 <http://127.0.0.1:8000/docs> 查看 OpenAPI 文档。
+
+正式主实验状态：`reports/official_experiment/` 保存 P0、P0-A、P1、P2、P3、P4 的结果与 `run_meta.json`。本轮 C1 未通过、C2 通过、C3 部分未通过、C4 部分覆盖、C5 按站点/任务拆分；因此“实验已完成”表示协议执行和结果封存完成，不表示所有验收标准均通过。报告中的金额单位为元，预测功率单位为 kW，时间戳按对应实验时区带时区记录。
 
 ## 重要原则
 
