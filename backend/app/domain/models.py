@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+import math
 from typing import Literal
 from uuid import uuid4
 
@@ -251,6 +252,36 @@ class AdvancedLoadInput(BaseModel):
         return self
 
 
+class AmpdnetObservation(BaseModel):
+    """A timezone-aware daylight weather sample consumed by AMPDNet."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    ts: datetime
+    tsi: float
+    dni: float
+    ghi: float
+    temperature_c: float
+
+    @model_validator(mode="after")
+    def validate_observation(self) -> "AmpdnetObservation":
+        if self.ts.tzinfo is None or self.ts.utcoffset() is None:
+            raise ValueError("AMPDNet observation timestamps must include timezone")
+        if not all(math.isfinite(value) for value in (self.tsi, self.dni, self.ghi, self.temperature_c)):
+            raise ValueError("AMPDNet features must be finite")
+        return self
+
+
+class AmpdnetInput(BaseModel):
+    """Explicit short-horizon AMPDNet input; no database lookup is implied."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    station: Literal["Solar1", "Solar2", "Solar6", "Solar7", "Solar8"]
+    task: Literal["15min", "1h", "4h"]
+    observations: list[AmpdnetObservation] = Field(min_length=48, max_length=192)
+
+
 class ForecastOptions(BaseModel):
     include_uncertainty: bool = True
     quantiles: list[float] = Field(default_factory=lambda: [0.1, 0.5, 0.9])
@@ -258,17 +289,28 @@ class ForecastOptions(BaseModel):
     # 这里刻意用宽 str：新算法在注册表登记即可用，不必改请求 schema；
     # 非法取值在 forecast_service 入口统一 422。
     pv_model: str = "auto"  # "auto" 为服务策略键（有历史走融合，否则物理链）
+    ampdnet_input: AmpdnetInput | None = None
+    ampdnet_fallback: Literal["intraday", "error"] = "intraday"
     load_model: str = "statistical"
     # 高级模型输入：None = 服务端自动构造（历史负荷+气象+班次日历）；显式传入用于实验/回放
     advanced_load_input: AdvancedLoadInput | None = None
     intraday: bool = False
     explain: bool = False  # true 时 provenance 附带气象原始点与回测明细
 
+    @model_validator(mode="after")
+    def validate_ampdnet_input(self) -> "ForecastOptions":
+        if self.pv_model == "ampdnet" and self.ampdnet_input is None:
+            raise ValueError(
+                "ampdnet requires station, task and timestamped TSI/DNI/GHI/temperature observations"
+            )
+        return self
+
 
 class ForecastRequest(BaseModel):
     site_id: str
     targets: list[ForecastTarget] = Field(min_length=1)
-    horizon_hours: int = Field(default=24, gt=0)
+    # AMPDNet 的 15 分钟任务用 0.25 小时表达；其他模型继续接受整数小时。
+    horizon_hours: float = Field(default=24, gt=0)
     resolution_minutes: int = Field(default=15, gt=0)
     issued_at: datetime | None = None
     options: ForecastOptions = Field(default_factory=ForecastOptions)

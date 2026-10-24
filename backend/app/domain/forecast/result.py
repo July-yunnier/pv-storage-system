@@ -41,6 +41,9 @@ class ForecastProvenance(BaseModel):
     factor: float | None = None  # 融合校准系数（实测/物理回测，仅 blend）
     window: str | None = None  # 使用的数据窗口描述
     explain: "ForecastExplain | None" = None  # 仅 options.explain=true 时返回
+    checkpoint_sha256: str | None = None
+    artifact_sha256: str | None = None
+    training_status: str | None = None
 
 
 class ExplainWeatherPoint(BaseModel):

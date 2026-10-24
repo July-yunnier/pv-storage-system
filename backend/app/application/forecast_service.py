@@ -249,6 +249,9 @@ def run_forecast(db: Database, payload: ForecastRequest) -> ForecastResponse:
         raise errors.not_found(f"site not found: {payload.site_id}")
     if payload.resolution_minutes != 15:
         raise errors.validation_error("MVP only supports 15-minute resolution")
+    if payload.options.pv_model == "ampdnet":
+        from app.application.ampdnet_service import run_ampdnet_forecast
+        return run_ampdnet_forecast(db, site, payload)
     if payload.horizon_hours > MAX_HORIZON_HOURS or payload.horizon_hours % 24 != 0:
         raise errors.validation_error(
             f"horizon_hours must be a positive multiple of 24 and at most {MAX_HORIZON_HOURS}"
@@ -269,7 +272,7 @@ def run_forecast(db: Database, payload: ForecastRequest) -> ForecastResponse:
         days = 1
     else:
         start_date = issued_at.astimezone(tz).date() + timedelta(days=1)
-        days = payload.horizon_hours // 24
+        days = int(payload.horizon_hours // 24)
 
     results = [
         _forecast_target(

@@ -29,6 +29,9 @@ from app.domain.experiment.metrics import forecast_metrics
 from app.domain.forecast.load import predict_load_profile
 from app.domain.forecast.pv import predict_pv_diurnal, predict_pv_physics
 from app.domain.forecast.blend import blend_pv_forecast
+from app.application.ampdnet_service import _normalize, _infer, _denormalize
+from app.domain.forecast.pv_ampdnet import TASKS, predict_pv_ampdnet
+from app.infrastructure.model_store import load_ampdnet_artifact
 from app.domain.forecast.stats import daily_series, history_dates, slot_means
 from app.domain.models import MeasurementRead, PricePoint, SiteRead
 from app.domain.tariff import TouProvider
@@ -150,6 +153,11 @@ def _forecast_pv(ctx: _ReplayContext, method: str, day: date, cap_kw: float) -> 
             ctx.site.location.lat, ctx.site.location.lon, day, ctx.tz, N_DAYS,
         )
         return [p.value for p in forecast.points]
+    if method == "ampdnet":
+        # AMPDNet is an intraday candidate; replay only evaluates origins with
+        # a complete explicit daylight weather window and preserves failure as
+        # a diagnostic rather than silently fabricating a day-ahead curve.
+        raise ValueError("AMPDNet replay requires an explicit intraday observation window")
     days_map = daily_series(history, ctx.tz)
     dates = history_dates(days_map, day, N_DAYS, "pv_power")
     base = slot_means(days_map, dates)
@@ -225,7 +233,11 @@ def run_replay(
     site = db.get_site(site_id)
     if site is None:
         raise errors.not_found(f"site not found: {site_id}")
-    pv_methods = pv_methods or PV_METHODS
+    if pv_methods is None:
+        # The registry keeps AMPDNet in the replay catalog for discovery, but
+        # this day-ahead runner has no explicit daylight weather-window input.
+        # The dedicated validate_ampdnet_pv.py script owns rolling-origin runs.
+        pv_methods = [method for method in PV_METHODS if method != "ampdnet"]
     strategies = strategies or STRATEGIES
     unknown_pv = set(pv_methods) - set(PV_METHODS)
     unknown_st = set(strategies) - set(STRATEGIES)
@@ -241,6 +253,10 @@ def run_replay(
         raise errors.data_quality_error("测试窗口之前的历史不足，无法回放")
 
     need_weather = any(m in ("physics", "blend") for m in pv_methods)
+    if "ampdnet" in pv_methods:
+        raise errors.validation_error(
+            "AMPDNet is an intraday short-horizon candidate and is excluded from the day-ahead replay matrix"
+        )
     if need_weather and weather is None:
         from app.infrastructure.weather.open_meteo_archive import OpenMeteoArchiveProvider
 
