@@ -125,7 +125,8 @@ _CATALOG: tuple[ForecastAlgorithm, ...] = (
     ),
     ForecastAlgorithm(
         name="price_lgbm_quantile", target=PRICE, kind="ml",
-        summary="LightGBM 分位数（GEFCom2014-P 样本外比昨日延续误差低 29.1%）；"
+        summary="LightGBM 分位数（GEFCom2014-P 15 任务日×24h 滚动重训，docs/18 §5："
+                "MAE 9.52，比昨日延续误差低 26.9%）；"
                 "需站点训练工件（PRICE_MODEL_DIR/{site_id}），auto 链的首选档；"
                 "离线对照另有 naive_daily/naive_weekly/LEAR/MQ-CNN/MQ-RNN（scripts/run_price_benchmark.py）",
         product_key="lgbm", probe=lambda: _lightgbm_unavailable(),

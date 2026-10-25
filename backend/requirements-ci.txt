@@ -1,0 +1,9 @@
+# Optional dependencies exercised by the backend suite (not the full research stack).
+numpy>=1.26,<3
+scipy>=1.11,<2
+scikit-learn>=1.5,<2
+lightgbm>=4.3,<5
+torch>=2.5,<3
+joblib>=1.3,<2
+matplotlib>=3.8,<4
+pypdf>=5,<7
