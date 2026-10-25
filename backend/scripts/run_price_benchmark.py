@@ -463,6 +463,8 @@ def main() -> int:
         "elapsed_seconds": round(time.time() - started, 1),
         "task_log": log,
     }
+    from scripts.environment_metadata import dependency_versions
+    meta["dependency_versions"] = dependency_versions()
     (out_dir / "run_meta.json").write_text(json.dumps(meta, indent=2, ensure_ascii=False))
 
     print("\n=== summary ===")

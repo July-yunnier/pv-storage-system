@@ -30,10 +30,18 @@
 - [测试与验收计划](docs/09-test-acceptance.md)
 - [决策记录与待确认项](docs/10-open-decisions.md)
 - [从 0 开发计划](docs/11-development-plan.md)
+- [预测路线图](docs/12-forecast-roadmap.md)
+- [算法契约](docs/13-algorithm-contracts.md)
+- [电价预测](docs/15-price-forecast.md)
+- [PV 推理部署](docs/16-pv-inference-deployment.md)
+- [电价同协议对比（总结材料统一口径）](docs/18-price-model-comparison.md#51-总表360-点样本外)
+- [事件数据契约](docs/19-price-event-data.md)
 - [正式主实验规划与验收协议](docs/17-experiment-plan.md)
 - [正式主实验报告（P0-P4）](reports/official_experiment/official_experiment_report.md)
 - [侧边聊天 LLM 试运行归档](reports/generated/llm_live_p0_20261024/README.md)
 - [LLM 调度消融解释与后续协议](docs/20-llm-dispatch-ablation.md)
+- [LLM-as-formulator 离线事件日实验](docs/21-llm-formulator-event-arm.md)
+- [第三方来源与许可状态](THIRD_PARTY_NOTICES.md)
 
 ## 首版 MVP
 
@@ -86,6 +94,23 @@ python run.py
 AI 增强（可选）：`pip install -r requirements-ai.txt` 后，负荷 MES 注意力模型经
 `.env.ai`（参照 `.env.ai.example`）配置 `LOAD_MODEL_PATH` 启用；政策电价 LLM 解析
 （`/api/v1/policy-tariffs/*`）默认指向本地 Ollama，未配置时接口优雅报错、不影响主链路。
+
+LLM 调度目前仅为 `backend/agents/` 和离线实验脚本中的消融臂，未接入产品调度 API
+或页面。总结材料应写“离线消融”，政策电价解析接口不构成 LLM 调度接入。
+
+Docker 从仓库根目录运行 `bash scripts/start-docker.sh`，一键构建并启动后端与
+Nginx 前端；页面为 <http://localhost:8080>，接口文档为 <http://localhost:8000/docs>。
+`INSTALL_FORECAST=true bash scripts/start-docker.sh` 安装生产预测依赖（含 CPU PyTorch），
+不安装完整研究栈。后端镜像包含 `app/`、`agents/`、`scripts/`、`pv_inference/`
+和 `/configs/`；前端仅发布 `dist/`。外部数据、权重和密钥不进入构建上下文。
+部署说明、存储卷迁移、赛事 `docker save` / `docker load` 离线交付及第三方来源清单见
+[Docker 与赛事交付指南](docs/22-docker-delivery.md)。
+
+CI 在 push 到 `codex/repo-health-fixes` / 提交 PR 时依次运行完整 pytest、前端类型检查
+与 build、三组 Docker Buildx 构建（基础后端 / 预测后端 / 前端），全部 `push: false`。
+测试 XML、测试与前端构建日志上传为工件；镜像构建日志和记录见 Actions。
+后端记录请求异常（含 request_id）与后台巡检堆栈；文件 SQLite 使用 WAL、5 秒锁等待。
+Compose 挂载整个数据库目录为持久卷，不沿用旧版 `./backend/data` 绑定目录；迁移方法见部署指南。
 
 启动后访问 <http://127.0.0.1:8000/docs> 查看 OpenAPI 文档。
 

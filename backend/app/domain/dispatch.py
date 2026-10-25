@@ -79,7 +79,6 @@ class RuleDispatchEngine:
                     surplus_kw,
                     headroom_kwh / storage.charge_eff / dt_hours,
                 )
-                curtailment_kw = max(surplus_kw - charge_kw, 0.0)
             elif tier == "valley":
                 charge_kw = min(
                     storage.pcs_kw,
@@ -108,7 +107,7 @@ class RuleDispatchEngine:
             grid_import = max(net_load + charge_kw - discharge_kw, 0.0)
             grid_export = max(-(net_load + charge_kw - discharge_kw), 0.0)
             if not storage.allow_grid_export:
-                curtailment_kw += grid_export
+                curtailment_kw = grid_export
                 grid_export = 0.0
 
             action = "idle"

@@ -18,6 +18,7 @@ from scipy.optimize import linprog, brentq
 
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'backend'))
+from scripts.environment_metadata import dependency_versions
 DEFAULT_DATA=ROOT/'reports/official_experiment/data/full_scene.csv'
 OUT=ROOT/'reports/official_experiment'
 PRICES={'sharp':1.25+0.21,'peak':1.05+0.21,'flat':0.65+0.21,'valley':0.28+0.21}
@@ -149,6 +150,7 @@ def main():
  p2src=ROOT/'reports/price_forecast/t3_price_benchmark/metrics.csv'; (out/'p2_spot_price').mkdir(exist_ok=True)
  if p2src.exists(): (out/'p2_spot_price/metrics.csv').write_bytes(p2src.read_bytes())
  meta={'generated_at':datetime.now(timezone.utc).isoformat(),'git_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'python':subprocess.check_output([__import__('sys').executable,'--version'],text=True).strip(),'data_sha256':sha(args.data),'data_window':[str(dates[0]),str(dates[-1])],'test_window':[str(test[0]),str(test[-1])],'site_id':'S-DONGGUAN-DEMO','units':'CNY/kWh, kW, kWh','timezone':'Asia/Shanghai','data_provenance':{'pv':'public/scenario observed proxy','load':'synthetic two-shift factory','tariff':'synthetic Guangdong policy template','p2':'GEFCom2014-P PJM Zone1 demo'},'bootstrap':{'n':BOOT,'seed':SEED}}
+ meta['dependency_versions']=dependency_versions()
  (out/'run_meta.json').write_text(json.dumps(meta,ensure_ascii=False,indent=2))
  if args.agent=='llm':
   from agents.llm_energy_agent import LLMStrategicAdvisor

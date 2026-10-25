@@ -11,8 +11,8 @@
 5. `06-technical-architecture.md`、`07-optimization-model.md`：理解实现方式
 6. `08-ui-spec.md`、`09-test-acceptance.md`：理解交互和验收
 7. `13-algorithm-contracts.md`：算法分工界面（做算法的同学必读）
-7.1 `15-price-forecast.md`：电价预测方法、GEFCom2014-P 基准实验与在线链路
-8. `10-open-decisions.md`、`11-development-plan.md`：查看待定项和执行顺序
+8. `15-price-forecast.md`：电价预测方法、GEFCom2014-P 基准实验与在线链路
+9. `10-open-decisions.md`、`11-development-plan.md`：查看待定项和执行顺序
 
 ## 2. 文档责任
 
@@ -29,6 +29,7 @@
 | 测试计划 | 测试、研发、负责人 | 定义质量门槛 | 初稿 |
 | 决策记录 | 全体成员 | 管理假设和未决问题 | 初稿 |
 | 开发计划 | 项目负责人、研发 | 定义任务、依赖和交付物 | 初稿 |
+| 预测路线图 | 算法、后端、负责人 | 预测模型演进与能力边界（12-forecast-roadmap） | 路线规划 |
 | 算法契约 | 算法、后端 | 算法分工界面与新增算法三步走 | 初稿 |
 | 电价预测 | 算法、后端、产品 | 电价预测方法与 GEFCom 基准实验（15-price-forecast） | 已落地 |
 | 实验规划 | 全体成员 | 省钱能力验证协议、验收标准与执行状态（17-experiment-plan） | 协议已执行；结果见正式报告 |

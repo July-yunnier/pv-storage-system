@@ -1,10 +1,37 @@
+name: pv-storage
+
 services:
   backend:
+    image: pv-storage-backend:${IMAGE_TAG:-local}
     build:
-      context: ./backend
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        INSTALL_FORECAST: ${INSTALL_FORECAST:-false}
     ports:
-      - "8000:8000"
+      - "${BACKEND_BIND:-127.0.0.1}:${BACKEND_PORT:-8000}:8000"
     environment:
       STORAGE_DB_PATH: /app/data/storage.db
+      WEATHER_PROVIDER: ${WEATHER_PROVIDER:-mock}
+    # WAL's database, -wal and -shm must share a writable local volume.
     volumes:
-      - ./backend/data:/app/data
+      - storage-data:/app/data
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+  frontend:
+    image: pv-storage-frontend:${IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_BIND:-127.0.0.1}:${FRONTEND_PORT:-8080}:8080"
+    init: true
+    restart: unless-stopped
+
+volumes:
+  storage-data:

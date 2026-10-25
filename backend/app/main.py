@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import asyncio
+import logging
 import os
 import uuid
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -48,6 +51,36 @@ def _load_local_ai_env() -> None:
 
 
 _load_local_ai_env()
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+logger = logging.getLogger(__name__)
+
+
+async def _inspection_loop(app: FastAPI) -> None:
+    """每分钟巡检；失败记录堆栈，下一轮重试。"""
+    while True:
+        await asyncio.sleep(60)
+        try:
+            db: Database = app.state.db
+            for site in db.list_sites():
+                rolling_service.maybe_rolling_adjust(db, site.site_id)
+            live_service.auto_extend_simulated(db)
+            automation_service.ensure_daily_plans(db)
+            for site in db.list_sites():
+                observability_service.reconcile_site(db, site.site_id)
+        except Exception:
+            logger.exception("Background inspection failed")
+
+
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
+    task = asyncio.create_task(_inspection_loop(app))
+    app.state.inspection_task = task
+    try:
+        yield
+    finally:
+        task.cancel()
+        with suppress(asyncio.CancelledError):
+            await task
 
 
 def _request_id(request: Request) -> str:
@@ -81,6 +114,7 @@ def create_app(database_path: str | None = None) -> FastAPI:
         title="光储一体 · 储能配置优化系统",
         version="0.1.0",
         description="工商业光伏储能配置、调度和收益分析后端。",
+        lifespan=_lifespan,
     )
     app.state.db = Database(database_path or os.getenv("STORAGE_DB_PATH", "data/storage.db"))
 
@@ -108,6 +142,9 @@ def create_app(database_path: str | None = None) -> FastAPI:
 
     @app.exception_handler(Exception)
     async def unhandled_error_handler(request: Request, exc: Exception) -> JSONResponse:
+        logger.error("Unhandled request error request_id=%s method=%s path=%s",
+                     _request_id(request), request.method, request.url.path,
+                     exc_info=(type(exc), exc, exc.__traceback__))
         return _error_response(request, 500, "INTERNAL_ERROR", "internal server error")
 
     @app.get("/api/v1/health", tags=["system"])
@@ -134,27 +171,6 @@ def create_app(database_path: str | None = None) -> FastAPI:
     app.include_router(replay_runs_router, prefix="/api/v1")
     app.include_router(observability_router, prefix="/api/v1")
     app.include_router(price_router, prefix="/api/v1")
-
-    @app.on_event("startup")
-    async def start_rolling_loop() -> None:
-        """每分钟巡检：新测量槽位到位且偏差超限时，自动触发日内滚动修正。"""
-        import asyncio
-
-        async def loop() -> None:
-            while True:
-                await asyncio.sleep(60)
-                try:
-                    db: Database = app.state.db
-                    for site in db.list_sites():
-                        rolling_service.maybe_rolling_adjust(db, site.site_id)
-                    live_service.auto_extend_simulated(db)
-                    automation_service.ensure_daily_plans(db)
-                    for site in db.list_sites():
-                        observability_service.reconcile_site(db, site.site_id)
-                except Exception:
-                    continue  # 巡检失败不拖垮服务，下一分钟再试
-
-        asyncio.create_task(loop())
 
     return app
 

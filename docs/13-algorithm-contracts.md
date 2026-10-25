@@ -21,6 +21,9 @@
   响应里的 `model` 字段必须如实反映用的是哪一种，不允许混称。
 - 任何精度数字必须带 `caliber`（归一化基准 / 是否含夜间 / 空间尺度 / 对照基线）。
 - LLM 只做意图层、约束/场景建模与解释层（“优化器管算，LLM 管说”），**不直接生成 96 点计划**。真实 P0 消融显示：仅让 LLM 微调 SOC 下限和放电偏移时，不能据此判断 LLM 的总体调度能力；后续按 [LLM 调度消融协议](20-llm-dispatch-ablation.md) 验证 LLM-as-formulator 和事件日臂。
+- LLM 调度代码位于 `backend/agents/`，由 `backend/scripts/run_official_experiment.py`
+  调用，属于**离线消融实验**；`app/` 没有 LLM 调度 API。现有
+  `/api/v1/policy-tariffs/*` 是政策文本解析能力，不代表系统已接入 LLM 调度。
 
 ## 2. 数据基座：measurements 表
 

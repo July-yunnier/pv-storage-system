@@ -70,6 +70,8 @@ class Database:
             self._memory_conn.row_factory = sqlite3.Row
         else:
             Path(path).parent.mkdir(parents=True, exist_ok=True)
+            with sqlite3.connect(path, timeout=5.0) as conn:
+                conn.execute("PRAGMA journal_mode=WAL")
         self.init_schema()
         if self.get_tariff("T-DEFAULT") is None:
             self.create_tariff(default_tariff())
@@ -80,7 +82,7 @@ class Database:
             yield self._memory_conn
             self._memory_conn.commit()
             return
-        connection = sqlite3.connect(self.path)
+        connection = sqlite3.connect(self.path, timeout=5.0)
         connection.row_factory = sqlite3.Row
         try:
             yield connection

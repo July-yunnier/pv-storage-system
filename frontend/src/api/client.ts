@@ -29,6 +29,7 @@ import type {
 } from './types'
 
 const BASE_URL = '/api/v1'
+const REQUEST_TIMEOUT_MS = 15_000
 
 export class ApiError extends Error {
   code?: string
@@ -45,38 +46,49 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  let res: Response
+  const controller = new AbortController()
+  const abortFromCaller = () => controller.abort(init?.signal?.reason)
+  init?.signal?.addEventListener('abort', abortFromCaller, { once: true })
+  if (init?.signal?.aborted) abortFromCaller()
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
   try {
-    res = await fetch(`${BASE_URL}${path}`, init)
-  } catch {
-    throw new ApiError('网络请求失败，请确认后端服务已启动（http://127.0.0.1:8000）')
-  }
+    const res = await fetch(`${BASE_URL}${path}`, { ...init, signal: controller.signal })
 
-  if (!res.ok) {
-    let message = `请求失败（HTTP ${res.status}）`
-    let code: string | undefined
-    let details: unknown
-    let requestId: string | undefined
-    try {
-      const body = await res.json()
-      if (body && typeof body === 'object' && body.error) {
-        if (typeof body.error.message === 'string' && body.error.message) {
-          message = body.error.message
+    if (!res.ok) {
+      let message = `请求失败（HTTP ${res.status}）`
+      let code: string | undefined
+      let details: unknown
+      let requestId: string | undefined
+      try {
+        const body = await res.json()
+        if (body && typeof body === 'object' && body.error) {
+          if (typeof body.error.message === 'string' && body.error.message) {
+            message = body.error.message
+          }
+          code = body.error.code
+          details = body.error.details
+          requestId = body.error.request_id
+        } else if (body && typeof body === 'object' && typeof body.detail === 'string') {
+          // FastAPI 默认错误结构（后端尚未接入统一错误格式时的兜底）
+          message = `${message}：${body.detail}`
         }
-        code = body.error.code
-        details = body.error.details
-        requestId = body.error.request_id
-      } else if (body && typeof body === 'object' && typeof body.detail === 'string') {
-        // FastAPI 默认错误结构（后端尚未接入统一错误格式时的兜底）
-        message = `${message}：${body.detail}`
+      } catch {
+        // 响应体不是 JSON 时保留默认错误信息
       }
-    } catch {
-      // 响应体不是 JSON 时保留默认错误信息
+      throw new ApiError(message, code, details, requestId)
     }
-    throw new ApiError(message, code, details, requestId)
-  }
 
-  return (await res.json()) as T
+    return (await res.json()) as T
+  } catch (error) {
+    if (error instanceof ApiError) throw error
+    if (controller.signal.aborted) {
+      throw new ApiError('请求已取消或超时（15 秒），请稍后重试', 'REQUEST_ABORTED')
+    }
+    throw new ApiError('网络请求失败，请确认后端服务已启动（http://127.0.0.1:8000）')
+  } finally {
+    clearTimeout(timeout)
+    init?.signal?.removeEventListener('abort', abortFromCaller)
+  }
 }
 
 export async function listSites(): Promise<Site[]> {

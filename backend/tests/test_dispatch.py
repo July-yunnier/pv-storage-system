@@ -156,6 +156,32 @@ def test_pv_surplus_charges_battery(dispatch_inputs: DispatchInputs) -> None:
     assert all(point.pv_curtailment_kw == 0 for point in surplus_points)
 
 
+@pytest.mark.parametrize("initial_soc", [0.5, 0.9, 0.95])
+@pytest.mark.parametrize("allow_export", [False, True])
+def test_pv_surplus_energy_balance(
+    dispatch_inputs: DispatchInputs, initial_soc: float, allow_export: bool,
+) -> None:
+    storage = dispatch_inputs.site.storage.model_copy(update={"allow_grid_export": allow_export})
+    inputs = replace(
+        dispatch_inputs,
+        site=dispatch_inputs.site.model_copy(update={"storage": storage}),
+        initial_soc=initial_soc,
+        pv_points=[dispatch_inputs.pv_points[0].model_copy(update={"value": 1000})],
+        load_points=[dispatch_inputs.load_points[0].model_copy(update={"value": 100})],
+        price_points=dispatch_inputs.price_points[:1],
+    )
+    point = RuleDispatchEngine().run(inputs).schedule[0]
+    charge = min(500, (storage.soc_max - initial_soc) * 1000 / storage.charge_eff / 0.25)
+    remainder = 900 - charge
+    assert point.charge_from_pv_kw == pytest.approx(charge)
+    assert point.pv_curtailment_kw == pytest.approx(0 if allow_export else remainder)
+    assert point.grid_export_kw == pytest.approx(remainder if allow_export else 0)
+    assert point.grid_import_kw == 0
+    assert point.pv_power_kw == pytest.approx(
+        point.load_power_kw + point.charge_from_pv_kw + point.grid_export_kw + point.pv_curtailment_kw
+    )
+
+
 def _with_demand_limit(dispatch_inputs: DispatchInputs, limit: float) -> DispatchInputs:
     site = dispatch_inputs.site.model_copy(update={"demand_limit_kw": limit})
     return replace(dispatch_inputs, site=site)
